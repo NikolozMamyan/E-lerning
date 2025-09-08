@@ -55,4 +55,15 @@ class Course
         }
         return $this;
     }
+    public function isUnlockedForUser(?User $user): bool
+{
+    if (!$user) return false;
+    foreach ($user->getEnrollments() as $enrollment) {
+        if ($enrollment->getCourse() === $this) {
+            return true;
+        }
+    }
+    return false;
+}
+
 }

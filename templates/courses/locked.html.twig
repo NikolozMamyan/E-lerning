@@ -1,0 +1,115 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Payment - {{ course.title }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('styles/courseLocked.css') }}">
+{% endblock %}
+{% block body %}
+
+<div class="payment-container">
+    <!-- LEFT -->
+    <div class="left-section">
+        <div class="customer-info">
+            <h3>Customer Information</h3>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="icon"></div>
+                    <div class="info-value">
+                        {{ app.user ? app.user.name|default('Sara Smith') : 'Sara Smith' }}
+                    </div>
+                </div>
+                <div class="info-item">
+                    <div class="icon"></div>
+                    <div class="info-value">
+                        {{ app.user ? app.user.email|default('user@example.com') : 'user@example.com' }}
+                    </div>
+                </div>
+                <div class="info-item">
+                    <div class="icon"></div>
+                    <div class="info-value">
+                        {{ app.user ? app.user.company|default('Saranco.') : 'Saranco.' }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="payment-section">
+            <h3>Payment</h3>
+            <div class="total-amount">
+                <div class="total-label">Your total payment</div>
+                <div class="total-price">$ {{ course.price|default('250.00') }}</div>
+            </div>
+            <div class="payment-methods">
+                <h4>Select Method</h4>
+                <div class="methods-grid">
+                    <div class="method-option">
+                        <div class="card-icon"></div>
+                    </div>
+                    <div class="method-option selected">
+                        <div class="paypal-logo">PayPal</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="right-section">
+        <div class="order-header">
+            <span class="order-id">Order ID: {{ 'ID-GadgetPay-' ~ course.id ~ random() }}</span>
+        </div>
+<div class="course-card">
+    <!-- Image de la vidéo -->
+    <img src="{{ course.poster|default('/images/default-course.jpg') }}" alt="{{ course.title }}" class="course-image">
+
+    <!-- Overlay sombre -->
+    <div class="course-overlay"></div>
+
+
+
+    <!-- Infos du cours -->
+    <div class="course-info">
+        <div class="course-title">{{ course.title|default('AML / KYC Basics') }}</div>
+        <div>Pay to unlock this video</div>
+        <div style="font-size: 11px; margin-top: 4px;">00:00/08:00</div>
+    </div>
+
+    <!-- Bouton -->
+    <a href="{{ path('app_course_show', {id: course.id}) }}" class="see-course-payment-btn">Show description</a>
+</div>
+
+
+        <div class="payment-summary">
+            <h4>Payment Summary</h4>
+            <div class="summary-line">
+                <span>{{ course.title }}</span>
+                <span>$ {{ (course.price|default(250) - 20)|number_format(2) }}</span>
+            </div>
+            <div class="summary-line">
+                <span>Tax</span>
+                <span>$ 20.00</span>
+            </div>
+            <div class="summary-line total">
+                <span>Total</span>
+                <span>$ {{ course.price|default('250.00') }}</span>
+            </div>
+        </div>
+
+        <form method="post" action="">
+            <button type="submit" class="pay-button">Pay Now</button>
+        </form>
+
+        <div class="security-note">
+            Payments are secure and encrypted
+        </div>
+
+        <div class="footer-links">
+            <a href="#">Terms & Conditions</a>
+            <a href="#">Privacy Policy</a>
+            <a href="#">Help</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

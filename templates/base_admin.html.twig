@@ -11,14 +11,7 @@
   {% endblock %}
 </head>
 <body>
-<div class="wrapper-layout">
-{% if app.user %}
-  {% include 'components/sidebar.html.twig' %}
-  {% endif %}
     <main class="main-content">
-    {% if app.user %}
-  {% include 'components/topbar.html.twig' %}
-      {% endif %}
     {% block body %}{% endblock %}
    </main>
 </div>

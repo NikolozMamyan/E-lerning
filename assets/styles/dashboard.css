@@ -1,12 +1,354 @@
-:root{
-  --green:#1A6D55;
-  --teal:#0D8383;
-  --black:#071717;
-  --mint:#E7F3F3;
-  --grey:#606060;
-  --white:#FFFFFF;
+/* ------- Dashboard Grid ------- */
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 2rem;
+    margin-bottom: 2rem;
+  }
 
-  --radius:12px;
-  --shadow:0 4px 12px rgba(7,23,23,.08);
-}
-*{box-sizing:border-box}
+  .card {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    box-shadow: var(--shadow);
+  }
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+
+  .card-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--teal);
+    margin: 0;
+  }
+
+  .view-all-link {
+    color: var(--teal);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.875rem;
+  }
+
+  .view-all-link:hover {
+    text-decoration: underline;
+  }
+
+  /* ------- Available Courses ------- */
+  .course-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .course-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #f1f5f9;
+  }
+
+  .course-item:last-child {
+    border-bottom: none;
+  }
+
+  .course-name {
+    color: var(--black);
+    font-weight: 500;
+  }
+
+  .course-arrow {
+    color: var(--grey);
+    width: 16px;
+    height: 16px;
+  }
+
+  /* ------- Progress Tracking ------- */
+  .progress-item {
+    margin-bottom: 1rem;
+  }
+
+  .progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+  }
+
+  .progress-label {
+    font-weight: 500;
+    color: var(--black);
+    font-size: 0.9rem;
+  }
+
+  .progress-bar {
+    height: 8px;
+    background: #e2e8f0;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--teal);
+    transition: width 0.3s ease;
+  }
+
+  .view-courses-btn {
+    display: block;
+    width: 100%;
+    text-align: center;
+    padding: 0.75rem;
+    background: transparent;
+    border: 2px solid var(--black);
+    border-radius: var(--radius);
+    color: var(--black);
+    font-weight: 600;
+    text-decoration: none;
+    margin-top: 1rem;
+    transition: all 0.2s ease;
+  }
+
+  .view-courses-btn:hover {
+    background: var(--black);
+    color: white;
+  }
+
+  /* ------- Transactions ------- */
+  .transaction-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 1rem 0;
+    border-bottom: 1px solid #f1f5f9;
+  }
+
+  .transaction-item:last-child {
+    border-bottom: none;
+  }
+
+  .transaction-info h4 {
+    margin: 0 0 0.25rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--black);
+  }
+
+  .transaction-info p {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--grey);
+  }
+
+  .transaction-amount {
+    font-weight: 700;
+    color: var(--teal);
+  }
+
+  .view-all-btn {
+    background: var(--green);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius);
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 1rem;
+    transition: all 0.2s ease;
+  }
+
+  .view-all-btn:hover {
+    background: #155a49;
+  }
+
+  /* ------- Bottom Section ------- */
+  .bottom-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+  }
+
+  /* ------- My Certificates ------- */
+  .certificate-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 0;
+    border-bottom: 1px solid #f1f5f9;
+  }
+
+  .certificate-item:last-child {
+    border-bottom: none;
+  }
+
+  .certificate-icon {
+    width: 48px;
+    height: 48px;
+    background: var(--mint);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .certificate-name {
+    flex: 1;
+    font-weight: 500;
+    color: var(--black);
+  }
+
+  .download-icon {
+    color: var(--teal);
+    cursor: pointer;
+    width: 20px;
+    height: 20px;
+  }
+
+  .download-all-btn {
+    background: var(--green);
+    color: white;
+    border: none;
+    padding: 0.875rem 2rem;
+    border-radius: var(--radius);
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 1rem;
+    transition: all 0.2s ease;
+  }
+
+  .download-all-btn:hover {
+    background: #155a49;
+  }
+
+  /* ------- Recent Videos ------- */
+  .video-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+  }
+
+  .video-card {
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    background: var(--white);
+  }
+
+  .video-thumbnail {
+    position: relative;
+    width: 100%;
+    height: 120px;
+    background-size: cover;
+    background-position: center;
+  }
+
+  .video-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .play-button {
+    width: 48px;
+    height: 48px;
+    background: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+
+  .status-badge {
+    position: absolute;
+    top: 0.5rem;
+    left: 0.5rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: white;
+  }
+
+  .status-complete { background: var(--green); }
+  .status-progress { background: #f59e0b; }
+
+  .video-info {
+    padding: 1rem;
+  }
+
+  .video-title {
+    font-weight: 600;
+    color: var(--black);
+    margin: 0 0 0.5rem;
+    font-size: 0.95rem;
+  }
+
+  .video-subtitle {
+    color: var(--grey);
+    font-size: 0.8rem;
+    margin: 0 0 0.5rem;
+  }
+
+  .video-duration {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: var(--grey);
+  }
+
+  /* ------- Responsive ------- */
+  @media (max-width: 1200px) {
+    .dashboard-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+    
+    .video-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .dashboard-layout {
+      grid-template-columns: 1fr;
+    }
+    
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: -280px;
+      width: 280px;
+      height: 100vh;
+      z-index: 1000;
+      transition: left 0.3s ease;
+    }
+    
+    .dashboard-grid {
+      grid-template-columns: 1fr;
+    }
+    
+    .bottom-section {
+      grid-template-columns: 1fr;
+    }
+    
+    .video-grid {
+      grid-template-columns: 1fr;
+    }
+    
+    .header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+  }
