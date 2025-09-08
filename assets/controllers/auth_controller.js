@@ -1,0 +1,133 @@
+import { Controller } from '@hotwired/stimulus'
+
+export default class extends Controller {
+    static targets = ['email', 'password', 'userName', 'accountType', 'result' , 'button']
+
+
+        connect() {
+            console.log("Stimulus auth controller is active ✅");
+        }
+
+    async login(event) {
+        event.preventDefault()
+
+        const email = this.emailTarget.value
+        const password = this.passwordTarget.value
+
+        const response = await fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password }),
+            credentials: 'include'
+        })
+
+        if (response.ok) {
+            this.resultTarget.innerHTML = `
+                <div style="color: var(--health-color);">✔ Login successful... redirecting...</div>
+                <span class="spinner"></span>
+            `
+            setTimeout(() => {
+                window.location.href = '/app/dashboard'
+            }, 1200)
+        } else {
+            const error = await response.json()
+            this.resultTarget.innerHTML = `
+                <div style="color: var(--damage-color);">
+                    ⚠ ${error.error || 'Login failed'}
+                </div>
+            `
+        }
+    }
+
+ async logout(event) {
+    event.preventDefault()
+
+    try {
+      const response = await fetch("/api/logout", {
+        method: "POST",
+        credentials: "include", // important pour envoyer les cookies
+        headers: {
+          "X-Requested-With": "XMLHttpRequest",
+        },
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        console.error("Erreur de déconnexion :", error.error)
+        return
+      }
+
+      const data = await response.json()
+      console.log(data.message) // "Déconnexion réussie"
+
+      // Exemple : rediriger vers la page de login
+      window.location.href = "/login"
+    } catch (err) {
+      console.error("Erreur réseau :", err)
+    }
+  }
+
+
+  async register(event) {
+    event.preventDefault()
+
+    const email = this.emailTarget.value.trim()
+    const password = this.passwordTarget.value
+    const userName = this.userNameTarget.value.trim()
+    const selectedAccountType =
+      this.accountTypeTargets.find(radio => radio.checked)?.value || "employee"
+
+    // (Optionnel) CSRF si votre backend en a besoin:
+    const csrf = document.querySelector('meta[name="csrf-token"]')?.content
+
+    try {
+      this.resultTarget.textContent = "Creating your account…"
+
+      const response = await fetch("/api/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(csrf ? { "X-CSRF-Token": csrf } : {})
+        },
+        body: JSON.stringify({
+          email,
+          password,
+          userName,
+          role: selectedAccountType
+        })
+      })
+
+      if (response.ok) {
+        this.resultTarget.innerHTML = `
+          <div style="color: var(--health-color);">✔ Account created! You can now log in.</div>
+          <span class="spinner"></span>
+        `
+        setTimeout(() => {
+          window.location.href = "/app/dashboard"
+        }, 1500)
+      } else {
+        const errorData = await safeJson(response)
+        this.resultTarget.innerHTML = `
+          <div style="color: var(--damage-color);">
+            ⚠ ${errorData?.error || errorData?.message || "Something went wrong."}
+          </div>
+        `
+      }
+    } catch (e) {
+      this.resultTarget.innerHTML = `
+        <div style="color: var(--damage-color);">
+          ⚠ Network error, please try again.
+        </div>
+      `
+      console.error(e)
+    }
+  }
+}
+
+// Petit helper pour éviter un crash si le backend ne renvoie pas du JSON
+async function safeJson(res) {
+  try { return await res.json() } catch { return null }
+}
+
+
+

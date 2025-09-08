@@ -1,0 +1,12 @@
+:root{
+  --green:#1A6D55;
+  --teal:#0D8383;
+  --black:#071717;
+  --mint:#E7F3F3;
+  --grey:#606060;
+  --white:#FFFFFF;
+
+  --radius:12px;
+  --shadow:0 4px 12px rgba(7,23,23,.08);
+}
+*{box-sizing:border-box}
