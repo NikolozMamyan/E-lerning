@@ -1,9 +1,21 @@
-  /* ------- Sidebar ------- */
-  .sidebar {
-    background: var(--mint);
-    padding: 2rem 0;
-    border-right: 1px solid #e2e8f0;
-  }
+/* ------- Sidebar ------- */
+.sidebar {
+  background: var(--mint);
+  padding: 2rem 0;
+  border-right: 1px solid #e2e8f0;
+ /* prend toute la hauteur    position: fixed; */
+  top: 0;
+  left: 0;
+  height: 100vh;         /* prend toute la hauteur */
+  overflow-y: auto;      /* permet de scroller si trop de contenu */
+  width: 250px;          /* largeur fixe pour éviter que ça bouge */
+}
+
+/* Séparateur après Send An Invitation */
+.sidebar .separator {
+  border-top: 1px solid #cbd5e0;
+  margin: 1rem 1.5rem;   /* petit espace autour */
+}
 
   .sidebar-header {
     display: flex;
