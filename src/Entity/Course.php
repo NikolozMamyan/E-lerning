@@ -24,9 +24,14 @@ class Course
     #[ORM\OneToMany(mappedBy: 'course', targetEntity: Video::class, cascade: ['persist', 'remove'])]
     private Collection $videos;
 
+    #[ORM\OneToMany(mappedBy: 'course', targetEntity: QuizQuestion::class, cascade: ['persist', 'remove'])]
+    private Collection $quizQuestions;
+
     public function __construct()
     {
         $this->videos = new ArrayCollection();
+        $this->quizQuestions = new ArrayCollection();
+
     }
 
     public function getId(): ?int { return $this->id; }
@@ -65,5 +70,8 @@ class Course
     }
     return false;
 }
+
+/** @return Collection<int, QuizQuestion> */
+public function getQuizQuestions(): Collection { return $this->quizQuestions; }
 
 }

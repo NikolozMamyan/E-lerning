@@ -32,6 +32,7 @@ security:
         - { path: ^/api/register, roles: PUBLIC_ACCESS }
         - { path: ^/api/login, roles: PUBLIC_ACCESS }
         - { path: ^/api/logout, roles: PUBLIC_ACCESS }
+        - { path: ^/api/stripe/webhook$, roles: PUBLIC_ACCESS }
 
         # API sécurisée
         - { path: ^/api/, roles: IS_AUTHENTICATED_FULLY }

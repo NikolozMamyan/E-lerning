@@ -1,0 +1,17 @@
+<h2>Quiz : {{ course.title }}</h2>
+
+<form method="post" action="{{ path('course_quiz_submit', {id: course.id}) }}">
+    {% for question in course.quizQuestions %}
+        <div class="question">
+            <p><b>{{ loop.index }}. {{ question.question }}</b></p>
+            {% for answer in question.answers %}
+                <label>
+                    <input type="radio" name="answers[{{ question.id }}]" value="{{ answer.id }}">
+                    {{ answer.text }}
+                </label><br>
+            {% endfor %}
+        </div>
+        <hr>
+    {% endfor %}
+    <button type="submit">Valider</button>
+</form>

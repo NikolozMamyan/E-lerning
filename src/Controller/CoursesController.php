@@ -37,7 +37,7 @@ public function index(
 
 
 
-#[Route('app/course/{id}/{videoId?}', name: 'app_course_show')]
+#[Route('app/course/{id}/{videoId?}', name: 'app_course_show', requirements: ['videoId' => '\d+'])]
 public function show(
     int $id,
     ?int $videoId,

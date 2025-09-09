@@ -1,0 +1,9 @@
+<h2>Résultat du quiz : {{ course.title }}</h2>
+
+<p>Score : {{ attempt.score }} %</p>
+
+{% if attempt.passed %}
+    <p style="color: green;">🎉 Félicitations, vous avez réussi le quiz !</p>
+{% else %}
+    <p style="color: red;">❌ Dommage, vous devez obtenir au moins 80%.</p>
+{% endif %}

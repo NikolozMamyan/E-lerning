@@ -1,0 +1,67 @@
+<?php
+namespace App\Controller;
+
+use App\Entity\Course;
+use App\Entity\QuizAttempt;
+use App\Service\QuizService;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Routing\Annotation\Route;
+
+class QuizController extends AbstractController
+{
+    #[Route('app/course/{id}/quiz', name: 'course_quiz')]
+    public function quiz(Course $course, QuizService $quizService, EntityManagerInterface $em)
+    {
+        $user = $this->getUser();
+
+        if (!$user) {
+            $this->addFlash('error', 'Veuillez vous connecter pour passer le quiz.');
+            return $this->redirectToRoute('app_login');
+        }
+
+        // Vérifier si l'utilisateur a un droit de passage
+        $enrollment = $quizService->canAttempt($user, $course);
+
+        if (!$enrollment) {
+            // Vérifier s'il a déjà passé le quiz
+            $lastAttempt = $em->getRepository(QuizAttempt::class)
+                ->findOneBy(['user' => $user, 'course' => $course], ['id' => 'DESC']);
+
+            return $this->render('quiz/already_done.html.twig', [
+                'course' => $course,
+                'attempt' => $lastAttempt
+            ]);
+        }
+
+        return $this->render('quiz/pass.html.twig', [
+            'course' => $course
+        ]);
+    }
+
+    #[Route('app/course/{id}/quiz/submit', name: 'course_quiz_submit', methods: ['POST'])]
+    public function submit(Course $course, Request $request, QuizService $quizService)
+    {
+        $user = $this->getUser();
+
+        if (!$user) {
+            $this->addFlash('error', 'Veuillez vous connecter pour soumettre le quiz.');
+            return $this->redirectToRoute('app_login');
+        }
+
+        $answers = $request->request->all('answers');
+
+        try {
+            $attempt = $quizService->evaluate($user, $course, $answers);
+        } catch (\Exception $e) {
+            $this->addFlash('error', $e->getMessage());
+            return $this->redirectToRoute('course_quiz', ['id' => $course->getId()]);
+        }
+
+        return $this->render('quiz/result.html.twig', [
+            'course' => $course,
+            'attempt' => $attempt
+        ]);
+    }
+}

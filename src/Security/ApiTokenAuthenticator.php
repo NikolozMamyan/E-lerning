@@ -29,7 +29,7 @@ class ApiTokenAuthenticator extends AbstractAuthenticator
         $path = $request->getPathInfo();
     
         // Ne pas activer l'authenticator pour ces routes API publiques
-        if (in_array($path, ['/api/register', '/api/login', '/api/logout'])) {
+        if (in_array($path, ['/api/register', '/api/login', '/api/logout' , '/api/stripe/webhook'])) {
             return false;
         }
     

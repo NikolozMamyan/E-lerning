@@ -1,0 +1,6 @@
+{% if attempt %}
+  <p>Vous avez déjà passé le quiz (score : {{ attempt.score }}%).</p>
+  <p>👉 Pour repasser, vous devez racheter ce cours.</p>
+{% else %}
+  <a href="{{ path('course_quiz', {id: course.id}) }}">Passer le quiz</a>
+{% endif %}

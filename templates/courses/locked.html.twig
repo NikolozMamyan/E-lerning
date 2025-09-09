@@ -96,10 +96,10 @@
                 <span>$ {{ course.price|default('250.00') }}</span>
             </div>
         </div>
+<form method="post" action="{{ path('app_course_checkout', { id: course.id }) }}">
+  <button type="submit" class="pay-button">Pay Now</button>
+</form>
 
-        <form method="post" action="">
-            <button type="submit" class="pay-button">Pay Now</button>
-        </form>
 
         <div class="security-note">
             Payments are secure and encrypted
