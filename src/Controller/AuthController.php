@@ -91,7 +91,7 @@ final class AuthController extends AbstractController
         }
 
         $token = bin2hex(random_bytes(32));
-        $expiresAt = (new \DateTime())->modify('+1 hour');
+        $expiresAt = (new \DateTime())->modify('+4 hour');
         $user->setApiToken($token);
         $user->setTokenExpiresAt($expiresAt);
         $em->flush();

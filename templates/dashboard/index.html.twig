@@ -75,8 +75,22 @@
     <button class="view-all-btn">View All</button>
   </div>
 
+</div>
+
+<style>
+
+@media (max-width: 1024px) {
+  .certif-card{
+     width:100%;
+  } .video-card {
+    width:100%;
+  }
+}
+</style>
+<div style="display:flex; gap:50px; flex-wrap: wrap;"> 
+
   <!-- Certificates (static) -->
-  <div class="card">
+  <div class="card certif-card">
     <div class="card-header">
       <h2 class="card-title">My Certificates</h2>
       <a href="/certificates" class="view-all-link">View All</a>
@@ -93,7 +107,7 @@
   </div>
 
   <!-- Recent Videos -->
-  <div class="card">
+  <div class="card video-card">
     <div class="card-header">
       <h2 class="card-title">Recent Videos</h2>
       <a href="{{path('app_courses')}}" class="view-all-link">View All</a>

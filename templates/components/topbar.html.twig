@@ -1,13 +1,69 @@
+<!-- Header -->
+<style>
 
-    <!-- Header -->
-    <header class="header">
-      <h1 class="welcome-title">Welcome in, {{app.user.userName}}</h1>
-      <div class="user-profile">
-        <img src="https://i.pravatar.cc/150?img=5" alt="Guy Hawkins" class="user-avatar">
-        <div class="user-info">
-          <h3>{{app.user.userName}}</h3>
-          <br>
-          <p></p>
-        </div>
-      </div>
-    </header>
+/* Bouton burger */
+.burger {
+  font-size: 24px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: none; /* visible seulement en mobile */
+}
+
+/* Mobile */
+@media (max-width: 1024px) {
+  .burger {
+    display: block;
+  }
+  .welcome-title{
+    display:none;
+  }
+      .header {
+      flex-direction: row;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: -260px; /* cachée */
+    width: 250px;
+    height: 100%;
+    background: var(--mint);
+    transition: left 0.3s ease;
+    z-index: 1000;
+  }
+
+  .sidebar.active {
+    left: 0; /* affichée */
+  }
+
+  .main-content {
+    margin-left: 0; /* pas de sidebar collée */
+  }
+}
+
+</style>
+<header class="header">
+  <button class="burger" id="burger-btn">
+    &#9776;
+  </button>
+
+  <h1 class="welcome-title">Welcome in, {{app.user.userName}}</h1>
+
+  <div class="user-profile">
+    <img src="https://i.pravatar.cc/150?img=5" alt="Guy Hawkins" class="user-avatar">
+    <div class="user-info">
+      <h3>{{app.user.userName}}</h3>
+    </div>
+  </div>
+</header>
+<script>
+  const burger = document.getElementById('burger-btn');
+  const sidebar = document.querySelector('.sidebar');
+
+  burger.addEventListener('click', () => {
+    sidebar.classList.toggle('active');
+  });
+</script>
