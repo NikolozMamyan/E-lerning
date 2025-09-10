@@ -1,6 +1,275 @@
+{% extends 'base.html.twig' %}
+{% block body %}
+<style>
+/* ------- Quiz Already Completed Styles ------- */
+.quiz-already-completed {
+  background: white;
+  border-radius: 20px;
+  padding: 3rem 2rem;
+  text-align: center;
+  max-width: 500px;
+  margin: 2rem auto;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  border: 2px solid #10b981;
+  position: relative;
+  overflow: hidden;
+}
+
+.quiz-already-completed::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+/* ------- Completion Icon ------- */
+.completion-icon-container {
+  margin-bottom: 2rem;
+}
+
+.completion-icon {
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+  animation: pulseSuccess 2s infinite;
+}
+
+.completion-icon svg {
+  width: 40px;
+  height: 40px;
+  fill: white;
+}
+
+@keyframes pulseSuccess {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 12px 35px rgba(16, 185, 129, 0.4);
+  }
+}
+
+/* ------- Typography ------- */
+.completion-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 1rem;
+  line-height: 1.2;
+}
+
+.completion-score {
+  font-size: 1.3rem;
+  color: #6b7280;
+  margin-bottom: 0.5rem;
+}
+
+.completion-score strong {
+  color: #10b981;
+  font-weight: 700;
+  font-size: 1.4rem;
+}
+
+.completion-message {
+  font-size: 1.1rem;
+  color: #6b7280;
+  margin-bottom: 2rem;
+  line-height: 1.5;
+}
+
+/* ------- Action Buttons ------- */
+.completion-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 2rem;
+}
+
+.dashboard-link {
+  background: transparent;
+  color: #10b981;
+  border: 2px solid #10b981;
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 120px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dashboard-link:hover {
+  background: #10b981;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+}
+
+.retake-button {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 180px;
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);
+}
+
+.retake-button:hover {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+}
+
+/* ------- Animations ------- */
+@keyframes slideInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.quiz-already-completed {
+  animation: slideInUp 0.6s ease-out;
+}
+
+.completion-title {
+  animation: slideInUp 0.8s ease-out 0.2s both;
+}
+
+.completion-score {
+  animation: slideInUp 0.8s ease-out 0.3s both;
+}
+
+.completion-message {
+  animation: slideInUp 0.8s ease-out 0.4s both;
+}
+
+.completion-actions {
+  animation: slideInUp 0.8s ease-out 0.5s both;
+}
+
+/* ------- Responsive ------- */
+@media (max-width: 768px) {
+  .quiz-already-completed {
+    margin: 1rem;
+    padding: 2rem 1.5rem;
+  }
+  
+  .completion-title {
+    font-size: 1.5rem;
+  }
+  
+  .completion-score {
+    font-size: 1.2rem;
+  }
+  
+  .completion-score strong {
+    font-size: 1.3rem;
+  }
+  
+  .completion-message {
+    font-size: 1rem;
+  }
+  
+  .completion-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .dashboard-link,
+  .retake-button {
+    width: 100%;
+    max-width: 250px;
+  }
+  
+  .completion-icon {
+    width: 70px;
+    height: 70px;
+  }
+  
+  .completion-icon svg {
+    width: 35px;
+    height: 35px;
+  }
+}
+
+@media (max-width: 480px) {
+  .completion-title {
+    font-size: 1.25rem;
+  }
+  
+  .completion-score {
+    font-size: 1.1rem;
+  }
+  
+  .completion-score strong {
+    font-size: 1.2rem;
+  }
+  
+  .completion-icon {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .completion-icon svg {
+    width: 30px;
+    height: 30px;
+  }
+}
+
+
+
+
+
+</style>
 {% if attempt %}
-  <p>Vous avez déjà passé le quiz (score : {{ attempt.score }}%).</p>
-  <p>👉 Pour repasser, vous devez racheter ce cours.</p>
+<div class="quiz-already-completed">
+  <div class="completion-icon-container">
+    <div class="completion-icon">
+      <svg viewBox="0 0 24 24">
+        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+      </svg>
+    </div>
+  </div>
+  
+  <h2 class="completion-title">You've Got This One Covered!</h2>
+  <p class="completion-score">You already aced this quiz with a <strong>{{ attempt.score }}%</strong> score!</p>
+  <p class="completion-message">Ready for round two? Purchase again to retake the challenge.</p>
+  
+  <div class="completion-actions">
+    <a href="{{ path('app_dashboard') }}" class="dashboard-link">Dashboard</a>
+    <form method="post" action="{{ path('app_course_checkout', { id: course.id }) }}" style="display: inline;">
+      <button type="submit" class="retake-button">Go for Round Two! 🚀</button>
+    </form>
+  </div>
+</div>
 {% else %}
-  <a href="{{ path('course_quiz', {id: course.id}) }}">Passer le quiz</a>
+  <!-- Votre formulaire de quiz normal ici -->
 {% endif %}
+
+{% endblock %}

@@ -1,17 +1,320 @@
-<h2>Quiz : {{ course.title }}</h2>
+{% extends 'base.html.twig' %}
 
-<form method="post" action="{{ path('course_quiz_submit', {id: course.id}) }}">
+{% block title %}Quiz - {{ course.title }}{% endblock %}
+
+{% block body %}
+<div class="quiz-container">
+  <div class="quiz-header">
+    <button class="nav-btn prev-btn" onclick="previousQuestion()">
+      <svg viewBox="0 0 24 24">
+        <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+      </svg>
+    </button>
+    <div class="question-counter">
+      <span id="current-question">Question 01</span>/<span id="total-questions">{{ course.quizQuestions|length }}</span>
+    </div>
+    
+    <button class="nav-btn next-btn" onclick="nextQuestion()">
+      <svg viewBox="0 0 24 24">
+        <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
+      </svg>
+    </button>
+  </div>
+
+  <form method="post" action="{{ path('course_quiz_submit', {id: course.id}) }}" id="quiz-form">
     {% for question in course.quizQuestions %}
-        <div class="question">
-            <p><b>{{ loop.index }}. {{ question.question }}</b></p>
+      <div class="question-slide" data-question="{{ loop.index0 }}" {% if loop.first %}style="display: block;"{% else %}style="display: none;"{% endif %}>
+        <div class="question-content">
+          <h3 class="question-text">{{ question.question }}</h3>
+          
+          <div class="answers-container">
             {% for answer in question.answers %}
-                <label>
-                    <input type="radio" name="answers[{{ question.id }}]" value="{{ answer.id }}">
-                    {{ answer.text }}
-                </label><br>
+              <label class="answer-option" for="answer_{{ question.id }}_{{ answer.id }}">
+                <input 
+                  type="radio" 
+                  id="answer_{{ question.id }}_{{ answer.id }}"
+                  name="answers[{{ question.id }}]" 
+                  value="{{ answer.id }}"
+                  onchange="selectAnswer(this)"
+                >
+                <span class="answer-text">{{ answer.text }}</span>
+              </label>
             {% endfor %}
+          </div>
         </div>
-        <hr>
+      </div>
     {% endfor %}
-    <button type="submit">Valider</button>
-</form>
+    
+    <div class="quiz-navigation">
+      <button type="button" class="next-question-btn" id="next-btn" onclick="nextQuestion()" disabled>
+        Next
+      </button>
+      
+      <button type="submit" class="submit-quiz-btn" id="submit-btn" style="display: none;">
+        Submit Quiz
+      </button>
+    </div>
+  </form>
+</div>
+
+<script>
+let currentQuestionIndex = 0;
+const totalQuestions = {{ course.quizQuestions|length }};
+const questionSlides = document.querySelectorAll('.question-slide');
+const nextBtn = document.getElementById('next-btn');
+const submitBtn = document.getElementById('submit-btn');
+
+function updateQuestionCounter() {
+  document.getElementById('current-question').textContent = 
+    `Question ${(currentQuestionIndex + 1).toString().padStart(2, '0')}`;
+}
+
+function showQuestion(index) {
+  questionSlides.forEach((slide, i) => {
+    slide.style.display = i === index ? 'block' : 'none';
+  });
+  
+  // Update navigation buttons
+  document.querySelector('.prev-btn').disabled = index === 0;
+  document.querySelector('.next-btn').disabled = index === totalQuestions - 1;
+  
+  // Show/hide next/submit buttons
+  if (index === totalQuestions - 1) {
+    nextBtn.style.display = 'none';
+    submitBtn.style.display = 'block';
+  } else {
+    nextBtn.style.display = 'block';
+    submitBtn.style.display = 'none';
+  }
+  
+  // Check if current question is answered
+  const currentSlide = questionSlides[index];
+  const selectedAnswer = currentSlide.querySelector('input[type="radio"]:checked');
+  nextBtn.disabled = !selectedAnswer;
+  submitBtn.disabled = false; // Allow submit even if last question not answered
+}
+
+function nextQuestion() {
+  if (currentQuestionIndex < totalQuestions - 1) {
+    currentQuestionIndex++;
+    updateQuestionCounter();
+    showQuestion(currentQuestionIndex);
+  }
+}
+
+function previousQuestion() {
+  if (currentQuestionIndex > 0) {
+    currentQuestionIndex--;
+    updateQuestionCounter();
+    showQuestion(currentQuestionIndex);
+  }
+}
+
+function selectAnswer(input) {
+  // Remove selected class from all answers in current question
+  const currentSlide = questionSlides[currentQuestionIndex];
+  currentSlide.querySelectorAll('.answer-option').forEach(option => {
+    option.classList.remove('selected');
+  });
+  
+  // Add selected class to chosen answer
+  input.closest('.answer-option').classList.add('selected');
+  
+  // Enable next button
+  nextBtn.disabled = false;
+}
+
+// Initialize
+updateQuestionCounter();
+showQuestion(0);
+</script>
+<style>
+
+/* ------- Quiz Styles ------- */
+.quiz-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.quiz-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 3rem;
+  padding: 0 1rem;
+}
+
+.nav-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 50%;
+  transition: background-color 0.2s ease;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-btn:hover:not(:disabled) {
+  background: #f3f4f6;
+}
+
+.nav-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.nav-btn svg {
+  width: 24px;
+  height: 24px;
+  fill: #374151;
+}
+
+.question-counter {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.question-slide {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 500px;
+}
+
+.question-content {
+  text-align: center;
+}
+
+.question-text {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 3rem;
+  line-height: 1.4;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.answers-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.answer-option {
+  display: block;
+  padding: 1.25rem 1.5rem;
+  background: #f8fafc;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.answer-option:hover {
+  border-color: #1a6d55;
+  background: #f0fdfa;
+}
+
+.answer-option.selected {
+  background: #1a6d55;
+  border-color: #1a6d55;
+  color: white;
+}
+
+.answer-option input[type="radio"] {
+  display: none;
+}
+
+.answer-text {
+  font-size: 1rem;
+  font-weight: 500;
+  display: block;
+  text-align: left;
+}
+
+.quiz-navigation {
+  display: flex;
+  justify-content: center;
+  margin-top: 3rem;
+}
+
+.next-question-btn,
+.submit-quiz-btn {
+  background: #1a6d55;
+  color: white;
+  border: none;
+  padding: 1rem 2.5rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 120px;
+}
+
+.next-question-btn:hover:not(:disabled),
+.submit-quiz-btn:hover:not(:disabled) {
+  background: #155a49;
+  transform: translateY(-1px);
+}
+
+.next-question-btn:disabled {
+  background: #d1d5db;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ------- Responsive ------- */
+@media (max-width: 768px) {
+  .quiz-container {
+    padding: 1rem;
+  }
+  
+  .question-text {
+    font-size: 1.25rem;
+    margin-bottom: 2rem;
+  }
+  
+  .answer-option {
+    padding: 1rem;
+  }
+  
+  .quiz-header {
+    margin-bottom: 2rem;
+  }
+  
+  .question-slide {
+    min-height: 400px;
+  }
+}
+
+@media (max-width: 480px) {
+  .question-counter {
+    font-size: 1.1rem;
+  }
+  
+  .question-text {
+    font-size: 1.1rem;
+  }
+  
+  .answer-text {
+    font-size: 0.9rem;
+  }
+}
+</style>
+{% endblock %}

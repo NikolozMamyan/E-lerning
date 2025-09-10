@@ -13,8 +13,8 @@ class QuizAnswer
     #[ORM\Column]
     private ?int $id = null;
     
-    #[ORM\Column(type: 'string', length: 255)]
-    private string $text;
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    private ?string $text = null;
 
     #[ORM\Column(type: 'boolean')]
     private bool $isCorrect = false;
@@ -23,8 +23,9 @@ class QuizAnswer
     private ?QuizQuestion $question = null;
 
     public function getId(): ?int { return $this->id; }
-    public function getText(): string { return $this->text; }
-    public function setText(string $text): self { $this->text = $text; return $this; }
+
+    public function getText(): ?string { return $this->text; }
+    public function setText(?string $text): self { $this->text = $text; return $this; }
 
     public function isCorrect(): bool { return $this->isCorrect; }
     public function setIsCorrect(bool $isCorrect): self { $this->isCorrect = $isCorrect; return $this; }

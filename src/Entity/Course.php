@@ -21,20 +21,20 @@ class Course
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $description = null;
 
-    #[ORM\OneToMany(mappedBy: 'course', targetEntity: Video::class, cascade: ['persist', 'remove'])]
+    #[ORM\OneToMany(mappedBy: 'course', targetEntity: Video::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $videos;
 
-    #[ORM\OneToMany(mappedBy: 'course', targetEntity: QuizQuestion::class, cascade: ['persist', 'remove'])]
+    #[ORM\OneToMany(mappedBy: 'course', targetEntity: QuizQuestion::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $quizQuestions;
 
     public function __construct()
     {
         $this->videos = new ArrayCollection();
         $this->quizQuestions = new ArrayCollection();
-
     }
 
     public function getId(): ?int { return $this->id; }
+
     public function getTitle(): string { return $this->title; }
     public function setTitle(string $title): self { $this->title = $title; return $this; }
 
@@ -60,18 +60,24 @@ class Course
         }
         return $this;
     }
-    public function isUnlockedForUser(?User $user): bool
-{
-    if (!$user) return false;
-    foreach ($user->getEnrollments() as $enrollment) {
-        if ($enrollment->getCourse() === $this) {
-            return true;
+
+    /** @return Collection<int, QuizQuestion> */
+    public function getQuizQuestions(): Collection { return $this->quizQuestions; }
+    public function addQuizQuestion(QuizQuestion $question): self
+    {
+        if (!$this->quizQuestions->contains($question)) {
+            $this->quizQuestions[] = $question;
+            $question->setCourse($this);
         }
+        return $this;
     }
-    return false;
-}
-
-/** @return Collection<int, QuizQuestion> */
-public function getQuizQuestions(): Collection { return $this->quizQuestions; }
-
+    public function removeQuizQuestion(QuizQuestion $question): self
+    {
+        if ($this->quizQuestions->removeElement($question)) {
+            if ($question->getCourse() === $this) {
+                $question->setCourse(null);
+            }
+        }
+        return $this;
+    }
 }

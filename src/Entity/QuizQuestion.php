@@ -21,12 +21,17 @@ class QuizQuestion
     #[ORM\ManyToOne(inversedBy: 'quizQuestions')]
     private ?Course $course = null;
 
-    #[ORM\OneToMany(mappedBy: 'question', targetEntity: QuizAnswer::class, cascade: ['persist', 'remove'])]
+    #[ORM\OneToMany(mappedBy: 'question', targetEntity: QuizAnswer::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $answers;
 
     public function __construct()
     {
         $this->answers = new ArrayCollection();
+
+        // Préremplir 4 réponses vides par défaut
+        for ($i = 0; $i < 4; $i++) {
+            $this->addAnswer(new QuizAnswer());
+        }
     }
 
     public function getId(): ?int { return $this->id; }
@@ -43,6 +48,15 @@ class QuizQuestion
         if (!$this->answers->contains($answer)) {
             $this->answers[] = $answer;
             $answer->setQuestion($this);
+        }
+        return $this;
+    }
+    public function removeAnswer(QuizAnswer $answer): self
+    {
+        if ($this->answers->removeElement($answer)) {
+            if ($answer->getQuestion() === $this) {
+                $answer->setQuestion(null);
+            }
         }
         return $this;
     }

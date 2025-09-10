@@ -3,74 +3,79 @@
 {% block title %}Project Management - Course{% endblock %}
 
 {% block body %}
- <!-- Video Player -->
-<div class="video-container">
-  {% if currentVideo %}
-    <video
-      id="course-video"
-      width="100%"
-      controls
-      preload="metadata"
-      data-controller="progress"
-      data-progress-video-id-value="{{ currentVideo.id }}"
-      data-progress-expected-duration-value="{{ currentVideo.duration|default(0) }}"
-      data-progress-update-url-value="{{ path('app_progress_update', { id: currentVideo.id }) }}"
-      data-progress-popup-image-value="{{ asset('images/congrats.svg') }}"
-    >
-      <source src="{{ currentVideo.url }}" type="video/mp4">
-    </video>
-  {% else %}
-    <div class="video-background"></div>
-    <div class="video-overlay">
-      <div class="lock-icon-large">
-        <svg viewBox="0 0 24 24">
-          <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
-        </svg>
-      </div>
+<div class="course-layout">
+  <div class="main-course-content">
+    <!-- Video Player -->
+    <div class="video-container">
+      {% if currentVideo %}
+        <video
+          id="course-video"
+          width="100%"
+          controls
+          preload="metadata"
+          data-controller="progress"
+          data-progress-video-id-value="{{ currentVideo.id }}"
+          data-progress-expected-duration-value="{{ currentVideo.duration|default(0) }}"
+          data-progress-update-url-value="{{ path('app_progress_update', { id: currentVideo.id }) }}"
+          data-progress-popup-image-value="{{ asset('images/congrats.svg') }}"
+        >
+          <source src="{{ currentVideo.url }}" type="video/mp4">
+        </video>
+      {% else %}
+        <div class="video-background"></div>
+        <div class="video-overlay">
+          <div class="lock-icon-large">
+            <svg viewBox="0 0 24 24">
+              <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
+            </svg>
+          </div>
+        </div>
+      {% endif %}
     </div>
-  {% endif %}
-</div>
 
-<!-- Lesson Info -->
-<div class="lesson-info">
-  <h2 class="lesson-title">{{ course.title }}</h2>
-  <p class="lesson-description">{{ course.description }}</p>
-
-  <p><strong>Progression :</strong> {{ progressPercent }}%</p>
-</div>
-
-<!-- Right Sidebar -->
-<aside class="right-sidebar">
-  <h3 class="sidebar-title">Upcoming Videos</h3>
-  <div class="upcoming-videos">
-    {% for video in videos %}
-      <div class="video-item">
-        <div class="video-thumbnail bg-project">
-          {% set userProgress = progress[video.id] ?? null %}
-          {% if userProgress and userProgress.completed %}
-            <div class="video-status-badge status-complete">Complete</div>
-          {% elseif userProgress %}
-            <div class="video-status-badge status-progress">In progress</div>
-          {% endif %}
-          <div class="video-overlay">
-            <a href="{{ path('app_course_show', { id: course.id, videoId: video.id }) }}" class="play-button">
-              <svg viewBox="0 0 24 24">
-                <path d="M8 5v14l11-7z"/>
-              </svg>
-            </a>
-          </div>
-        </div>
-        <div class="video-info">
-          <h4 class="video-title">{{ video.title }}</h4>
-          <p class="video-subtitle">{{ course.description }}</p>
-          <div class="video-duration">
-            <span>00:00</span>
-            <span>{{ (video.duration / 60)|round(0, 'floor') }}:{{ (video.duration % 60)|default('00') }}</span>
-          </div>
-        </div>
-      </div>
-    {% endfor %}
+    <!-- Lesson Info -->
+    <div class="lesson-info">
+      <h2 class="lesson-title">{{ course.title }}</h2>
+      {% if progressPercent == 100 %}
+        <a href="{{ path('course_quiz', {id: course.id}) }}" class="see-course-btn" style="padding:15px;">Start Quiz Now</a>
+      {% endif %}
+      <p class="lesson-description">{{ course.description }}</p>
+      <p><strong>Progression :</strong> {{ progressPercent }}%</p>
+    </div>
   </div>
-</aside>
 
+  <!-- Right Sidebar / Mobile Bottom -->
+  <aside class="upcoming-videos-sidebar">
+    <h3 class="sidebar-title">Upcoming Videos</h3>
+    <div class="upcoming-videos">
+      {% for video in videos %}
+        <div class="video-item">
+          <div class="video-thumbnail bg-project">
+            {% set userProgress = progress[video.id] ?? null %}
+            {% if userProgress and userProgress.completed %}
+              <div class="video-status-badge status-complete">Complete</div>
+            {% elseif userProgress %}
+              <div class="video-status-badge status-progress">In progress</div>
+            {% endif %}
+            <div class="video-overlay">
+              <a href="{{ path('app_course_show', { id: course.id, videoId: video.id }) }}" class="play-button">
+                <svg viewBox="0 0 24 24">
+                  <path d="M8 5v14l11-7z"/>
+                </svg>
+              </a>
+            </div>
+          </div>
+          <div class="video-info">
+            <h4 class="video-title">{{ video.title }}</h4>
+            <p class="video-subtitle">{{ course.description }}</p>
+            <div class="video-duration">
+              <span>00:00</span>
+              <span>{{ (video.duration / 60)|round(0, 'floor') }}:{{ (video.duration % 60)|default('00') }}</span>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </aside>
+</div>
 {% endblock %}

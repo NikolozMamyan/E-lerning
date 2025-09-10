@@ -41,7 +41,7 @@ export default class extends Controller {
     this.video.addEventListener("timeupdate", () => {
       if (!this.completedSent && this.shouldComplete()) {
         this.completedSent = true
-        this.sendProgress(this.effectiveDuration())
+        this.sendProgress(this.effectiveDuration(), false, true) // 👈 envoie completed: true
         this.showPopup()
       }
     })
@@ -49,7 +49,7 @@ export default class extends Controller {
     this.video.addEventListener("ended", () => {
       if (!this.completedSent) {
         this.completedSent = true
-        this.sendProgress(this.effectiveDuration())
+        this.sendProgress(this.effectiveDuration(), false, true) // 👈 envoie completed: true
         this.showPopup()
       }
     })
@@ -82,12 +82,15 @@ export default class extends Controller {
     return this.video.ended || (this.video.currentTime >= dur * this.COMPLETE_THRESHOLD)
   }
 
-  sendProgress(seconds, useBeacon = false) {
+  sendProgress(seconds, useBeacon = false, forceComplete = false) {
     const sec = Math.max(0, Math.floor(seconds || this.video.currentTime || 0))
-    if (!useBeacon && sec === this.lastSent) return
+    if (!useBeacon && sec === this.lastSent && !forceComplete) return
     this.lastSent = sec
 
-    const payload = JSON.stringify({ watched: sec })
+    const payload = JSON.stringify({
+      watched: sec,
+      completed: forceComplete // 👈 envoie le flag si besoin
+    })
 
     if (useBeacon && navigator.sendBeacon) {
       const blob = new Blob([payload], { type: "application/json" })
@@ -109,39 +112,38 @@ export default class extends Controller {
       .catch(err => console.error("Progress error:", err))
   }
 
-showPopup() {
-  console.log("🎉 showPopup called!"); // Debug
+  showPopup() {
+    console.log("🎉 showPopup called!") // Debug
 
-  const overlay = document.createElement("div");
-  overlay.classList.add("progress-popup-overlay"); // plus propre pour CSS
+    const overlay = document.createElement("div")
+    overlay.classList.add("progress-popup-overlay") // plus propre pour CSS
 
-  const popup = document.createElement("div");
-  popup.classList.add("progress-popup");
+    const popup = document.createElement("div")
+    popup.classList.add("progress-popup")
 
-  const img = document.createElement("img");
-  img.src = this.popupImageValue;
-  img.style.width = "120px";
-  img.style.marginBottom = "1rem";
+    const img = document.createElement("img")
+    img.src = this.popupImageValue
+    img.style.width = "120px"
+    img.style.marginBottom = "1rem"
 
-  const title = document.createElement("h2");
-  title.textContent = "🎉 Congratulations!";
-  title.style.marginBottom = "0.5rem";
+    const title = document.createElement("h2")
+    title.textContent = "🎉 Congratulations!"
+    title.style.marginBottom = "0.5rem"
 
-  const text = document.createElement("p");
-  text.textContent = "You successfully completed this lesson.";
+    const text = document.createElement("p")
+    text.textContent = "You successfully completed this lesson."
 
-  const btn = document.createElement("button");
-  btn.textContent = "OK";
-  btn.classList.add("popup-btn");
-  btn.addEventListener("click", () => window.location.reload());
+    const btn = document.createElement("button")
+    btn.textContent = "OK"
+    btn.classList.add("popup-btn")
+    btn.addEventListener("click", () => window.location.reload())
 
-  popup.appendChild(img);
-  popup.appendChild(title);
-  popup.appendChild(text);
-  popup.appendChild(btn);
+    popup.appendChild(img)
+    popup.appendChild(title)
+    popup.appendChild(text)
+    popup.appendChild(btn)
 
-  overlay.appendChild(popup);
-  document.body.appendChild(overlay);
-}
-
+    overlay.appendChild(popup)
+    document.body.appendChild(overlay)
+  }
 }

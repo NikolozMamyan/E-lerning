@@ -1,0 +1,6 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+<h1>Nouveau cours</h1>
+{% include 'admin/_form.html.twig' with {form: form, course: course} %}
+{% endblock %}

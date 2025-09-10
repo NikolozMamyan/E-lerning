@@ -1,0 +1,125 @@
+{% extends 'base.html.twig' %}
+
+{% block stylesheets %}
+<style>
+:root {
+  --green:#1A6D55;
+  --teal:#0D8383;
+  --black:#071717;
+  --mint:#E7F3F3;
+  --grey:#606060;
+  --white:#FFFFFF;
+  --bg:#f4f9f8;
+  --radius:12px;
+  --shadow:0 4px 12px rgba(7,23,23,.08);
+}
+
+body {
+  background: var(--bg);
+  color: var(--black);
+  font-family: system-ui, sans-serif;
+  line-height: 1.6;
+  padding: 2rem;
+}
+
+h1 {
+  color: var(--green);
+  margin-bottom: .5rem;
+}
+
+p {
+  margin-bottom: 2rem;
+  color: var(--grey);
+}
+
+.section {
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.section h3 {
+  color: var(--teal);
+  margin-bottom: 1rem;
+}
+
+ul, ol {
+  padding-left: 1.5rem;
+}
+
+a.btn {
+  display: inline-block;
+  padding: .6rem 1.2rem;
+  border-radius: var(--radius);
+  text-decoration: none;
+  font-weight: bold;
+  transition: background .2s;
+}
+
+a.btn-primary {
+  background: var(--green);
+  color: var(--white);
+}
+
+a.btn-primary:hover {
+  background: var(--teal);
+}
+
+a.btn-secondary {
+  background: var(--mint);
+  color: var(--black);
+  border: 1px solid var(--teal);
+}
+
+a.btn-secondary:hover {
+  background: var(--teal);
+  color: var(--white);
+}
+</style>
+{% endblock %}
+
+{% block body %}
+  <h1>{{ course.title }}</h1>
+  <p>{{ course.description }}</p>
+
+  <div class="section">
+    <h3>🎥 Vidéos</h3>
+    <ul>
+      {% for v in course.videos %}
+        <li>
+          <strong>{{ v.title }}</strong> ({{ v.duration }}s) —
+          <a href="{{ v.url }}" class="btn btn-primary" target="_blank">Voir</a>
+        </li>
+      {% else %}
+        <li>Aucune vidéo disponible.</li>
+      {% endfor %}
+    </ul>
+  </div>
+
+  <div class="section">
+    <h3>📝 Quiz</h3>
+    <ol>
+      {% for q in course.quizQuestions %}
+        <li>
+          {{ q.question }}
+          <ul>
+            {% for a in q.answers %}
+              <li>
+                {{ a.text }} 
+                {% if a.isCorrect %}
+                  <strong style="color: var(--green);">(correct)</strong>
+                {% endif %}
+              </li>
+            {% endfor %}
+          </ul>
+        </li>
+      {% else %}
+        <li>Aucun quiz pour ce cours.</li>
+      {% endfor %}
+    </ol>
+  </div>
+
+  <a href="{{ path('admin_course_index') }}" class="btn btn-secondary">← Retour</a>
+{% endblock %}

@@ -33,6 +33,7 @@ class ProgressController extends AbstractController
 
         $data = json_decode($request->getContent(), true);
         $watched = isset($data['watched']) ? (int) $data['watched'] : 0;
+        $completed = isset($data['completed']) && $data['completed'] === true;
 
         // Vérifie si un enregistrement existe déjà
         $progress = $progressRepo->findOneBy([
@@ -53,12 +54,8 @@ class ProgressController extends AbstractController
             max($progress->getWatchedSeconds(), $watched)
         );
 
-        // Calcul du seuil sur la durée BDD
-        $duration = max(1, (int) $video->getDuration()); // évite division par zéro
-        $threshold = (int) ceil($duration * 0.9);
-
-        // Si déjà complété, on ne rétrograde jamais
-        if (!$progress->isCompleted() && $progress->getWatchedSeconds() >= $threshold) {
+        // Si le front signale que la vidéo est terminée → on la marque comme complétée
+        if ($completed && !$progress->isCompleted()) {
             $progress->setCompleted(true);
         }
 
@@ -69,8 +66,6 @@ class ProgressController extends AbstractController
             'status' => 'ok',
             'completed' => $progress->isCompleted(),
             'watched' => $progress->getWatchedSeconds(),
-            'referenceDuration' => $duration,
-            'threshold' => $threshold,
         ]);
     }
 }

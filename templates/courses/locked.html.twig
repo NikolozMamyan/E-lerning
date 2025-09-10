@@ -17,7 +17,7 @@
                 <div class="info-item">
                     <div class="icon"></div>
                     <div class="info-value">
-                        {{ app.user ? app.user.name|default('Sara Smith') : 'Sara Smith' }}
+                        {{ app.user ? app.user.username|default('Sara Smith') : 'Sara Smith' }}
                     </div>
                 </div>
                 <div class="info-item">
@@ -29,7 +29,7 @@
                 <div class="info-item">
                     <div class="icon"></div>
                     <div class="info-value">
-                        {{ app.user ? app.user.company|default('Saranco.') : 'Saranco.' }}
+                        {{ app.user ? app.user.username ~ ' ' ~ 'co'|default('Saranco.') : 'Saranco.' }}
                     </div>
                 </div>
             </div>

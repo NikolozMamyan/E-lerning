@@ -1,9 +1,311 @@
-<h2>Résultat du quiz : {{ course.title }}</h2>
+{% extends 'base.html.twig' %}
 
-<p>Score : {{ attempt.score }} %</p>
+{% block title %}Quiz Results - {{ course.title }}{% endblock %}
 
-{% if attempt.passed %}
-    <p style="color: green;">🎉 Félicitations, vous avez réussi le quiz !</p>
-{% else %}
-    <p style="color: red;">❌ Dommage, vous devez obtenir au moins 80%.</p>
-{% endif %}
+{% block body %}
+<style>
+
+/* ------- Quiz Results Styles ------- */
+.quiz-results-container {
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+
+}
+
+.success-results,
+.failure-results {
+  background: white;
+  border-radius: 20px;
+  padding: 3rem 2rem;
+  text-align: center;
+  max-width: 500px;
+  width: 100%;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+/* ------- Success State ------- */
+.trophy-container {
+  margin-bottom: 2rem;
+  position: relative;
+}
+
+.trophy-icon {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto;
+  display: block;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+}
+
+/* ------- Failure State ------- */
+.failure-results {
+  background: linear-gradient(135deg, #fef7f7 0%, #fef2f2 100%);
+  border: 2px solid #fecaca;
+}
+
+.failure-icon-container {
+  margin-bottom: 2rem;
+}
+
+.failure-icon {
+  width: 80px;
+  height: 80px;
+  background: #ef4444;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  position: relative;
+}
+
+.failure-icon::before,
+.failure-icon::after {
+  content: '';
+  position: absolute;
+  width: 3px;
+  height: 30px;
+  background: white;
+  border-radius: 2px;
+}
+
+.failure-icon::before {
+  transform: rotate(45deg);
+}
+
+.failure-icon::after {
+  transform: rotate(-45deg);
+}
+
+/* ------- Typography ------- */
+.result-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 1rem;
+  line-height: 1.2;
+}
+
+.score-text {
+  font-size: 1.5rem;
+  color: #6b7280;
+  margin-bottom: 0.5rem;
+}
+
+.score-text strong {
+  color: #1a6d55;
+  font-weight: 700;
+}
+
+.requirement-text {
+  font-size: 1rem;
+  color: #ef4444;
+  margin-bottom: 2rem;
+  font-weight: 500;
+}
+
+/* ------- Action Buttons ------- */
+.action-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 2.5rem;
+  flex-wrap: wrap;
+}
+
+.dashboard-btn {
+  background: transparent;
+  color: #1a6d55;
+  border: 2px solid #1a6d55;
+  padding: 1rem 2rem;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 140px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dashboard-btn:hover {
+  background: #1a6d55;
+  color: white;
+  transform: translateY(-2px);
+}
+
+.certificate-btn,
+.retry-btn {
+  background: #1a6d55;
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 140px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.certificate-btn:hover,
+.retry-btn:hover {
+  background: #155a49;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(26, 109, 85, 0.3);
+}
+
+.retry-btn {
+  background: #ef4444;
+}
+
+.retry-btn:hover {
+  background: #dc2626;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+/* ------- Animations ------- */
+@keyframes bounceIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.trophy-icon,
+.failure-icon {
+  animation: bounceIn 0.6s ease-out;
+}
+
+.result-title {
+  animation: fadeInUp 0.8s ease-out 0.2s both;
+}
+
+.score-text {
+  animation: fadeInUp 0.8s ease-out 0.4s both;
+}
+
+.action-buttons {
+  animation: fadeInUp 0.8s ease-out 0.6s both;
+}
+
+@keyframes fadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ------- Responsive ------- */
+@media (max-width: 768px) {
+  .quiz-results-container {
+    padding: 1rem;
+  }
+  
+  .success-results,
+  .failure-results {
+    padding: 2rem 1.5rem;
+  }
+  
+  .result-title {
+    font-size: 1.5rem;
+  }
+  
+  .score-text {
+    font-size: 1.25rem;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .dashboard-btn,
+  .certificate-btn,
+  .retry-btn {
+    width: 100%;
+    max-width: 250px;
+  }
+  
+  .trophy-icon {
+    width: 100px;
+    height: 100px;
+  }
+}
+
+@media (max-width: 480px) {
+  .result-title {
+    font-size: 1.25rem;
+  }
+  
+  .trophy-icon {
+    width: 80px;
+    height: 80px;
+  }
+}
+</style>
+<div class="quiz-results-container">
+  {% if attempt.passed %}
+    <div class="success-results">
+      <div class="trophy-container">
+        <img src="{{ asset('images/quiz_passed.svg') }}" alt="Quiz Passed" class="trophy-icon">
+      </div>
+      
+      <h1 class="result-title">Congratulations you have passed</h1>
+      <p class="score-text">You scored <strong>{{ attempt.score }}%</strong></p>
+      
+      <div class="action-buttons">
+        <a href="{{ path('app_dashboard') }}" class="dashboard-btn">Dashboard</a>
+        <a href="#"class="certificate-btn">Get Certificate</a>
+        {# <a href="{{ path('app_certificate', { id: course.id }) }}" class="certificate-btn">Get Certificate</a> #}
+      </div>
+    </div>
+  {% else %}
+    <div class="failure-results">
+      <div class="failure-icon-container">
+        <div class="failure-icon">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+          </svg>
+        </div>
+      </div>
+      
+      <h1 class="result-title">Almost there!</h1>
+      <p class="score-text">You scored <strong>{{ attempt.score }}%</strong></p>
+      <p class="requirement-text">You need at least <strong>80%</strong> to pass</p>
+      
+      <div class="action-buttons">
+        <a href="{{ path('app_dashboard') }}" class="dashboard-btn">Dashboard</a>
+        <form method="post" action="{{ path('app_course_checkout', { id: course.id }) }}" style="display: inline;">
+          <button type="submit" class="retry-btn">Try Again</button>
+        </form>
+      </div>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
