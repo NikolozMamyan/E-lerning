@@ -206,9 +206,7 @@
       grid-template-columns: 1fr;
     }
     
-    .main-content {
-      padding: 1rem;
-    }
+
   }
     /* ------- single - Course (product)------- */
 
@@ -532,9 +530,7 @@
       display: none;
     }
     
-    .main-content {
-      padding: 1rem;
-    }
+
   }
 
   @media (max-width: 768px) {
@@ -600,22 +596,22 @@
 
 /* ------- Course Layout ------- */
 .course-layout {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
+  display: flex;
+  justify-content: space-evenly;
   gap: 2rem;
-  max-width: 1400px;
   margin: 0 auto;
-  padding: 2rem;
+
 }
 
 .main-course-content {
-  min-width: 0; /* Permet au contenu de se réduire si nécessaire */
+ width: 70%;
 }
 
 /* ------- Upcoming Videos Sidebar ------- */
 .upcoming-videos-sidebar {
   background: var(--white);
   border: 1px solid #e2e8f0;
+  width: 30%;
   border-radius: var(--radius);
   padding: 1.5rem;
   height: fit-content;
@@ -636,26 +632,22 @@
   gap: 1rem;
 }
 
-/* ------- Responsive ------- */
-@media (max-width: 1200px) {
-  .course-layout {
-    grid-template-columns: 1fr 280px;
-  }
-}
+
 
 @media (max-width: 1024px) {
-  .course-layout {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto auto;
+
+  .course-layout{
+    flex-direction: column;
+    align-items: center;
   }
-  
   .upcoming-videos-sidebar {
     position: static;
     order: 2;
+    width: 100%;
   }
   
   .main-course-content {
-    order: 1;
+     width: 100%;
   }
 }
 

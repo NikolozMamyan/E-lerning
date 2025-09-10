@@ -28,15 +28,14 @@ min-height: 100vh;
 }
 
 .wrapper-layout {
-    display: grid;
-    grid-template-columns: 280px 1fr;
-    min-height: 100vh;
+margin-left: 280px;
+margin-right: 20px;
   }        
 
 
   @media (max-width: 1024px) {
   .wrapper-layout {
-    display: block; /* ou flex si tu préfères */
-    grid-template-columns: none; /* facultatif, mais pour être sûr */
+margin-left: 5px;
+margin-right: 5px;
   }
 }

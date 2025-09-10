@@ -1,64 +1,121 @@
 {{ form_start(form, {'attr': {'class': 'course-form'}}) }}
 
 <div class="form-section">
-    <h2>Informations du cours</h2>
-    {{ form_row(form.title) }}
-    {{ form_row(form.description) }}
+    <div class="section-header">
+        <h2>New course</h2>
+        <p>Basic details about your course</p>
+    </div>
+    <div class="form-grid">
+        {{ form_row(form.title) }}
+        {{ form_row(form.description) }}
+    </div>
 </div>
 
-<hr>
+<div class="divider"></div>
+
 <div class="form-section">
-    <h2>Vidéos</h2>
+    <div class="section-header">
+        <h2>Course Videos</h2>
+        <p>Add educational videos to your course</p>
+    </div>
     <div id="course_videos"
          data-prototype="{{ form_widget(form.videos.vars.prototype)|e('html_attr') }}"
-         data-index="{{ form.videos|length }}">
+         data-index="{{ form.videos|length }}"
+         class="collection-container">
         {% for videoForm in form.videos %}
-            <div class="video-item card">
-                {{ form_row(videoForm.title) }}
+            <div class="video-item card collection-item">
+                <div class="item-header">
+                    <span class="item-number">Video {{ loop.index }}</span>
+                    <button type="button" class="btn btn-danger btn-small remove-item" title="Remove this video">
+                        <span class="btn-icon">×</span> Remove
+                    </button>
+                </div>
+                <div class="form-grid">
+                    {{ form_row(videoForm.title) }}
+                    {{ form_row(videoForm.duration) }}
+                </div>
                 {{ form_row(videoForm.description) }}
-                {{ form_row(videoForm.duration) }}
                 {{ form_row(videoForm.url) }}
-                <button type="button" class="btn btn-danger btn-small remove-item">Supprimer</button>
             </div>
         {% endfor %}
+        {% if form.videos|length == 0 %}
+            <div class="empty-state">
+                <p>No videos added yet. Click the button below to add your first video.</p>
+            </div>
+        {% endif %}
     </div>
-    <button type="button" class="btn btn-primary btn-small add-item" data-target="#course_videos">+ Ajouter une vidéo</button>
+    <button type="button" class="btn btn-primary add-item" data-target="#course_videos">
+        <span class="btn-icon">+</span> Add Video
+    </button>
 </div>
 
-<hr>
+<div class="divider"></div>
+
 <div class="form-section">
-    <h2>Quiz</h2>
+    <div class="section-header">
+        <h2>Quiz Questions</h2>
+        <p>Create interactive questions to test knowledge</p>
+    </div>
     <div id="course_questions"
          data-prototype="{{ form_widget(form.quizQuestions.vars.prototype)|e('html_attr') }}"
-         data-index="{{ form.quizQuestions|length }}">
+         data-index="{{ form.quizQuestions|length }}"
+         class="collection-container">
         {% for qForm in form.quizQuestions %}
-            <div class="question-item card">
+            <div class="question-item card collection-item">
+                <div class="item-header">
+                    <span class="item-number">Question {{ loop.index }}</span>
+                    <button type="button" class="btn btn-danger btn-small remove-item" title="Remove this question">
+                        <span class="btn-icon">×</span> Remove Question
+                    </button>
+                </div>
+                
                 {{ form_row(qForm.question) }}
 
-                <div class="answers"
-                     data-prototype="{{ form_widget(qForm.answers.vars.prototype)|e('html_attr') }}"
-                     data-index="{{ qForm.answers|length }}">
-                    {% for aForm in qForm.answers %}
-                        <div class="answer-item">
-                            {{ form_row(aForm.text) }}
-                            {{ form_row(aForm.isCorrect) }}
-                            <button type="button" class="btn btn-danger btn-small remove-item">Supprimer</button>
-                        </div>
-                    {% endfor %}
+                <div class="answers-section">
+                    <h4>Answer Options</h4>
+                    <div class="answers"
+                         data-prototype="{{ form_widget(qForm.answers.vars.prototype)|e('html_attr') }}"
+                         data-index="{{ qForm.answers|length }}">
+                        {% for aForm in qForm.answers %}
+                            <div class="answer-item">
+                                <div class="answer-content">
+                                    {{ form_row(aForm.text) }}
+                                    <div class="answer-controls">
+                                        {{ form_row(aForm.isCorrect) }}
+                                        <button type="button" class="btn btn-danger btn-small remove-item" title="Remove this answer">
+                                            <span class="btn-icon">×</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <button type="button" class="btn btn-secondary btn-small add-answer">
+                        <span class="btn-icon">+</span> Add Answer Option
+                    </button>
                 </div>
-
-                {# <button type="button" class="btn btn-sm btn-secondary add-answer">+ Ajouter une réponse</button> #}
-                <button type="button" class="btn btn-sm btn-danger remove-item">Supprimer la question</button>
             </div>
         {% endfor %}
+        {% if form.quizQuestions|length == 0 %}
+            <div class="empty-state">
+                <p>No quiz questions added yet. Click the button below to add your first question.</p>
+            </div>
+        {% endif %}
     </div>
-    <button type="button" class="btn btn-primary btn-small add-item" data-target="#course_questions">+ Ajouter une question</button>
+    <button type="button" class="btn btn-primary add-item" data-target="#course_questions">
+        <span class="btn-icon">+</span> Add Question
+    </button>
 </div>
 
-<hr>
+<div class="divider"></div>
+
 <div class="form-actions">
-    <button class="btn btn-success">{{ button_label|default('Enregistrer') }}</button>
-    <a href="{{ path('admin_course_index') }}" class="btn btn-secondary">Retour</a>
+    <button class="btn btn-success btn-large">
+        <span class="btn-icon">✓</span> {{ button_label|default('Save Course') }}
+    </button>
+    <a href="{{ path('admin_course_index') }}" class="btn btn-secondary btn-large">
+        <span class="btn-icon">←</span> Back to Courses
+    </a>
 </div>
 
 {{ form_end(form) }}
@@ -71,55 +128,203 @@
     box-shadow: var(--shadow);
 }
 
-.form-section {
+.page-header {
+    text-align: center;
     margin-bottom: 2rem;
 }
 
-.form-section h2 {
-    font-size: 1.3rem;
+.page-header h1 {
+    margin-bottom: 0.5rem;
     color: var(--green);
+}
+
+.subtitle {
+    color: var(--grey);
+    font-size: 1.1rem;
+    margin-bottom: 0;
+}
+
+.form-section {
+    margin-bottom: 3rem;
+}
+
+.section-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.section-header h2 {
+    font-size: 1.5rem;
+    color: var(--green);
+    margin-bottom: 0.5rem;
+}
+
+.section-header p {
+    color: var(--grey);
+    font-size: 0.95rem;
+    margin-bottom: 0;
+}
+
+.divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--mint), transparent);
+    margin: 3rem 0;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
     margin-bottom: 1rem;
+}
+
+.collection-container {
+    min-height: 60px;
 }
 
 .card {
     background: var(--white);
     border-radius: var(--radius);
     box-shadow: var(--shadow);
-    padding: 1rem;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid #f0f0f0;
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transform: translateY(-1px);
+}
+
+.collection-item {
+    position: relative;
+    animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #eee;
+}
+
+.item-number {
+    font-weight: 600;
+    color: var(--teal);
+    font-size: 0.9rem;
+}
+
+.answers-section {
+    margin-top: 1.5rem;
+}
+
+.answers-section h4 {
+    color: var(--green);
+    font-size: 1rem;
     margin-bottom: 1rem;
 }
 
 .answer-item {
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: var(--radius);
+    border-left: 3px solid var(--mint);
+}
+
+.answer-content {
     display: flex;
     align-items: center;
     gap: 1rem;
-    margin-bottom: 0.5rem;
 }
 
-.answer-item .form-check {
-    margin-top: 0.5rem;
+.answer-content > div:first-child {
+    flex: 1;
+}
+
+.answer-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 2rem;
+    color: var(--grey);
+    font-style: italic;
+    background: #f8f9fa;
+    border-radius: var(--radius);
+    border: 2px dashed #ddd;
 }
 
 .form-actions {
     display: flex;
     gap: 1rem;
-    margin-top: 1.5rem;
+    justify-content: center;
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid #eee;
 }
 
 .btn {
-    display: inline-block;
-    padding: 0.4rem 0.8rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.2rem;
     font-size: 0.9rem;
+    font-weight: 500;
     border-radius: var(--radius);
     cursor: pointer;
     border: none;
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
     text-decoration: none;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s;
+}
+
+.btn:hover::before {
+    left: 100%;
 }
 
 .btn-small {
     font-size: 0.8rem;
-    padding: 0.3rem 0.6rem;
+    padding: 0.4rem 0.8rem;
+}
+
+.btn-large {
+    font-size: 1rem;
+    padding: 0.8rem 1.5rem;
+}
+
+.btn-icon {
+    font-size: 1.1em;
+    font-weight: bold;
 }
 
 .btn-primary {
@@ -128,7 +333,8 @@
 }
 
 .btn-primary:hover {
-    opacity: 0.9;
+    background: #16a085;
+    transform: translateY(-1px);
 }
 
 .btn-secondary {
@@ -146,40 +352,243 @@
     color: var(--white);
 }
 
+.btn-danger:hover {
+    background: #c0392b;
+}
+
 .btn-success {
     background: var(--green);
     color: var(--white);
 }
+
+.btn-success:hover {
+    background: #27ae60;
+    transform: translateY(-1px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .course-form {
+        padding: 1rem;
+        margin: 1rem;
+    }
+    
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .answer-content {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .item-header {
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: flex-start;
+    }
+}
+
+/* Form field improvements */
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-control {
+    border-radius: var(--radius);
+    border: 1px solid #ddd;
+    padding: 0.6rem;
+    transition: border-color 0.3s ease;
+}
+
+.form-control:focus {
+    border-color: var(--teal);
+    box-shadow: 0 0 0 2px rgba(26, 188, 156, 0.1);
+}
+
+textarea.form-control {
+    min-height: 80px;
+    resize: vertical;
+}
+
+.form-check {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+}
+
+.form-check-input {
+    margin: 0;
+}
+
+.form-check-label {
+    margin: 0;
+    font-weight: 500;
+    color: var(--green);
+}
 </style>
 
 <script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Update item numbers when items are added/removed
+    function updateItemNumbers() {
+        // Update video numbers
+        document.querySelectorAll('#course_videos .video-item').forEach((item, index) => {
+            const numberSpan = item.querySelector('.item-number');
+            if (numberSpan) {
+                numberSpan.textContent = `Video ${index + 1}`;
+            }
+        });
+        
+        // Update question numbers
+        document.querySelectorAll('#course_questions .question-item').forEach((item, index) => {
+            const numberSpan = item.querySelector('.item-number');
+            if (numberSpan) {
+                numberSpan.textContent = `Question ${index + 1}`;
+            }
+        });
+    }
+    
+    // Hide/show empty states
+    function toggleEmptyStates() {
+        const videosContainer = document.querySelector('#course_videos');
+        const questionsContainer = document.querySelector('#course_questions');
+        
+        const videoEmptyState = videosContainer.querySelector('.empty-state');
+        const questionEmptyState = questionsContainer.querySelector('.empty-state');
+        
+        // Videos
+        if (videosContainer.querySelectorAll('.video-item').length === 0) {
+            if (!videoEmptyState) {
+                const emptyDiv = document.createElement('div');
+                emptyDiv.className = 'empty-state';
+                emptyDiv.innerHTML = '<p>No videos added yet. Click the button below to add your first video.</p>';
+                videosContainer.appendChild(emptyDiv);
+            }
+        } else if (videoEmptyState) {
+            videoEmptyState.remove();
+        }
+        
+        // Questions
+        if (questionsContainer.querySelectorAll('.question-item').length === 0) {
+            if (!questionEmptyState) {
+                const emptyDiv = document.createElement('div');
+                emptyDiv.className = 'empty-state';
+                emptyDiv.innerHTML = '<p>No quiz questions added yet. Click the button below to add your first question.</p>';
+                questionsContainer.appendChild(emptyDiv);
+            }
+        } else if (questionEmptyState) {
+            questionEmptyState.remove();
+        }
+    }
+});
+
 document.addEventListener('click', function (e) {
-    // Ajouter un élément (vidéo ou question)
+    // Add item (video or question)
     if (e.target.classList.contains('add-item')) {
         const target = document.querySelector(e.target.dataset.target);
         const index = target.dataset.index;
         const proto = target.dataset.prototype.replace(/__name__/g, index);
         const div = document.createElement('div');
-        div.innerHTML = proto;
+        
+        // Create wrapper based on target
+        if (target.id === 'course_videos') {
+            div.className = 'video-item card collection-item';
+            div.innerHTML = `
+                <div class="item-header">
+                    <span class="item-number">Video ${parseInt(index) + 1}</span>
+                    <button type="button" class="btn btn-danger btn-small remove-item" title="Remove this video">
+                        <span class="btn-icon">×</span> Remove
+                    </button>
+                </div>
+                <div class="form-grid">
+                    ${proto.match(/<[^>]*name="[^"]*\[title\][^"]*"[^>]*>.*?(?=<[^>]*name="[^"]*\[(?:description|duration)\])/s)?.[0] || ''}
+                    ${proto.match(/<[^>]*name="[^"]*\[duration\][^"]*"[^>]*>.*?(?=<[^>]*name="[^"]*\[(?:description|url)\])/s)?.[0] || ''}
+                </div>
+                ${proto.match(/<[^>]*name="[^"]*\[description\][^"]*"[^>]*>.*?(?=<[^>]*name="[^"]*\[url\])/s)?.[0] || ''}
+                ${proto.match(/<[^>]*name="[^"]*\[url\][^"]*"[^>]*>.*$/s)?.[0] || ''}
+            `;
+        } else {
+            div.className = 'question-item card collection-item';
+            div.innerHTML = `
+                <div class="item-header">
+                    <span class="item-number">Question ${parseInt(index) + 1}</span>
+                    <button type="button" class="btn btn-danger btn-small remove-item" title="Remove this question">
+                        <span class="btn-icon">×</span> Remove Question
+                    </button>
+                </div>
+                ${proto}
+                <div class="answers-section">
+                    <h4>Answer Options</h4>
+                    <div class="answers" data-prototype="" data-index="0"></div>
+                    <button type="button" class="btn btn-secondary btn-small add-answer">
+                        <span class="btn-icon">+</span> Add Answer Option
+                    </button>
+                </div>
+            `;
+        }
+        
         target.appendChild(div);
         target.dataset.index = parseInt(index) + 1;
+        
+        // Remove empty state if it exists
+        const emptyState = target.querySelector('.empty-state');
+        if (emptyState) {
+            emptyState.remove();
+        }
     }
 
-    // Ajouter une réponse
+    // Add answer
     if (e.target.classList.contains('add-answer')) {
         const answers = e.target.closest('.question-item').querySelector('.answers');
         const index = answers.dataset.index;
         const proto = answers.dataset.prototype.replace(/__name__/g, index);
         const div = document.createElement('div');
-        div.innerHTML = proto;
+        div.className = 'answer-item';
+        div.innerHTML = `
+            <div class="answer-content">
+                ${proto}
+                <div class="answer-controls">
+                    <button type="button" class="btn btn-danger btn-small remove-item" title="Remove this answer">
+                        <span class="btn-icon">×</span>
+                    </button>
+                </div>
+            </div>
+        `;
         answers.appendChild(div);
         answers.dataset.index = parseInt(index) + 1;
     }
 
-    // Supprimer un élément
+    // Remove item
     if (e.target.classList.contains('remove-item')) {
         e.preventDefault();
-        e.target.closest('.video-item, .question-item, .answer-item').remove();
+        const item = e.target.closest('.video-item, .question-item, .answer-item');
+        if (item) {
+            item.style.animation = 'slideOut 0.3s ease';
+            setTimeout(() => {
+                item.remove();
+                updateItemNumbers();
+                toggleEmptyStates();
+            }, 300);
+        }
     }
 });
+
+// Animation for removing items
+const style = document.createElement('style');
+style.textContent = `
+@keyframes slideOut {
+    to {
+        opacity: 0;
+        transform: translateX(-100%);
+    }
+}
+`;
+document.head.appendChild(style);
 </script>
