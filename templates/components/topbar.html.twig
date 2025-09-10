@@ -7,14 +7,40 @@
   background: none;
   border: none;
   cursor: pointer;
-  display: none; /* visible seulement en mobile */
+  display: none; 
 }
 
+/* Overlay (caché par défaut) */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5); /* noir semi-transparent */
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease;
+  z-index: 900; /* juste en dessous de la sidebar (qui est z-index:1000) */
+}
+
+.overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+
 /* Mobile */
+@media (min-width: 1025px) {
+  .close-btn {
+    display: none; /* pas besoin en desktop */
+  }
+}
 @media (max-width: 1024px) {
   .burger {
     display: block;
   }
+  
   .welcome-title{
     display:none;
   }
@@ -60,10 +86,33 @@
   </div>
 </header>
 <script>
+document.addEventListener("DOMContentLoaded", () => {
   const burger = document.getElementById('burger-btn');
   const sidebar = document.querySelector('.sidebar');
+  const overlay = document.getElementById('overlay');
+  const closeBtn = document.getElementById('close-btn');
 
-  burger.addEventListener('click', () => {
-    sidebar.classList.toggle('active');
-  });
+  function openMenu() {
+    sidebar.classList.add('active');
+    overlay.classList.add('active');
+  }
+
+  function closeMenu() {
+    sidebar.classList.remove('active');
+    overlay.classList.remove('active');
+  }
+
+  if (burger) {
+    burger.addEventListener('click', openMenu);
+  }
+
+  if (closeBtn) {
+    closeBtn.addEventListener('click', closeMenu);
+  }
+
+  if (overlay) {
+    overlay.addEventListener('click', closeMenu);
+  }
+});
 </script>
+

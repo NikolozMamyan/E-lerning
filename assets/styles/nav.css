@@ -166,6 +166,17 @@
     font-size: 0.875rem;
     color: var(--grey);
   }
+  .close-btn {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: var(--black);
+  cursor: pointer;
+  z-index: 1100;
+}
 
   /*responsive*/
 
