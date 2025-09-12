@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @page {
+            size: A4 landscape;
+            margin: 0;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+        .name {
+            position: absolute;
+            top: 300px;
+            left: 0;
+            right: 0;
+            font-size: 32px;
+            font-weight: bold;
+            text-decoration: underline;
+        }
+        .date {
+            position: absolute;
+            bottom: 120px;
+            left: 120px;
+            font-size: 16px;
+        }
+        .director {
+            position: absolute;
+            bottom: 120px;
+            right: 120px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="name">{{ name }}</div>
+        <div class="date">{{ date }}</div>
+        <div class="director">Director</div>
+    </div>
+</body>
+</html>

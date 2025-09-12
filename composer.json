@@ -13,6 +13,7 @@
         "doctrine/orm": "^3.3",
         "phpdocumentor/reflection-docblock": "^5.6",
         "phpstan/phpdoc-parser": "^2.1",
+        "setasign/fpdf": "^1.8",
         "stripe/stripe-php": "^17.6",
         "symfony/asset": "7.2.*",
         "symfony/asset-mapper": "7.2.*",
