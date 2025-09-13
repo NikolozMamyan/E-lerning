@@ -24,6 +24,14 @@ class StripeController extends AbstractController
             throw $this->createNotFoundException();
         }
 
+            $euroPrice = null;
+    foreach ($course->getCoursePrices() as $price) {
+        if ($price->getCurrency() === 'EUR') {
+            $euroPrice = $price->getPrice(); // déjà en centimes (Stripe-ready)
+            break;
+        }
+    }
+
         \Stripe\Stripe::setApiKey($_SERVER['STRIPE_SECRET_KEY'] ?? $_ENV['STRIPE_SECRET_KEY']);
 
         $session = \Stripe\Checkout\Session::create([
@@ -32,8 +40,7 @@ class StripeController extends AbstractController
             'line_items' => [[
                 'price_data' => [
                     'currency' => 'eur',
-                    // Ex: 30,00 € => 3000
-                    'unit_amount' => 3000,
+                    'unit_amount' => $euroPrice,
                     'product_data' => ['name' => $course->getTitle()],
                 ],
                 'quantity' => 1,

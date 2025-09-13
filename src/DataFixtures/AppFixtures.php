@@ -2,12 +2,13 @@
 
 namespace App\DataFixtures;
 
-use App\Entity\Course;
 use App\Entity\Video;
-use App\Entity\QuizQuestion;
+use App\Entity\Course;
 use App\Entity\QuizAnswer;
-use Doctrine\Bundle\FixturesBundle\Fixture;
+use App\Entity\CoursePrice;
+use App\Entity\QuizQuestion;
 use Doctrine\Persistence\ObjectManager;
+use Doctrine\Bundle\FixturesBundle\Fixture;
 
 class AppFixtures extends Fixture
 {
@@ -17,6 +18,17 @@ class AppFixtures extends Fixture
         $course1 = new Course();
         $course1->setTitle("Project Management")
             ->setDescription("Apprenez à gérer un projet de A à Z en utilisant les meilleures pratiques Agile et Waterfall.");
+
+            $price1eur = (new CoursePrice())
+    ->setPrice(1999)   // 19,99€
+    ->setCurrency("EUR")
+    ->setCourse($course1);
+
+// Prix USD
+$price1usd = (new CoursePrice())
+    ->setPrice(2199)   // 21,99$
+    ->setCurrency("USD")
+    ->setCourse($course1);
 
         $video1 = (new Video())
             ->setTitle("Introduction au management de projet")
@@ -33,6 +45,8 @@ class AppFixtures extends Fixture
             ->setCourse($course1);
 
         $manager->persist($course1);
+        $manager->persist($price1eur);
+        $manager->persist($price1usd);
         $manager->persist($video1);
         $manager->persist($video2);
 

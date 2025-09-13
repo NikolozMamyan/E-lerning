@@ -58,17 +58,29 @@ public function show(
     if ($user) {
         $enrollment = $enrollmentRepo->findOneBy([
             'user' => $user,
-            'course' => $course
+            'course' => $course,
         ]);
         $hasAccess = (bool) $enrollment;
+        
     }
 
-    if (!$hasAccess) {
-        // utilisateur non abonné → renvoi vers une page "lock"
-        return $this->render('courses/locked.html.twig', [
-            'course' => $course
-        ]);
+if (!$hasAccess) {
+    // chercher le prix en euros
+    $euroPrice = null;
+    foreach ($course->getCoursePrices() as $price) {
+        if ($price->getCurrency() === 'EUR') {
+            // on divise par 100 car Stripe stocke en centimes
+            $euroPrice = number_format($price->getPrice() / 100, 2, ',', ' ');
+            break; // on prend le premier prix EUR trouvé
+        }
     }
+
+    return $this->render('courses/locked.html.twig', [
+        'course' => $course,
+        'euroPrice' => $euroPrice,
+    ]);
+}
+
 
     // ✅ Si l’utilisateur a accès, on affiche les vidéos
     $videos = $course->getVideos();

@@ -27,10 +27,18 @@ class Course
     #[ORM\OneToMany(mappedBy: 'course', targetEntity: QuizQuestion::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $quizQuestions;
 
+    /**
+     * @var Collection<int, CoursePrice>
+     */
+    #[ORM\OneToMany(targetEntity: CoursePrice::class, mappedBy: 'course', orphanRemoval: true)]
+    private Collection $coursePrices;
+
+
     public function __construct()
     {
         $this->videos = new ArrayCollection();
         $this->quizQuestions = new ArrayCollection();
+        $this->coursePrices = new ArrayCollection();
     }
 
     public function getId(): ?int { return $this->id; }
@@ -78,6 +86,36 @@ class Course
                 $question->setCourse(null);
             }
         }
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, CoursePrice>
+     */
+    public function getCoursePrices(): Collection
+    {
+        return $this->coursePrices;
+    }
+
+    public function addCoursePrice(CoursePrice $coursePrice): static
+    {
+        if (!$this->coursePrices->contains($coursePrice)) {
+            $this->coursePrices->add($coursePrice);
+            $coursePrice->setCourse($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCoursePrice(CoursePrice $coursePrice): static
+    {
+        if ($this->coursePrices->removeElement($coursePrice)) {
+            // set the owning side to null (unless already changed)
+            if ($coursePrice->getCourse() === $this) {
+                $coursePrice->setCourse(null);
+            }
+        }
+
         return $this;
     }
 }
