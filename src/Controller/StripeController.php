@@ -2,12 +2,15 @@
 
 namespace App\Controller;
 
+use Stripe\Stripe;
+use App\Entity\QuizAttempt;
 use App\Repository\CourseRepository;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\Routing\Annotation\Route;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class StripeController extends AbstractController
 {
@@ -58,12 +61,14 @@ class StripeController extends AbstractController
         return $this->redirect($session->url, 303);
     }
 
-    #[Route('app/pay/success', name: 'app_payment_success')]
-    public function success(Request $request, CourseRepository $courseRepo): Response
-    {
+      #[Route('app/pay/success', name: 'app_payment_success')]
+    public function success(
+        Request $request, 
+        CourseRepository $courseRepo, 
+        EntityManagerInterface $em
+    ): Response {
         $sessionId = $request->query->get('session_id');
 
-        // valeurs par défaut si pas de session_id (rafraîchissement, accès direct, etc.)
         $vars = [
             'transaction_id' => null,
             'amount'         => null,
@@ -75,7 +80,6 @@ class StripeController extends AbstractController
         if ($sessionId) {
             \Stripe\Stripe::setApiKey($_SERVER['STRIPE_SECRET_KEY'] ?? $_ENV['STRIPE_SECRET_KEY']);
 
-            // Récupérer la session + le PaymentIntent
             $session = \Stripe\Checkout\Session::retrieve([
                 'id' => $sessionId,
                 'expand' => ['payment_intent', 'line_items'],
@@ -85,15 +89,29 @@ class StripeController extends AbstractController
                 ? $session->payment_intent
                 : ($session->payment_intent->id ?? null);
 
-            // amount_total est en centimes
             $amountCents = $session->amount_total ?? null;
             $currency    = strtoupper($session->currency ?? 'EUR');
 
             $courseId    = $session->metadata['course_id'] ?? null;
+            $userId      = $session->metadata['user_id'] ?? null;
+
             $courseTitle = null;
             if ($courseId) {
                 $course = $courseRepo->find($courseId);
                 $courseTitle = $course?->getTitle();
+            }
+
+            // 🔑 SUPPRESSION de la dernière tentative si elle existe
+            if ($userId && $courseId) {
+                $attempt = $em->getRepository(QuizAttempt::class)->findOneBy([
+                    'user'   => $userId,
+                    'course' => $courseId
+                ], ['id' => 'DESC']); // on prend la dernière
+
+                if ($attempt) {
+                    $em->remove($attempt);
+                    $em->flush();
+                }
             }
 
             $vars = [
