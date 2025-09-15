@@ -14,7 +14,8 @@ security:
             stateless: true
             provider: app_user_provider
             custom_authenticators:
-                - App\Security\ApiTokenAuthenticator     
+                - App\Security\ApiTokenAuthenticator
+            entry_point: App\Security\ApiAuthenticationEntryPoint       
 
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
@@ -26,6 +27,7 @@ security:
             provider: app_user_provider
             custom_authenticators:
                 - App\Security\ApiTokenAuthenticator
+            entry_point: App\Security\ApiAuthenticationEntryPoint    
 
     access_control:
         # Public API
