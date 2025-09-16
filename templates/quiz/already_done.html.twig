@@ -261,11 +261,20 @@
   <p class="completion-score">You already aced this quiz with a <strong>{{ attempt.score }}%</strong> score!</p>
   <p class="completion-message">Ready for round two? Purchase again to retake the challenge.</p>
   
+
+  
   <div class="completion-actions">
     <a href="{{ path('app_dashboard') }}" class="dashboard-link">Dashboard</a>
+          {% if attempt.score == 100 %}
+   <a href="{{ path('app_certificates', { id: course.id }) }}" class="retake-button">Get Certificate</a>
+   
+      {% else %}
+        
     <form method="post" action="{{ path('app_course_checkout', { id: course.id }) }}" style="display: inline;">
+
       <button type="submit" class="retake-button">Go for Round Two! 🚀</button>
     </form>
+       {% endif %}
   </div>
 </div>
 {% else %}
