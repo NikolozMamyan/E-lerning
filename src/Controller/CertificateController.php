@@ -3,16 +3,45 @@
 namespace App\Controller;
 
 use FPDF;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Repository\QuizAttemptRepository;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class CertificateController extends AbstractController
 {
-    #[Route('app/certificate/{name}', name: 'generate_certificate')]
-    public function generateCertificate(string $name): Response
+        #[Route('app/certificates', name: 'app_certificate')]
+    public function certificate(QuizAttemptRepository $quizAttemptRepo): Response
     {
-        $pdf = new \FPDF('L', 'mm', 'A4'); // L = paysage, A4
+        $user = $this->getUser();
+
+        
+        if($quizAttemptRepo->findOneByUserId($user->getId())) {
+
+            $userAttempt = $quizAttemptRepo->findOneByUserId($user->getId());
+
+            return $this->render('certificates/index.html.twig', [
+            'userAttempt' => $userAttempt
+        ]);
+
+        }else{
+            $this->addFlash('info','No quiz Found for this User.');
+            return $this->redirectToRoute('app_dashboard');
+        }
+     
+    }
+
+
+
+
+    #[Route('app/certificate/{name}', name: 'generate_certificate')]
+    public function generateCertificate(string $name, QuizAttemptRepository $quizAttemptRepo): Response
+    {
+        $user = $this->getUser();
+
+        $userAttempt= ($quizAttemptRepo->findOneByUserId($user->getId()));
+        if($userAttempt->isPassed() === true) {
+   $pdf = new \FPDF('L', 'mm', 'A4'); // L = paysage, A4
         $pdf->AddPage();
 
         // Dimensions page
@@ -61,5 +90,11 @@ class CertificateController extends AbstractController
                 'Content-Disposition' => 'attachment; filename="certificate_' . $certificateNumber . '.pdf"',
             ]
         );
+
+        }else{
+            $this->addFlash('info','No quiz Found for this User.');
+            return $this->redirectToRoute('app_dashboard');
+        }
+     
     }
 }

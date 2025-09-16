@@ -33,12 +33,19 @@ class Course
     #[ORM\OneToMany(targetEntity: CoursePrice::class, mappedBy: 'course', orphanRemoval: true)]
     private Collection $coursePrices;
 
+    /**
+     * @var Collection<int, Certificate>
+     */
+    #[ORM\OneToMany(targetEntity: Certificate::class, mappedBy: 'course', orphanRemoval: true)]
+    private Collection $certificates;
+
 
     public function __construct()
     {
         $this->videos = new ArrayCollection();
         $this->quizQuestions = new ArrayCollection();
         $this->coursePrices = new ArrayCollection();
+        $this->certificates = new ArrayCollection();
     }
 
     public function getId(): ?int { return $this->id; }
@@ -113,6 +120,36 @@ class Course
             // set the owning side to null (unless already changed)
             if ($coursePrice->getCourse() === $this) {
                 $coursePrice->setCourse(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Certificate>
+     */
+    public function getCertificates(): Collection
+    {
+        return $this->certificates;
+    }
+
+    public function addCertificate(Certificate $certificate): static
+    {
+        if (!$this->certificates->contains($certificate)) {
+            $this->certificates->add($certificate);
+            $certificate->setCourse($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCertificate(Certificate $certificate): static
+    {
+        if ($this->certificates->removeElement($certificate)) {
+            // set the owning side to null (unless already changed)
+            if ($certificate->getCourse() === $this) {
+                $certificate->setCourse(null);
             }
         }
 

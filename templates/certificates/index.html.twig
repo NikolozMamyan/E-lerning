@@ -1,0 +1,182 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Available Certificates{% endblock %}
+
+{% block body %}
+
+
+
+    {% if userAttempt %}
+        <div class="certificate-card" style="
+            background: var(--white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 2rem;
+            margin: 1rem 0;
+            border-left: 4px solid {{ userAttempt.passed ? 'var(--green)' : 'var(--teal)' }};
+        ">
+            <div class="certificate-header" style="
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                margin-bottom: 1.5rem;
+                flex-wrap: wrap;
+                gap: 1rem;
+            ">
+                <div class="user-info">
+                    <h3 style="
+                        color: var(--black);
+                        margin: 0 0 0.5rem 0;
+                        font-size: 1.25rem;
+                        font-weight: 600;
+                    ">{{ userAttempt.user.username }}</h3>
+                    <p style="
+                        color: var(--grey);
+                        margin: 0;
+                        font-size: 0.9rem;
+                    "></p>
+                </div>
+                
+                <div class="status-badge-certif" style="
+                    background: {{ userAttempt.passed ? 'var(--green)' : 'red' }};
+                    color: var(--white);
+                    padding: 0.5rem 1rem;
+                    border-radius: var(--radius);
+                    font-size: 0.85rem;
+                    font-weight: 500;
+                ">
+                    {{ userAttempt.passed ? 'Passed ✓' : 'Failed ✗' }}
+                </div>
+            </div>
+
+            <div class="course-info" style="
+                background: var(--mint);
+                padding: 1rem;
+                border-radius: var(--radius);
+                margin-bottom: 1.5rem;
+            ">
+                <h4 style="
+                    color: var(--black);
+                    margin: 0 0 0.5rem 0;
+                    font-size: 1.1rem;
+                ">Course</h4>
+                <p style="
+                    color: var(--grey);
+                    margin: 0;
+                    font-size: 0.9rem;
+                ">{{ userAttempt.course.title ?? 'Title not available' }}</p>
+                {% if userAttempt.course.description %}
+                <p style="
+                    color: var(--grey);
+                    margin: 0.5rem 0 0 0;
+                    font-size: 0.85rem;
+                ">{{ userAttempt.course.description }}</p>
+                {% endif %}
+            </div>
+
+            <div class="certificate-details" style="
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 1rem;
+            ">
+                <div class="score-section">
+                    <label style="
+                        color: var(--grey);
+                        font-size: 0.8rem;
+                        text-transform: uppercase;
+                        font-weight: 500;
+                        display: block;
+                        margin-bottom: 0.25rem;
+                    ">Score achieved</label>
+                    <div style="
+                        color: var(--black);
+                        font-size: 1.5rem;
+                        font-weight: 600;
+                    ">{{ userAttempt.score }}/100</div>
+                    <div style="
+                        width: 100%;
+                        height: 6px;
+                        background: var(--mint);
+                        border-radius: 3px;
+                        margin-top: 0.5rem;
+                        overflow: hidden;
+                    ">
+                        <div style="
+                            width: {{ userAttempt.score }}%;
+                            height: 100%;
+                            background: {{ userAttempt.passed ? 'var(--green)' : 'var(--teal)' }};
+                            border-radius: 3px;
+                            transition: width 0.3s ease;
+                        "></div>
+                    </div>
+                </div>
+
+                <div class="date-section">
+                    <label style="
+                        color: var(--grey);
+                        font-size: 0.8rem;
+                        text-transform: uppercase;
+                        font-weight: 500;
+                        display: block;
+                        margin-bottom: 0.25rem;
+                    ">Date taken</label>
+                    <div style="
+                        color: var(--black);
+                        font-size: 1.1rem;
+                        font-weight: 500;
+                    ">{{ userAttempt.createdAt|date('M d, Y at H:i') }}</div>
+                </div>
+
+                <div class="id-section">
+                    <label style="
+                        color: var(--grey);
+                        font-size: 0.8rem;
+                        text-transform: uppercase;
+                        font-weight: 500;
+                        display: block;
+                        margin-bottom: 0.25rem;
+                    ">Certificate ID</label>
+                    <div style="
+                        color: var(--black);
+                        font-size: 1.1rem;
+                        font-weight: 500;
+                        font-family: monospace;
+                    ">#{{ userAttempt.id }}</div>
+                </div>
+            </div>
+
+            {% if userAttempt.passed %}
+            <div style="
+                margin-top: 1.5rem;
+                padding-top: 1.5rem;
+                border-top: 1px solid var(--mint);
+                text-align: center;
+            ">
+                <button style="
+                    background: var(--green);
+                    color: var(--white);
+                    border: none;
+                    padding: 0.75rem 1.5rem;
+                    border-radius: var(--radius);
+                    font-weight: 500;
+                    cursor: pointer;
+                    transition: background 0.2s ease;
+                " onmouseover="this.style.background='var(--teal)'" onmouseout="this.style.background='var(--green)'">
+                    📥 Download Certificate
+                </button>
+            </div>
+            {% endif %}
+        </div>
+    {% else %}
+        <div style="
+            background: var(--mint);
+            padding: 2rem;
+            border-radius: var(--radius);
+            text-align: center;
+            color: var(--grey);
+        ">
+            <p style="margin: 0; font-size: 1.1rem;">No certificates available at the moment.</p>
+        </div>
+    {% endif %}
+
+{% endblock %}

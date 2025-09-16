@@ -44,12 +44,18 @@ private ?string $apiToken = null;
 #[ORM\Column(type: 'datetime', nullable: true)]
 private ?\DateTimeInterface $tokenExpiresAt = null;
 
+/**
+ * @var Collection<int, Certificate>
+ */
+#[ORM\OneToMany(targetEntity: Certificate::class, mappedBy: 'passed')]
+private Collection $certificates;
+
 
 
 
 public function __construct()
 {
-
+    $this->certificates = new ArrayCollection();
 }
 
     public function getId(): ?int
@@ -156,6 +162,35 @@ public function getUsername(): string
 public function setUsername(string $username): self
 {
     $this->username = $username;
+
+    return $this;
+}
+/**
+ * @return Collection<int, Certificate>
+ */
+public function getCertificates(): Collection
+{
+    return $this->certificates;
+}
+
+public function addCertificate(Certificate $certificate): static
+{
+    if (!$this->certificates->contains($certificate)) {
+        $this->certificates->add($certificate);
+        $certificate->setPassed($this);
+    }
+
+    return $this;
+}
+
+public function removeCertificate(Certificate $certificate): static
+{
+    if ($this->certificates->removeElement($certificate)) {
+        // set the owning side to null (unless already changed)
+        if ($certificate->getPassed() === $this) {
+            $certificate->setPassed(null);
+        }
+    }
 
     return $this;
 }
