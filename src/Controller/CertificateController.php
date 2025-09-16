@@ -10,26 +10,24 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class CertificateController extends AbstractController
 {
-        #[Route('app/certificates', name: 'app_certificate')]
-    public function certificate(QuizAttemptRepository $quizAttemptRepo): Response
-    {
-        $user = $this->getUser();
+#[Route('/app/certificates', name: 'app_certificates')]
+public function certificate(QuizAttemptRepository $quizAttemptRepo): Response
+{
+    $user = $this->getUser();
 
-        
-        if($quizAttemptRepo->findOneByUserId($user->getId())) {
+    // on va chercher *tous* les quiz attempts de cet utilisateur
+     $userAttempts = $quizAttemptRepo->findByUser($user);
 
-            $userAttempt = $quizAttemptRepo->findOneByUserId($user->getId());
-
-            return $this->render('certificates/index.html.twig', [
-            'userAttempt' => $userAttempt
-        ]);
-
-        }else{
-            $this->addFlash('info','No quiz Found for this User.');
-            return $this->redirectToRoute('app_dashboard');
-        }
-     
+    if (!$userAttempts) {
+        $this->addFlash('info', 'No quiz Found for this User.');
+        return $this->redirectToRoute('app_dashboard');
     }
+
+    return $this->render('certificates/index.html.twig', [
+        'userAttempts' => $userAttempts
+    ]);
+}
+
 
 
 

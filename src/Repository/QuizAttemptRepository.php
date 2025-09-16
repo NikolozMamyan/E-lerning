@@ -2,9 +2,10 @@
 
 namespace App\Repository;
 
+use App\Entity\User;
 use App\Entity\QuizAttempt;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 
 /**
  * @extends ServiceEntityRepository<QuizAttempt>
@@ -41,15 +42,13 @@ class QuizAttemptRepository extends ServiceEntityRepository
     //        ;
     //    }
 
-        public function findOneByUserId(int $userId): ?QuizAttempt
+        public function findByUser(User $user): array
     {
         return $this->createQueryBuilder('qa')
-            ->join('qa.user', 'u')
-            ->andWhere('u.id = :userId')
-            ->setParameter('userId', $userId)
-            ->orderBy('qa.createdAt', 'DESC') // pour avoir le + récent
-            ->setMaxResults(1)
+            ->andWhere('qa.user = :user')
+            ->setParameter('user', $user)
+            ->orderBy('qa.createdAt', 'DESC')
             ->getQuery()
-            ->getOneOrNullResult();
+            ->getResult();
     }
 }

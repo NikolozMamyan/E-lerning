@@ -114,6 +114,27 @@
   .video-item { min-width: 200px; }
   .video-thumbnail { height: 100px; }
 }
+
+.oc-rail-wrapper {
+  position: relative;
+}
+
+.oc-trophy {
+  position: absolute;
+  right: 35px; /* un peu en dehors de la barre */
+  bottom: 45px;
+  width: 24px;
+  height: 24px;
+  color: var(--teal);
+  display: none;
+}
+.oc-trophy-img{
+  width:60px;
+}
+
+.oc-rail-wrapper.complete .oc-trophy {
+  display: block;
+}
 </style>
  <nav class="oc-progress-nav" aria-label="Course progress">
       <div class="oc-steps" role="list">
@@ -140,9 +161,20 @@
           </a>
         {% endfor %}
       </div>
-      <div class="oc-rail" aria-hidden="true"><span style="width: {{ progressPercent }}%;"></span></div>
+      <div class="oc-rail-wrapper {{ progressPercent == 100 ? 'complete' : '' }}">
+  <div class="oc-rail" aria-hidden="true">
+    <span style="width: {{ progressPercent }}%;"></span>
+  </div>
+ {% if progressPercent == 100 %}
+    <div class="oc-trophy">
+   
+       <img src="{{ asset('images/quiz_passed.svg') }}" alt="Quiz Passed" class="oc-trophy-img">
+   
+    </div>
+  {% endif %}
+</div>
+
       {# If you want a tiny text counter, uncomment: #}
-      {# <div style="margin-top:.5rem; font-size:.9rem; color:var(--grey);">{{ completedCount }} of {{ totalVideos }} completed • {{ progressPercent }}%</div> #}
     </nav>
 <div class="course-layout">
   <div class="main-course-content">
@@ -200,31 +232,36 @@
     {% set prevVideo = hasPrev ? videos[currentIndex - 1] : null %}
     {% set nextVideo = hasNext ? videos[currentIndex + 1] : null %}
 
-    {% if hasPrev or hasNext %}
-      <div class="lesson-nav">
-        <div>
-          {% if hasPrev %}
-            <a href="{{ path('app_course_show', { id: course.id, videoId: prevVideo.id }) }}">
-              <svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
-              Previous lesson
-            </a>
-          {% endif %}
-        </div>
-        <div>
-          {% if hasNext %}
-            <a class="primary" href="{{ path('app_course_show', { id: course.id, videoId: nextVideo.id }) }}">
-              Next lesson
-              <svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
-            </a>
-          {% elseif progressPercent == 100 %}
-            <a class="primary" href="{{ path('course_quiz', { id: course.id }) }}">
-              Take Quiz
-              <svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M5 12h14v2H5zm0-4h14v2H5zm0 8h14v2H5z"/></svg>
-            </a>
-          {% endif %}
-        </div>
-      </div>
+<div class="lesson-nav">
+  <div>
+    {% if hasPrev %}
+      <a href="{{ path('app_course_show', { id: course.id, videoId: prevVideo.id }) }}">
+        <svg viewBox="0 0 24 24" width="18" height="18">
+          <path fill="currentColor" d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+        </svg>
+        Previous lesson
+      </a>
     {% endif %}
+  </div>
+  <div>
+    {% if hasNext %}
+      <a class="primary" href="{{ path('app_course_show', { id: course.id, videoId: nextVideo.id }) }}">
+        Next lesson
+        <svg viewBox="0 0 24 24" width="18" height="18">
+          <path fill="currentColor" d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/>
+        </svg>
+      </a>
+    {% elseif progressPercent == 100 %}
+      <a class="primary" href="{{ path('course_quiz', { id: course.id }) }}">
+        Take Quiz
+        <svg viewBox="0 0 24 24" width="18" height="18">
+          <path fill="currentColor" d="M5 12h14v2H5zm0-4h14v2H5zm0 8h14v2H5z"/>
+        </svg>
+      </a>
+    {% endif %}
+  </div>
+</div>
+
 
     <!-- Lesson Info -->
     <div class="lesson-info">

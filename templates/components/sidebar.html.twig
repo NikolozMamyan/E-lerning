@@ -26,7 +26,7 @@
         </a>
       </li>
 
-      <li class="nav-item">
+      {# <li class="nav-item">
         <a href=""
            class="nav-link {{ app.request.attributes.get('_route') == 'app_notifications' ? 'active' : '' }}">
           <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor">
@@ -35,7 +35,7 @@
           Notification
           <span class="notification-badge">9+</span>
         </a>
-      </li>
+      </li> #}
 
       <li class="nav-item">
         <a href="{{ path('app_courses') }}"
@@ -48,7 +48,7 @@
       </li>
 
       <li class="nav-item">
-        <a href=""
+        <a href="{{ path('app_certificates') }}"
            class="nav-link {{ app.request.attributes.get('_route') == 'app_certificates' ? 'active' : '' }}">
           <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor">
             <path d="M20 12l-1.41-1.41L13 16.17V4h-2v12.17l-5.58-5.59L4 12l8 8 8-8z"/>
@@ -56,7 +56,7 @@
           Certificates
         </a>
       </li>
-
+{# 
       <li class="nav-item">
         <a href=""
            class="nav-link {{ app.request.attributes.get('_route') == 'app_subscription' ? 'active' : '' }}">
@@ -65,7 +65,7 @@
           </svg>
           Subscription
         </a>
-      </li>
+      </li> #}
 
       <li class="nav-item">
         <a href=""
