@@ -146,18 +146,22 @@
                 border-top: 1px solid var(--mint);
                 text-align: center;
             ">
-                <button style="
-                    background: var(--green);
-                    color: var(--white);
-                    border: none;
-                    padding: 0.75rem 1.5rem;
-                    border-radius: var(--radius);
-                    font-weight: 500;
-                    cursor: pointer;
-                    transition: background 0.2s ease;
-                " onmouseover="this.style.background='var(--teal)'" onmouseout="this.style.background='var(--green)'">
-                    📥 Download Certificate
-                </button>
+               <a href="{{ path('generate_certificate', { name: app.user.userName }) }}"
+   style="
+        background: var(--green);
+        color: var(--white);
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: var(--radius);
+        font-weight: 500;
+        cursor: pointer;
+        transition: background 0.2s ease;
+    "
+   onmouseover="this.style.background='var(--teal)'"
+   onmouseout="this.style.background='var(--green)'">
+    📥 Download Certificate
+</a>
+
             </div>
             {% endif %}
         </div>

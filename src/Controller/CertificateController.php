@@ -3,6 +3,9 @@
 namespace App\Controller;
 
 use FPDF;
+use App\Entity\Certificate;
+use Doctrine\ORM\EntityManagerInterface;
+use App\Repository\CertificateRepository;
 use App\Repository\QuizAttemptRepository;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -28,56 +31,78 @@ public function certificate(QuizAttemptRepository $quizAttemptRepo): Response
     ]);
 }
 
+#[Route('app/certificate/{name}', name: 'generate_certificate')]
+public function generateCertificate(
+    string $name,
+    QuizAttemptRepository $quizAttemptRepo,
+    EntityManagerInterface $em,
+    CertificateRepository $certificateRepo
+): Response {
+    $user = $this->getUser();
 
+    $userAttempt = $quizAttemptRepo->findOneByUserId($user->getId());
+    if ($userAttempt && $userAttempt->isPassed() === true) {
 
+        $course = $userAttempt->getCourse();
 
+        // Vérifie si un certificat existe déjà pour ce user + course
+        $certificate = $certificateRepo->findOneBy([
+            'passed' => $user,
+            'course' => $course,
+        ]);
 
-    #[Route('app/certificate/{name}', name: 'generate_certificate')]
-    public function generateCertificate(string $name, QuizAttemptRepository $quizAttemptRepo): Response
-    {
-        $user = $this->getUser();
+        if (!$certificate) {
+            // Si pas encore de certificat → on en crée un
+            $certificateNumber = 'CERT-' . date('Ymd') . '-' . strtoupper(substr(md5(uniqid('', true)), 0, 6));
 
-        $userAttempt= ($quizAttemptRepo->findOneByUserId($user->getId()));
-        if($userAttempt->isPassed() === true) {
-   $pdf = new \FPDF('L', 'mm', 'A4'); // L = paysage, A4
+            $certificate = new Certificate();
+            $certificate->setTitle("Certificate of completion: " . $course->getTitle());
+            $certificate->setRef($certificateNumber);
+            $certificate->setCourse($course);
+            $certificate->setPassed($user);
+
+            $em->persist($certificate);
+            $em->flush();
+        } else {
+            // Si déjà existant → on réutilise son numéro
+            $certificateNumber = $certificate->getRef();
+        }
+
+        // -------- Génération du PDF --------
+        $pdf = new \FPDF('L', 'mm', 'A4');
         $pdf->AddPage();
 
-        // Dimensions page
         $pageWidth = $pdf->GetPageWidth();
         $pageHeight = $pdf->GetPageHeight();
 
-        // Ajout du modèle en fond
         $background = $this->getParameter('kernel.project_dir') . '/public/build/images/certificate-template.png';
         $pdf->Image($background, 0, 0, $pageWidth, $pageHeight);
 
-        // Générer un numéro de certificat unique
-        $certificateNumber = 'CERT-' . date('Ymd') . '-' . strtoupper(substr(md5(uniqid('', true)), 0, 6));
-
-        // --- Nom ---
+        // Nom de l’étudiant
         $pdf->SetFont('Arial', 'B', 26);
         $pdf->SetTextColor(0, 0, 0);
         $nameWidth = $pdf->GetStringWidth(utf8_decode($name));
         $x = ($pageWidth - $nameWidth) / 2;
-        $y = 95; // Ajuster selon ton modèle
+        $y = 95;
         $pdf->SetXY($x, $y);
         $pdf->Cell($nameWidth, 10, utf8_decode($name));
 
-        // --- Date ---
+        // Titre du cours
+        $pdf->SetFont('Arial', 'B', 18);
+        $pdf->Ln(12);
+        $pdf->Cell($pageWidth, 10, utf8_decode($course->getTitle()), 0, 0, 'C');
+
+        // Date
         $pdf->SetFont('Arial', '', 14);
-        $pdf->SetXY(60, 160); // Ajuste selon la zone "DATE"
-        $pdf->Cell(40, 10, (new \DateTime())->format('d/m/Y'));
+        $pdf->SetXY(100, 178);
+        $pdf->Cell(40, 10, (new \DateTime())->format('d/m/Y'), 0, 0, 'L');
 
-        // --- Directeur ---
-        $pdf->SetXY(210, 160); // Ajuste selon la zone "DIRECTOR"
-        $pdf->Cell(40, 10, 'Director');
-
-        // --- Numéro de certificat ---
+        // Ref du certificat
         $pdf->SetFont('Arial', 'I', 10);
         $pdf->SetTextColor(100, 100, 100);
-        $pdf->SetXY(10, $pageHeight - 15);
-        $pdf->Cell(0, 10, 'Certificate No: ' . $certificateNumber);
+        $pdf->SetXY($pageWidth - 70, 10);
+        $pdf->Cell(60, 10, 'Ref: ' . $certificateNumber, 0, 0, 'R');
 
-        // Générer le PDF en mode téléchargement
         $pdfContent = $pdf->Output('S');
 
         return new Response(
@@ -88,11 +113,11 @@ public function certificate(QuizAttemptRepository $quizAttemptRepo): Response
                 'Content-Disposition' => 'attachment; filename="certificate_' . $certificateNumber . '.pdf"',
             ]
         );
-
-        }else{
-            $this->addFlash('info','No quiz Found for this User.');
-            return $this->redirectToRoute('app_dashboard');
-        }
-     
+    } else {
+        $this->addFlash('info', 'No quiz Found for this User.');
+        return $this->redirectToRoute('app_dashboard');
     }
+}
+
+
 }

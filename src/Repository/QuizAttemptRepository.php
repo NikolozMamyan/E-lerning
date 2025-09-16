@@ -42,7 +42,19 @@ class QuizAttemptRepository extends ServiceEntityRepository
     //        ;
     //    }
 
-        public function findByUser(User $user): array
+        public function findOneByUserId(int $userId): ?QuizAttempt
+    {
+        return $this->createQueryBuilder('qa')
+            ->join('qa.user', 'u')
+            ->andWhere('u.id = :userId')
+            ->setParameter('userId', $userId)
+            ->orderBy('qa.createdAt', 'DESC') // pour avoir le + récent
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+            public function findByUser(User $user): array
     {
         return $this->createQueryBuilder('qa')
             ->andWhere('qa.user = :user')
