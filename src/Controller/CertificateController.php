@@ -31,18 +31,24 @@ public function certificate(QuizAttemptRepository $quizAttemptRepo): Response
     ]);
 }
 
-#[Route('app/certificate/{name}', name: 'generate_certificate')]
+#[Route('/app/certificate/{id}', name: 'generate_certificate')]
 public function generateCertificate(
-    string $name,
+    int $id,
     QuizAttemptRepository $quizAttemptRepo,
     EntityManagerInterface $em,
     CertificateRepository $certificateRepo
 ): Response {
     $user = $this->getUser();
 
-    $userAttempt = $quizAttemptRepo->findOneByUserId($user->getId());
-    if ($userAttempt && $userAttempt->isPassed() === true) {
+    // On récupère la tentative par ID
+    $userAttempt = $quizAttemptRepo->find($id);
 
+    // Vérifie si la tentative existe et appartient à l’utilisateur
+    if (!$userAttempt || $userAttempt->getUser()->getId() !== $user->getId()) {
+        throw $this->createNotFoundException('Attempt not found for this user.');
+    }
+
+    if ($userAttempt->isPassed()) {
         $course = $userAttempt->getCourse();
 
         // Vérifie si un certificat existe déjà pour ce user + course
@@ -52,7 +58,6 @@ public function generateCertificate(
         ]);
 
         if (!$certificate) {
-            // Si pas encore de certificat → on en crée un
             $certificateNumber = 'CERT-' . date('Ymd') . '-' . strtoupper(substr(md5(uniqid('', true)), 0, 6));
 
             $certificate = new Certificate();
@@ -64,7 +69,6 @@ public function generateCertificate(
             $em->persist($certificate);
             $em->flush();
         } else {
-            // Si déjà existant → on réutilise son numéro
             $certificateNumber = $certificate->getRef();
         }
 
@@ -81,11 +85,11 @@ public function generateCertificate(
         // Nom de l’étudiant
         $pdf->SetFont('Arial', 'B', 26);
         $pdf->SetTextColor(0, 0, 0);
-        $nameWidth = $pdf->GetStringWidth(utf8_decode($name));
+        $nameWidth = $pdf->GetStringWidth(utf8_decode($user->getUserName()));
         $x = ($pageWidth - $nameWidth) / 2;
         $y = 95;
         $pdf->SetXY($x, $y);
-        $pdf->Cell($nameWidth, 10, utf8_decode($name));
+        $pdf->Cell($nameWidth, 10, utf8_decode($user->getUserName()));
 
         // Titre du cours
         $pdf->SetFont('Arial', 'B', 18);
@@ -113,11 +117,12 @@ public function generateCertificate(
                 'Content-Disposition' => 'attachment; filename="certificate_' . $certificateNumber . '.pdf"',
             ]
         );
-    } else {
-        $this->addFlash('info', 'No quiz Found for this User.');
-        return $this->redirectToRoute('app_dashboard');
     }
+
+    $this->addFlash('info', 'This attempt is not passed.');
+    return $this->redirectToRoute('app_dashboard');
 }
+
 
 
 }

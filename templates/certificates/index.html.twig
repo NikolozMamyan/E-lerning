@@ -146,7 +146,7 @@
                 border-top: 1px solid var(--mint);
                 text-align: center;
             ">
-               <a href="{{ path('generate_certificate', { name: app.user.userName }) }}"
+<a href="{{ path('generate_certificate', { id: certificate.id }) }}"
    style="
         background: var(--green);
         color: var(--white);
@@ -161,6 +161,7 @@
    onmouseout="this.style.background='var(--green)'">
     📥 Download Certificate
 </a>
+
 
             </div>
             {% endif %}
