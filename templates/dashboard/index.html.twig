@@ -49,7 +49,7 @@
         <p>No progress yet.</p>
       {% endfor %}
     </div>
-    <a href="/my-courses" class="view-courses-btn">View My Courses</a>
+    <a href="" class="view-courses-btn">View My Courses</a>
   </div>
 
   <!-- Transactions (static) -->
@@ -72,6 +72,7 @@
         <div class="transaction-amount">$123.64</div>
       </div>
     </div>
+
     <button class="view-all-btn">View All</button>
   </div>
 
@@ -89,22 +90,30 @@
 </style>
 <div style="display:flex; gap:50px; flex-wrap: wrap;"> 
 
-  <!-- Certificates (static) -->
-  <div class="card certif-card">
-    <div class="card-header">
-      <h2 class="card-title">My Certificates</h2>
-      <a href="/certificates" class="view-all-link">View All</a>
-    </div>
-    <div>
-      <div class="certificate-item">
-        <div class="certificate-icon">🎓</div>
 
-        
-        <span class="certificate-name">Project Management</span>
-      </div>
-    </div>
-    <button class="download-all-btn">Download All</button>
+<div class="card certif-card">
+  <div class="card-header">
+    <h2 class="card-title">My Certificates</h2>
+    
   </div>
+  
+  <div class="certificates-list">
+{% set seen = [] %}
+{% for attempt in userAttempts %}
+    {% if attempt.passed and attempt.course.title not in seen %}
+        <div class="certificate-item">
+      <div class="certificate-icon">🎓</div>
+      <span class="certificate-name">{{ attempt.course.title }}</span>
+    </div>
+        {% set seen = seen|merge([attempt.course.title]) %}
+    {% endif %}
+{% endfor %}
+
+
+  </div>
+  <a href="{{path('app_certificates')}}" class="download-all-btn">View All</a>
+
+</div>
 
   <!-- Recent Videos -->
   <div class="card video-card">

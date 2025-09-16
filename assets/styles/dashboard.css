@@ -174,33 +174,72 @@
   }
 
   /* ------- My Certificates ------- */
-  .certificate-item {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 1rem 0;
-    border-bottom: 1px solid #f1f5f9;
-  }
 
-  .certificate-item:last-child {
-    border-bottom: none;
-  }
+.certificates-list {
+  max-height: 140px;
+  overflow-y: auto;
+  position: relative;
+  margin-bottom: 50px;
+}
 
-  .certificate-icon {
-    width: 48px;
-    height: 48px;
-    background: var(--mint);
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
+/* Gradient qui indique qu'il y a du contenu en dessous */
+.certificates-list::after {
+  content: '';
+  position: sticky;
+  bottom: 0;
+  display: block;
+  height: 15px;
+  background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.95));
+  pointer-events: none;
+}
 
-  .certificate-name {
-    flex: 1;
-    font-weight: 500;
-    color: var(--black);
-  }
+
+/* Style de la scrollbar (optionnel) */
+.certificates-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.certificates-list::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 3px;
+}
+
+.certificates-list::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.certificates-list::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.certificate-item {
+  height: 80px; /* Hauteur fixe */
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  border-bottom: 1px solid #f1f5f9;
+  box-sizing: border-box;
+}
+
+.certificate-item:hover {
+  background-color: #f8fafc;
+}
+
+.certificate-item:last-child {
+  border-bottom: none;
+}
+
+.certificate-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.certificate-name {
+  font-weight: 500;
+  color: #334155;
+}
 
   .download-icon {
     color: var(--teal);

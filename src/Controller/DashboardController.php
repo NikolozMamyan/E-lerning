@@ -2,12 +2,13 @@
 
 namespace App\Controller;
 
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Attribute\Route;
 use App\Repository\CourseRepository;
 use App\Repository\ProgressRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use App\Repository\QuizAttemptRepository;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 final class DashboardController extends AbstractController{
 
@@ -16,6 +17,7 @@ final class DashboardController extends AbstractController{
     public function index(
         CourseRepository $courseRepo,
         ProgressRepository $progressRepo,
+        QuizAttemptRepository $quizAttemptRepo,
         EntityManagerInterface $em
     ): Response {
         $user = $this->getUser();
@@ -56,10 +58,15 @@ final class DashboardController extends AbstractController{
             $recentVideos = $qb->getQuery()->getResult();
         }
 
+
+    // on va chercher *tous* les quiz attempts de cet utilisateur
+     $userAttempts = $quizAttemptRepo->findByUser($user);
+
         return $this->render('dashboard/index.html.twig', [
             'courses' => $courses,
             'progressData' => $progressData,
             'recentVideos' => $recentVideos,
+            'userAttempts' => $userAttempts
         ]);
     }
 }
