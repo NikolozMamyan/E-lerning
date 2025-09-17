@@ -1,0 +1,96 @@
+
+/* COURSES GRID */
+.courses-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill,minmax(250px,1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.course-card {
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1rem;
+  text-align: center;
+  position: relative;
+}
+
+.course-card.complete::before {
+  content: "Complete";
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: var(--green);
+  color: var(--white);
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: var(--radius);
+}
+
+.course-card.in-progress::before {
+  content: "In Progress";
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: orange;
+  color: var(--white);
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: var(--radius);
+}
+
+.assign-btn {
+  background: var(--teal);
+  color: var(--white);
+  border: none;
+  border-radius: var(--radius);
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+/* TABLE */
+.progress-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--white);
+  box-shadow: var(--shadow);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.progress-table th, .progress-table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+
+.progress-table th {
+  background: var(--green);
+  color: var(--white);
+}
+
+.progress-bar {
+  background: var(--mint);
+  border-radius: var(--radius);
+  overflow: hidden;
+  height: 10px;
+  width: 100%;
+}
+
+.progress-bar span {
+  display: block;
+  height: 100%;
+  background: var(--teal);
+}
+
+/* STATUS */
+.certified {
+  color: var(--green);
+  font-weight: bold;
+}
+
+.in-learning {
+  color: orange;
+  font-weight: bold;
+}
