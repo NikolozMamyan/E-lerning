@@ -1,0 +1,188 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}User Progress{% endblock %}
+
+{% block body %}
+<style>
+:root {
+  --green:#1A6D55;
+  --teal:#0D8383;
+  --black:#071717;
+  --mint:#E7F3F3;
+  --grey:#606060;
+  --white:#FFFFFF;
+  --bg:#f4f9f8;
+  --radius:12px;
+  --shadow:0 4px 12px rgba(7,23,23,.08);
+}
+
+body {
+  background: var(--bg);
+  font-family: Arial, sans-serif;
+  color: var(--black);
+  padding: 2rem;
+}
+
+/* COURSES GRID */
+.courses-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill,minmax(250px,1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.course-card {
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1rem;
+  text-align: center;
+  position: relative;
+}
+
+.course-card.complete::before {
+  content: "Complete";
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: var(--green);
+  color: var(--white);
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: var(--radius);
+}
+
+.course-card.in-progress::before {
+  content: "In Progress";
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: orange;
+  color: var(--white);
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: var(--radius);
+}
+
+.assign-btn {
+  background: var(--teal);
+  color: var(--white);
+  border: none;
+  border-radius: var(--radius);
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+/* TABLE */
+.progress-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--white);
+  box-shadow: var(--shadow);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.progress-table th, .progress-table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+
+.progress-table th {
+  background: var(--green);
+  color: var(--white);
+}
+
+.progress-bar {
+  background: var(--mint);
+  border-radius: var(--radius);
+  overflow: hidden;
+  height: 10px;
+  width: 100%;
+}
+
+.progress-bar span {
+  display: block;
+  height: 100%;
+  background: var(--teal);
+}
+
+/* STATUS */
+.certified {
+  color: var(--green);
+  font-weight: bold;
+}
+
+.in-learning {
+  color: orange;
+  font-weight: bold;
+}
+
+</style>
+<div class="courses-wrapper">
+
+    <h2>All Courses</h2>
+    <div class="courses-grid">
+    {% for item in coursesData %}
+        <div class="course-card {{ item.certified ? 'complete' : 'in-progress' }}">
+            
+            {# Boucle sur les vidéos du cours #}
+{% set firstVideo = item.course.videos|first %}
+{% if firstVideo %}
+    <div class="thumb main-video">
+        <iframe src="{{ firstVideo.url }}" width="100%" height="200" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+    </div>
+{% endif %}
+
+<div class="video-list">
+    {% for video in item.course.videos|slice(1) %}
+        <p><a href="{{ video.url }}" target="_blank">{{ video.title ?? 'Other video' }}</a></p>
+    {% endfor %}
+</div>
+
+
+            <h3>{{ item.course.title ?? 'Untitled Course' }}</h3>
+            <p>{{ item.course.description ?? '' }}</p>
+            <button class="assign-btn">Assign+</button>
+        </div>
+    {% endfor %}
+</div>
+
+
+    <h2>User Progress</h2>
+    <table class="progress-table">
+        <thead>
+            <tr>
+                <th>Courses Name</th>
+                <th>Start On</th>
+                <th>Quiz Score</th>
+                <th>Progress on Course</th>
+                <th>Certification Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in coursesData %}
+                <tr>
+                    <td>{{ item.course.title ?? 'Untitled Course' }}</td>
+                    <td>{{ item.enrollment.createdAt|date('d/m/Y') }}</td>
+                    <td>{{ item.quizScore ?? '-' }}</td>
+                    <td>
+                        <div class="progress-bar">
+                            <span style="width: {{ item.progressPercent }}%"></span>
+                        </div>
+                    </td>
+                    <td>
+                        {% if item.certified %}
+                            <span class="certified">certified</span>
+                        {% else %}
+                            <span class="in-learning">In Learning</span>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}
