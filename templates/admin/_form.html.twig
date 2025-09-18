@@ -1,174 +1,3 @@
-{{ form_start(form, {'attr': {'class': 'course-form'}}) }}
-
-<div class="form-section">
-    <div class="section-header">
-        <h2>New course</h2>
-        <p>Basic details about your course</p>
-    </div>
-    <div class="form-grid">
-        {{ form_row(form.title) }}
-        {{ form_row(form.description) }}
-    </div>
-</div>
-<div class="divider"></div>
-
-<div class="form-section">
-    <div class="section-header">
-        <h2>Course Prices</h2>
-        <p>Define the pricing options for this course</p>
-    </div>
-    <div id="course_prices"
-         data-prototype="{{ form_widget(form.coursePrices.vars.prototype)|e('html_attr') }}"
-         data-index="{{ form.coursePrices|length }}"
-         class="collection-container">
-        {% for priceForm in form.coursePrices %}
-            <div class="price-item card collection-item">
-                <div class="item-header">
-                    <span class="item-number">Price {{ loop.index }}</span>
-                    <button type="button" class="btn btn-danger btn-small remove-item" title="Remove this price">
-                        <span class="btn-icon">×</span> Remove
-                    </button>
-                </div>
-                <div class="form-grid">
-                    {{ form_row(priceForm.price) }}
-                    {{ form_row(priceForm.currency) }}
-                </div>
-            </div>
-        {% endfor %}
-        {% if form.coursePrices|length == 0 %}
-            <div class="empty-state">
-                <p>No price defined yet. Click the button below to add one.</p>
-            </div>
-        {% endif %}
-    </div>
-    <button type="button" class="btn btn-primary add-item" data-target="#course_prices">
-        <span class="btn-icon">+</span> Add Price
-    </button>
-</div>
-
-<div class="divider"></div>
-
-<div class="form-section">
-    <div class="section-header">
-        <h2>Course Videos</h2>
-        <p>Add educational videos to your course</p>
-    </div>
-    <div id="course_videos"
-         data-prototype="{{ form_widget(form.videos.vars.prototype)|e('html_attr') }}"
-         data-index="{{ form.videos|length }}"
-         class="collection-container">
-        {% for videoForm in form.videos %}
-            <div class="video-item card collection-item">
-                <div class="item-header">
-                    <span class="item-number">Video {{ loop.index }}</span>
-                    <button type="button" class="btn btn-danger btn-small remove-item" title="Remove this video">
-                        <span class="btn-icon">×</span> Remove
-                    </button>
-                </div>
-                <div class="form-grid">
-                    {{ form_row(videoForm.title) }}
-                    <div class="duration-field">
-                        <label class="form-label">Durée</label>
-                        <div class="duration-input-group">
-                            <input type="number" 
-                                   class="form-control duration-minutes" 
-                                   step="0.5" 
-                                   min="0.5"
-                                   placeholder="Ex: 15.5"
-                                   data-target="{{ videoForm.duration.vars.full_name }}"
-                                   data-current-seconds="{{ videoForm.duration.vars.value }}">
-                            <span class="input-group-text">minutes</span>
-                        </div>
-                        <small class="form-text text-muted duration-conversion"></small>
-                        {{ form_widget(videoForm.duration, {'attr': {'style': 'display: none;'}}) }}
-                    </div>
-                </div>
-                {{ form_row(videoForm.description) }}
-                {{ form_row(videoForm.url) }}
-            </div>
-        {% endfor %}
-        {% if form.videos|length == 0 %}
-            <div class="empty-state">
-                <p>No videos added yet. Click the button below to add your first video.</p>
-            </div>
-        {% endif %}
-    </div>
-    <button type="button" class="btn btn-primary add-item" data-target="#course_videos">
-        <span class="btn-icon">+</span> Add Video
-    </button>
-</div>
-
-<div class="divider"></div>
-
-<div class="form-section">
-    <div class="section-header">
-        <h2>Quiz Questions</h2>
-        <p>Create interactive questions to test knowledge</p>
-    </div>
-    <div id="course_questions"
-         data-prototype="{{ form_widget(form.quizQuestions.vars.prototype)|e('html_attr') }}"
-         data-index="{{ form.quizQuestions|length }}"
-         class="collection-container">
-        {% for qForm in form.quizQuestions %}
-            <div class="question-item card collection-item">
-                <div class="item-header">
-                    <span class="item-number">Question {{ loop.index }}</span>
-                    <button type="button" class="btn btn-danger btn-small remove-item" title="Remove this question">
-                        <span class="btn-icon">×</span> Remove Question
-                    </button>
-                </div>
-                
-                {{ form_row(qForm.question) }}
-
-                <div class="answers-section">
-                    <h4>Answer Options</h4>
-                    <div class="answers"
-                         data-prototype="{{ form_widget(qForm.answers.vars.prototype)|e('html_attr') }}"
-                         data-index="{{ qForm.answers|length }}">
-                        {% for aForm in qForm.answers %}
-                            <div class="answer-item">
-                                <div class="answer-content">
-                                    {{ form_row(aForm.text) }}
-                                    <div class="answer-controls">
-                                        {{ form_row(aForm.isCorrect) }}
-                                        <button type="button" class="btn btn-danger btn-small remove-item" title="Remove this answer">
-                                            <span class="btn-icon">×</span>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        {% endfor %}
-                    </div>
-                    <button type="button" class="btn btn-secondary btn-small add-answer">
-                        <span class="btn-icon">+</span> Add Answer Option
-                    </button>
-                </div>
-            </div>
-        {% endfor %}
-        {% if form.quizQuestions|length == 0 %}
-            <div class="empty-state">
-                <p>No quiz questions added yet. Click the button below to add your first question.</p>
-            </div>
-        {% endif %}
-    </div>
-    <button type="button" class="btn btn-primary add-item" data-target="#course_questions">
-        <span class="btn-icon">+</span> Add Question
-    </button>
-</div>
-
-<div class="divider"></div>
-
-<div class="form-actions">
-    <button class="btn btn-success btn-large">
-        <span class="btn-icon">✓</span> {{ button_label|default('Save Course') }}
-    </button>
-    <a href="{{ path('admin_course_index') }}" class="btn btn-secondary btn-large">
-        <span class="btn-icon">←</span> Back to Courses
-    </a>
-</div>
-
-{{ form_end(form) }}
-
 <style>
 .course-form {
     padding: 2rem;
@@ -532,114 +361,303 @@ textarea.form-control {
     display: block;
 }
 </style>
+{{ form_start(form, {'attr': {'class': 'course-form'}}) }}
+
+<div class="form-section">
+    <div class="section-header">
+        <h2>New course</h2>
+        <p>Basic details about your course</p>
+    </div>
+    <div class="form-grid">
+        {{ form_row(form.title) }}
+        {{ form_row(form.description) }}
+    </div>
+</div>
+<div class="divider"></div>
+
+<div class="form-section">
+    <div class="section-header">
+        <h2>Course Prices</h2>
+        <p>Define the pricing options for this course</p>
+    </div>
+    <div id="course_prices"
+         data-prototype="{{ form_widget(form.coursePrices.vars.prototype)|e('html_attr') }}"
+         data-index="{{ form.coursePrices|length }}"
+         class="collection-container">
+        {% for priceForm in form.coursePrices %}
+            <div class="price-item card collection-item">
+                <div class="item-header">
+                    <span class="item-number">Price {{ loop.index }}</span>
+                    <button type="button" class="btn btn-danger btn-small remove-item" title="Remove this price">
+                        <span class="btn-icon">×</span> Remove
+                    </button>
+                </div>
+                <div class="form-grid">
+                    {{ form_row(priceForm.price) }}
+                    {{ form_row(priceForm.currency) }}
+                </div>
+            </div>
+        {% endfor %}
+        {% if form.coursePrices|length == 0 %}
+            <div class="empty-state">
+                <p>No price defined yet. Click the button below to add one.</p>
+            </div>
+        {% endif %}
+    </div>
+    <button type="button" class="btn btn-primary add-item" data-target="#course_prices">
+        <span class="btn-icon">+</span> Add Price
+    </button>
+</div>
+
+<div class="divider"></div>
+
+<div class="form-section">
+    <div class="section-header">
+        <h2>Course Videos</h2>
+        <p>Add educational videos to your course</p>
+    </div>
+
+    <div id="course_videos"
+         data-prototype="
+            <div class='video-item card collection-item'>
+                <div class='item-header'>
+                    <span class='item-number'>Video __name__</span>
+                    <button type='button' class='btn btn-danger btn-small remove-item' title='Remove this video'>
+                        <span class='btn-icon'>×</span> Remove
+                    </button>
+                </div>
+                <div class='form-grid'>
+                    {{ form_row(form.videos.vars.prototype.title)|e('html_attr') }}
+
+                    <div class='duration-field'>
+                        <label class='form-label'>Durée</label>
+                        <div class='duration-input-group'>
+                            <input type='number'
+                                   class='form-control duration-minutes'
+                                   step='0.5'
+                                   min='0.5'
+                                   placeholder='Ex: 15.5'
+                                   data-target='{{ form.videos.vars.prototype.duration.vars.full_name|e('html_attr') }}'
+                                   data-current-seconds='0'>
+                            <span class='input-group-text'>minutes</span>
+                        </div>
+                        <small class='form-text text-muted duration-conversion' style='display:none;'></small>
+
+                        {{ form_widget(form.videos.vars.prototype.duration, {'attr': {'style': 'display:none;'}})|e('html_attr') }}
+                    </div>
+                </div>
+
+                {{ form_row(form.videos.vars.prototype.description)|e('html_attr') }}
+                {{ form_row(form.videos.vars.prototype.url)|e('html_attr') }}
+            </div>
+         "
+         data-index="{{ form.videos|length }}"
+         class="collection-container">
+
+        {# affichage des vidéos existantes (edit) #}
+        {% for videoForm in form.videos %}
+            <div class="video-item card collection-item">
+                <div class="item-header">
+                    <span class="item-number">Video {{ loop.index }}</span>
+                    <button type="button" class="btn btn-danger btn-small remove-item" title="Remove this video">
+                        <span class="btn-icon">×</span> Remove
+                    </button>
+                </div>
+                <div class="form-grid">
+                    {{ form_row(videoForm.title) }}
+                    <div class="duration-field">
+                        <label class="form-label">Durée</label>
+                        <div class="duration-input-group">
+                            <input type="number"
+                                   class="form-control duration-minutes"
+                                   step="0.5"
+                                   min="0.5"
+                                   placeholder="Ex: 15.5"
+                                   data-target="{{ videoForm.duration.vars.full_name }}"
+                                   data-current-seconds="{{ videoForm.duration.vars.value }}">
+                            <span class="input-group-text">minutes</span>
+                        </div>
+                        <small class="form-text text-muted duration-conversion"></small>
+                        {{ form_widget(videoForm.duration, {'attr': {'style': 'display:none;'}}) }}
+                    </div>
+                </div>
+                {{ form_row(videoForm.description) }}
+                {{ form_row(videoForm.url) }}
+            </div>
+        {% endfor %}
+
+        {% if form.videos|length == 0 %}
+            <div class="empty-state">
+                <p>No videos added yet. Click the button below to add your first video.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <button type="button" class="btn btn-primary add-item" data-target="#course_videos">
+        <span class="btn-icon">+</span> Add Video
+    </button>
+</div>
+
+
+<div class="divider"></div>
+
+<div class="form-section">
+    <div class="section-header">
+        <h2>Quiz Questions</h2>
+        <p>Create interactive questions to test knowledge</p>
+    </div>
+    <div id="course_questions"
+         data-prototype="{{ form_widget(form.quizQuestions.vars.prototype)|e('html_attr') }}"
+         data-index="{{ form.quizQuestions|length }}"
+         class="collection-container">
+        {% for qForm in form.quizQuestions %}
+            <div class="question-item card collection-item">
+                <div class="item-header">
+                    <span class="item-number">Question {{ loop.index }}</span>
+                    <button type="button" class="btn btn-danger btn-small remove-item" title="Remove this question">
+                        <span class="btn-icon">×</span> Remove Question
+                    </button>
+                </div>
+                
+                {{ form_row(qForm.question) }}
+
+                <div class="answers-section">
+                    <h4>Answer Options</h4>
+                    <div class="answers"
+                         data-prototype="{{ form_widget(qForm.answers.vars.prototype)|e('html_attr') }}"
+                         data-index="{{ qForm.answers|length }}">
+                        {% for aForm in qForm.answers %}
+                            <div class="answer-item">
+                                <div class="answer-content">
+                                    {{ form_row(aForm.text) }}
+                                    <div class="answer-controls">
+                                        {{ form_row(aForm.isCorrect) }}
+                                        <button type="button" class="btn btn-danger btn-small remove-item" title="Remove this answer">
+                                            <span class="btn-icon">×</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <button type="button" class="btn btn-secondary btn-small add-answer">
+                        <span class="btn-icon">+</span> Add Answer Option
+                    </button>
+                </div>
+            </div>
+        {% endfor %}
+        {% if form.quizQuestions|length == 0 %}
+            <div class="empty-state">
+                <p>No quiz questions added yet. Click the button below to add your first question.</p>
+            </div>
+        {% endif %}
+    </div>
+    <button type="button" class="btn btn-primary add-item" data-target="#course_questions">
+        <span class="btn-icon">+</span> Add Question
+    </button>
+</div>
+
+<div class="divider"></div>
+
+<div class="form-actions">
+    <button class="btn btn-success btn-large">
+        <span class="btn-icon">✓</span> {{ button_label|default('Save Course') }}
+    </button>
+    <a href="{{ path('admin_course_index') }}" class="btn btn-secondary btn-large">
+        <span class="btn-icon">←</span> Back to Courses
+    </a>
+</div>
+
+{{ form_end(form) }}
+
+
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Fonction pour convertir minutes en secondes et vice versa
-    function setupDurationFields() {
-        document.querySelectorAll('.duration-minutes').forEach(function(minutesInput) {
-            const targetName = minutesInput.dataset.target;
-            const currentSeconds = minutesInput.dataset.currentSeconds;
-            const secondsInput = document.querySelector(`[name="${targetName}"]`);
-            
-            if (secondsInput) {
-                // Convertir de secondes vers minutes lors du chargement initial
-                if (currentSeconds && parseFloat(currentSeconds) > 0) {
-                    const minutes = (parseFloat(currentSeconds) / 60);
-                    minutesInput.value = minutes % 1 === 0 ? Math.floor(minutes) : minutes.toFixed(1);
-                    updateDurationDisplay(minutesInput, currentSeconds);
-                }
-                
-                // Écouter les changements sur le champ minutes
-                minutesInput.addEventListener('input', function() {
-                    const minutes = parseFloat(this.value) || 0;
-                    const seconds = Math.round(minutes * 60);
-                    secondsInput.value = seconds;
-                    
-                    // Afficher la conversion
-                    updateDurationDisplay(this, seconds);
-                });
-                
-                // Écouter le focus pour sélectionner le texte
-                minutesInput.addEventListener('focus', function() {
-                    this.select();
-                });
+document.addEventListener('DOMContentLoaded', function () {
+
+    /**
+     * =========================
+     * Gestion Durée Vidéos (minutes ↔ secondes)
+     * =========================
+     */
+    function setupDurationInputs(container) {
+        container.querySelectorAll('.duration-minutes').forEach(input => {
+            const hiddenName = input.dataset.target;
+            const hiddenField = container.querySelector(`[name="${hiddenName}"]`);
+            const conversion = input.closest('.duration-field').querySelector('.duration-conversion');
+
+            // Initialiser la valeur en minutes si hidden contient des secondes
+            if (input.dataset.currentSeconds && parseInt(input.dataset.currentSeconds) > 0) {
+                const minutes = parseInt(input.dataset.currentSeconds) / 60;
+                input.value = minutes % 1 === 0 ? Math.floor(minutes) : minutes.toFixed(1);
+                updateDisplay(conversion, parseInt(input.dataset.currentSeconds));
             }
+
+            // Mettre à jour hidden quand on tape dans minutes
+            input.addEventListener('input', function () {
+                const minutes = parseFloat(this.value) || 0;
+                const seconds = Math.round(minutes * 60);
+                hiddenField.value = seconds;
+                updateDisplay(conversion, seconds);
+            });
+
+            // Auto-sélection au focus
+            input.addEventListener('focus', function () {
+                this.select();
+            });
         });
     }
 
-    function updateDurationDisplay(minutesInput, seconds) {
-        const conversionElement = minutesInput.closest('.duration-field').querySelector('.duration-conversion');
-        
-        if (conversionElement && seconds > 0) {
-            const minutes = Math.floor(seconds / 60);
-            const remainingSeconds = seconds % 60;
-            
-            let displayText = '= ';
-            if (minutes > 0) {
-                displayText += `${minutes} min`;
-                if (remainingSeconds > 0) {
-                    displayText += ` ${remainingSeconds} sec`;
-                }
-            } else {
-                displayText += `${remainingSeconds} sec`;
-            }
-            
-            conversionElement.textContent = displayText;
-            conversionElement.style.display = 'block';
-        } else if (conversionElement) {
-            conversionElement.style.display = 'none';
+    function updateDisplay(el, seconds) {
+        if (!el) return;
+        if (seconds > 0) {
+            const min = Math.floor(seconds / 60);
+            const sec = seconds % 60;
+            el.textContent = `= ${min} min${sec > 0 ? ' ' + sec + ' sec' : ''}`;
+            el.style.display = 'block';
+        } else {
+            el.style.display = 'none';
         }
     }
 
-    // Update item numbers when items are added/removed
+    /**
+     * =========================
+     * Gestion des collections (prices, videos, quiz)
+     * =========================
+     */
     function updateItemNumbers() {
-        // Update price numbers
-        document.querySelectorAll('#course_prices .price-item').forEach((item, index) => {
+        document.querySelectorAll('#course_prices .price-item').forEach((item, i) => {
             const numberSpan = item.querySelector('.item-number');
-            if (numberSpan) {
-                numberSpan.textContent = `Price ${index + 1}`;
-            }
+            if (numberSpan) numberSpan.textContent = `Price ${i + 1}`;
         });
-        
-        // Update video numbers
-        document.querySelectorAll('#course_videos .video-item').forEach((item, index) => {
+        document.querySelectorAll('#course_videos .video-item').forEach((item, i) => {
             const numberSpan = item.querySelector('.item-number');
-            if (numberSpan) {
-                numberSpan.textContent = `Video ${index + 1}`;
-            }
+            if (numberSpan) numberSpan.textContent = `Video ${i + 1}`;
         });
-        
-        // Update question numbers
-        document.querySelectorAll('#course_questions .question-item').forEach((item, index) => {
+        document.querySelectorAll('#course_questions .question-item').forEach((item, i) => {
             const numberSpan = item.querySelector('.item-number');
-            if (numberSpan) {
-                numberSpan.textContent = `Question ${index + 1}`;
-            }
+            if (numberSpan) numberSpan.textContent = `Question ${i + 1}`;
         });
     }
-    
-    // Hide/show empty states
+
     function toggleEmptyStates() {
-        const containers = ['#course_prices', '#course_videos', '#course_questions'];
-        const itemClasses = ['.price-item', '.video-item', '.question-item'];
-        const emptyMessages = [
-            'No price defined yet. Click the button below to add one.',
-            'No videos added yet. Click the button below to add your first video.',
-            'No quiz questions added yet. Click the button below to add your first question.'
+        const containers = [
+            { selector: '#course_prices', itemClass: '.price-item', message: 'No price defined yet. Click the button below to add one.' },
+            { selector: '#course_videos', itemClass: '.video-item', message: 'No videos added yet. Click the button below to add your first video.' },
+            { selector: '#course_questions', itemClass: '.question-item', message: 'No quiz questions added yet. Click the button below to add your first question.' }
         ];
-        
-        containers.forEach((containerSelector, index) => {
-            const container = document.querySelector(containerSelector);
+
+        containers.forEach(config => {
+            const container = document.querySelector(config.selector);
             if (container) {
-                const items = container.querySelectorAll(itemClasses[index]);
+                const items = container.querySelectorAll(config.itemClass);
                 const emptyState = container.querySelector('.empty-state');
-                
+
                 if (items.length === 0) {
                     if (!emptyState) {
                         const emptyDiv = document.createElement('div');
                         emptyDiv.className = 'empty-state';
-                        emptyDiv.innerHTML = `<p>${emptyMessages[index]}</p>`;
+                        emptyDiv.innerHTML = `<p>${config.message}</p>`;
                         container.appendChild(emptyDiv);
                     }
                 } else if (emptyState) {
@@ -648,317 +666,120 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-    
-    // Initialiser les champs de durée
-    setupDurationFields();
-    toggleEmptyStates();
-});
 
-document.addEventListener('click', function (e) {
-    // Add item (price, video or question)
-    if (e.target.classList.contains('add-item')) {
-        const target = document.querySelector(e.target.dataset.target);
-        const index = parseInt(target.dataset.index);
-        let proto = target.dataset.prototype.replace(/__name__/g, index);
-        const div = document.createElement('div');
-        
-        // Create wrapper based on target
-        if (target.id === 'course_prices') {
-            div.className = 'price-item card collection-item';
+    /**
+     * =========================
+     * Initialisation
+     * =========================
+     */
+    setupDurationInputs(document);
+    toggleEmptyStates();
+
+    /**
+     * =========================
+     * Events globaux
+     * =========================
+     */
+    document.addEventListener('click', function (e) {
+        // Ajouter un item
+        if (e.target.classList.contains('add-item')) {
+            const target = document.querySelector(e.target.dataset.target);
+            const index = parseInt(target.dataset.index);
+            let proto = target.dataset.prototype.replace(/__name__/g, index);
+            const wrapper = document.createElement('div');
+            wrapper.innerHTML = proto;
+            const div = wrapper.firstElementChild;
+
+            target.appendChild(div);
+            target.dataset.index = index + 1;
+
+            // Init si vidéo
+            if (target.id === 'course_videos') {
+                setupDurationInputs(div);
+            }
+
+            // Supprimer empty state
+            const emptyState = target.querySelector('.empty-state');
+            if (emptyState) emptyState.remove();
+
+            updateItemNumbers();
+        }
+
+        // Supprimer un item
+        if (e.target.classList.contains('remove-item')) {
+            e.preventDefault();
+            const item = e.target.closest('.video-item, .question-item, .answer-item, .price-item');
+            if (item) {
+                item.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => {
+                    item.remove();
+                    updateItemNumbers();
+                    toggleEmptyStates();
+                }, 300);
+            }
+        }
+
+        // Ajouter une réponse
+        if (e.target.classList.contains('add-answer')) {
+            const answers = e.target.closest('.question-item').querySelector('.answers');
+            const index = parseInt(answers.dataset.index);
+            let proto = answers.dataset.prototype.replace(/__name__/g, index);
+
+            const div = document.createElement('div');
+            div.className = 'answer-item';
             div.innerHTML = `
-                <div class="item-header">
-                    <span class="item-number">Price ${index + 1}</span>
-                    <button type="button" class="btn btn-danger btn-small remove-item" title="Remove this price">
-                        <span class="btn-icon">×</span> Remove
-                    </button>
-                </div>
-                <div class="form-grid">
+                <div class="answer-content">
                     ${proto}
-                </div>
-            `;
-        } else if (target.id === 'course_videos') {
-            div.className = 'video-item card collection-item';
-            
-            // Extraire les différents champs du prototype
-            const titleMatch = proto.match(/<[^>]*name="[^"]*\[title\][^"]*"[^>]*>.*?(?=<[^>]*name="[^"]*\[(?:description|duration|url)\]|$)/s);
-            const durationMatch = proto.match(/<[^>]*name="[^"]*\[duration\][^"]*"[^>]*>.*?(?=<[^>]*name="[^"]*\[(?:description|url)\]|$)/s);
-            const descriptionMatch = proto.match(/<[^>]*name="[^"]*\[description\][^"]*"[^>]*>.*?(?=<[^>]*name="[^"]*\[url\]|$)/s);
-            const urlMatch = proto.match(/<[^>]*name="[^"]*\[url\][^"]*"[^>]*>.*$/s);
-            
-            // Extraire le nom du champ duration pour le data-target
-            const durationNameMatch = proto.match(/name="([^"]*\[duration\][^"]*)"/);
-            const durationFieldName = durationNameMatch ? durationNameMatch[1] : '';
-            
-            div.innerHTML = `
-                <div class="item-header">
-                    <span class="item-number">Video ${index + 1}</span>
-                    <button type="button" class="btn btn-danger btn-small remove-item" title="Remove this video">
-                        <span class="btn-icon">×</span> Remove
-                    </button>
-                </div>
-                <div class="form-grid">
-                    ${titleMatch ? titleMatch[0] : ''}
-                    <div class="duration-field">
-                        <label class="form-label">Durée</label>
-                        <div class="duration-input-group">
-                            <input type="number" 
-                                   class="form-control duration-minutes" 
-                                   step="0.5" 
-                                   min="0.5"
-                                   placeholder="Ex: 15.5"
-                                   data-target="${durationFieldName}"
-                                   data-current-seconds="0">
-                            <span class="input-group-text">minutes</span>
-                        </div>
-                        <small class="form-text text-muted duration-conversion" style="display: none;"></small>
-                        ${durationMatch ? durationMatch[0].replace(/class="[^"]*"/, 'class="form-control" style="display: none;"') : ''}
+                    <div class="answer-controls">
+                        <button type="button" class="btn btn-danger btn-small remove-item" title="Remove this answer">
+                            <span class="btn-icon">×</span>
+                        </button>
                     </div>
                 </div>
-                ${descriptionMatch ? descriptionMatch[0] : ''}
-                ${urlMatch ? urlMatch[0] : ''}
             `;
-        } else if (target.id === 'course_questions') {
-            div.className = 'question-item card collection-item';
-            
-            // Extraire la partie question du prototype
-            const questionMatch = proto.match(/<[^>]*name="[^"]*\[question\][^"]*"[^>]*>[\s\S]*?<\/[^>]*>/);
-            const answersProtoMatch = proto.match(/data-prototype="([^"]*)"/);
-            const answersProto = answersProtoMatch ? answersProtoMatch[1].replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>') : '';
-            
-            div.innerHTML = `
-                <div class="item-header">
-                    <span class="item-number">Question ${index + 1}</span>
-                    <button type="button" class="btn btn-danger btn-small remove-item" title="Remove this question">
-                        <span class="btn-icon">×</span> Remove Question
-                    </button>
-                </div>
-                ${questionMatch ? questionMatch[0] : ''}
-                <div class="answers-section">
-                    <h4>Answer Options</h4>
-                    <div class="answers" 
-                         data-prototype="${answersProto.replace(/"/g, '&quot;')}" 
-                         data-index="0">
-                    </div>
-                    <button type="button" class="btn btn-secondary btn-small add-answer">
-                        <span class="btn-icon">+</span> Add Answer Option
-                    </button>
-                </div>
-            `;
+            answers.appendChild(div);
+            answers.dataset.index = index + 1;
         }
-        
-        target.appendChild(div);
-        target.dataset.index = index + 1;
-        
-        // Remove empty state if it exists
-        const emptyState = target.querySelector('.empty-state');
-        if (emptyState) {
-            emptyState.remove();
+    });
+
+    /**
+     * =========================
+     * Validation formulaire
+     * =========================
+     */
+    document.addEventListener('submit', function(e) {
+        const form = e.target;
+        if (form.classList.contains('course-form')) {
+            // Forcer la conversion minutes → secondes avant submit
+            document.querySelectorAll('.duration-minutes').forEach(input => {
+                const targetName = input.dataset.target;
+                const secondsInput = document.querySelector(`[name="${targetName}"]`);
+                if (secondsInput && input.value) {
+                    const minutes = parseFloat(input.value) || 0;
+                    const seconds = Math.round(minutes * 60);
+                    secondsInput.value = seconds;
+                }
+            });
         }
-        
-        // Réinitialiser les champs de durée pour les nouvelles vidéos
-        if (target.id === 'course_videos') {
+    });
+
+    /**
+     * =========================
+     * Détection URL YouTube (bonus)
+     * =========================
+     */
+    document.addEventListener('paste', function(e) {
+        if (e.target.name && e.target.name.includes('[url]')) {
             setTimeout(() => {
-                const newMinutesInput = div.querySelector('.duration-minutes');
-                const newSecondsInput = div.querySelector('[name*="[duration]"]');
-                
-                if (newMinutesInput && newSecondsInput) {
-                    newMinutesInput.addEventListener('input', function() {
-                        const minutes = parseFloat(this.value) || 0;
-                        const seconds = Math.round(minutes * 60);
-                        newSecondsInput.value = seconds;
-                        updateDurationDisplay(this, seconds);
-                    });
-                    
-                    newMinutesInput.addEventListener('focus', function() {
-                        this.select();
-                    });
+                const url = e.target.value;
+                const youtubeMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
+                if (youtubeMatch) {
+                    const videoId = youtubeMatch[1];
+                    console.log('YouTube video detected:', videoId);
                 }
             }, 100);
         }
-    }
-
-    // Add answer
-    if (e.target.classList.contains('add-answer')) {
-        const answers = e.target.closest('.question-item').querySelector('.answers');
-        const index = parseInt(answers.dataset.index);
-        let proto = answers.dataset.prototype.replace(/__name__/g, index);
-        
-        const div = document.createElement('div');
-        div.className = 'answer-item';
-        div.innerHTML = `
-            <div class="answer-content">
-                ${proto}
-                <div class="answer-controls">
-                    <button type="button" class="btn btn-danger btn-small remove-item" title="Remove this answer">
-                        <span class="btn-icon">×</span>
-                    </button>
-                </div>
-            </div>
-        `;
-        answers.appendChild(div);
-        answers.dataset.index = index + 1;
-    }
-
-    // Remove item
-    if (e.target.classList.contains('remove-item')) {
-        e.preventDefault();
-        const item = e.target.closest('.video-item, .question-item, .answer-item, .price-item');
-        if (item) {
-            item.style.animation = 'slideOut 0.3s ease';
-            setTimeout(() => {
-                item.remove();
-                updateItemNumbers();
-                toggleEmptyStates();
-            }, 300);
-        }
-    }
-});
-
-// Fonction utilitaire pour la conversion (utilisée dans les event listeners dynamiques)
-function updateDurationDisplay(minutesInput, seconds) {
-    const conversionElement = minutesInput.closest('.duration-field').querySelector('.duration-conversion');
-    
-    if (conversionElement && seconds > 0) {
-        const minutes = Math.floor(seconds / 60);
-        const remainingSeconds = seconds % 60;
-        
-        let displayText = '= ';
-        if (minutes > 0) {
-            displayText += `${minutes} min`;
-            if (remainingSeconds > 0) {
-                displayText += ` ${remainingSeconds} sec`;
-            }
-        } else {
-            displayText += `${remainingSeconds} sec`;
-        }
-        
-        conversionElement.textContent = displayText;
-        conversionElement.style.display = 'block';
-    } else if (conversionElement) {
-        conversionElement.style.display = 'none';
-    }
-}
-
-// Animation for removing items
-const style = document.createElement('style');
-style.textContent = `
-@keyframes slideOut {
-    to {
-        opacity: 0;
-        transform: translateX(-100%);
-    }
-}
-`;
-
-document.head.appendChild(style);
-
-// Fonction pour mettre à jour les numéros d'items
-function updateItemNumbers() {
-    // Update price numbers
-    document.querySelectorAll('#course_prices .price-item').forEach((item, index) => {
-        const numberSpan = item.querySelector('.item-number');
-        if (numberSpan) {
-            numberSpan.textContent = `Price ${index + 1}`;
-        }
     });
-    
-    // Update video numbers
-    document.querySelectorAll('#course_videos .video-item').forEach((item, index) => {
-        const numberSpan = item.querySelector('.item-number');
-        if (numberSpan) {
-            numberSpan.textContent = `Video ${index + 1}`;
-        }
-    });
-    
-    // Update question numbers
-    document.querySelectorAll('#course_questions .question-item').forEach((item, index) => {
-        const numberSpan = item.querySelector('.item-number');
-        if (numberSpan) {
-            numberSpan.textContent = `Question ${index + 1}`;
-        }
-    });
-}
-
-// Fonction pour gérer les états vides
-function toggleEmptyStates() {
-    const containers = [
-        { selector: '#course_prices', itemClass: '.price-item', message: 'No price defined yet. Click the button below to add one.' },
-        { selector: '#course_videos', itemClass: '.video-item', message: 'No videos added yet. Click the button below to add your first video.' },
-        { selector: '#course_questions', itemClass: '.question-item', message: 'No quiz questions added yet. Click the button below to add your first question.' }
-    ];
-    
-    containers.forEach(config => {
-        const container = document.querySelector(config.selector);
-        if (container) {
-            const items = container.querySelectorAll(config.itemClass);
-            const emptyState = container.querySelector('.empty-state');
-            
-            if (items.length === 0) {
-                if (!emptyState) {
-                    const emptyDiv = document.createElement('div');
-                    emptyDiv.className = 'empty-state';
-                    emptyDiv.innerHTML = `<p>${config.message}</p>`;
-                    container.appendChild(emptyDiv);
-                }
-            } else if (emptyState) {
-                emptyState.remove();
-            }
-        }
-    });
-}
-
-// Validation supplémentaire avant soumission du formulaire
-document.addEventListener('submit', function(e) {
-    const form = e.target;
-    if (form.classList.contains('course-form')) {
-        // Vérifier que toutes les durées sont correctement converties
-        document.querySelectorAll('.duration-minutes').forEach(function(minutesInput) {
-            const targetName = minutesInput.dataset.target;
-            const secondsInput = document.querySelector(`[name="${targetName}"]`);
-            
-            if (secondsInput && minutesInput.value) {
-                const minutes = parseFloat(minutesInput.value) || 0;
-                const seconds = Math.round(minutes * 60);
-                secondsInput.value = seconds;
-            }
-        });
-        
-        // Validation basique
-        const videos = document.querySelectorAll('.video-item');
-        let hasInvalidDuration = false;
-        
-        videos.forEach(video => {
-            const minutesInput = video.querySelector('.duration-minutes');
-            if (minutesInput && minutesInput.value && parseFloat(minutesInput.value) <= 0) {
-                hasInvalidDuration = true;
-                minutesInput.style.borderColor = '#e74c3c';
-            } else if (minutesInput) {
-                minutesInput.style.borderColor = '#ddd';
-            }
-        });
-        
-        if (hasInvalidDuration) {
-            e.preventDefault();
-            alert('Veuillez saisir des durées valides pour toutes les vidéos (supérieures à 0).');
-            return false;
-        }
-    }
-});
-
-// Gestion du paste pour les URLs YouTube (bonus)
-document.addEventListener('paste', function(e) {
-    if (e.target.name && e.target.name.includes('[url]')) {
-        setTimeout(() => {
-            const url = e.target.value;
-            // Détecter si c'est une URL YouTube et extraire l'ID
-            const youtubeMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
-            if (youtubeMatch) {
-                const videoId = youtubeMatch[1];
-                // Vous pouvez ici ajouter une logique pour récupérer automatiquement
-                // le titre et la durée de la vidéo via l'API YouTube
-                console.log('YouTube video detected:', videoId);
-            }
-        }, 100);
-    }
 });
 </script>
+
