@@ -12,10 +12,14 @@
 </head>
 <body>
 <div class="wrapper-layout">
-{% if app.user %}
-  {% include 'components/sidebar.html.twig' %}
-  <div class="overlay" id="overlay"></div>
-  {% endif %}
+{% if "ROLE_ADMIN" in app.user.roles %}
+    {% include 'admin/components/sidebar.html.twig' %}
+    <div class="overlay" id="overlay"></div>
+{% elseif "ROLE_EMPLOYEE" in app.user.roles %}
+    {% include 'components/sidebar.html.twig' %}
+    <div class="overlay" id="overlay"></div>
+{% endif %}
+
     <main class="main-content">
     {% if app.user %}
   {% include 'components/topbar.html.twig' %}

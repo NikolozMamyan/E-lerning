@@ -14,30 +14,39 @@ class CourseType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
-        $builder
-            ->add('title', TextType::class, [
-                'label' => 'Titre',
-            ])
-            ->add('description', TextareaType::class, [
-                'label' => 'Description',
-                'required' => false,
-            ])
-            ->add('videos', CollectionType::class, [
-                'entry_type' => VideoType::class,
-                'allow_add' => true,
-                'allow_delete' => true,
-                'by_reference' => false,
-                'prototype' => true,
-                'label' => false,
-            ])
-            ->add('quizQuestions', CollectionType::class, [
-                'entry_type' => QuizQuestionType::class,
-                'allow_add' => true,
-                'allow_delete' => true,
-                'by_reference' => false,
-                'prototype' => true,
-                'label' => false,
-            ]);
+        
+$builder
+    ->add('title', TextType::class, [
+        'label' => 'Titre',
+    ])
+    ->add('description', TextareaType::class, [
+        'label' => 'Description',
+        'required' => false,
+    ])
+    ->add('coursePrices', CollectionType::class, [
+        'entry_type' => CoursePriceType::class,
+        'allow_add' => true,
+        'allow_delete' => true,
+        'by_reference' => false,
+        'prototype' => true,
+        'label' => 'Tarifs',
+    ])
+    ->add('videos', CollectionType::class, [
+        'entry_type' => VideoType::class,
+        'allow_add' => true,
+        'allow_delete' => true,
+        'by_reference' => false,
+        'prototype' => true,
+        'label' => false,
+    ])
+    ->add('quizQuestions', CollectionType::class, [
+        'entry_type' => QuizQuestionType::class,
+        'allow_add' => true,
+        'allow_delete' => true,
+        'by_reference' => false,
+        'prototype' => true,
+        'label' => false,
+    ]);
     }
 
     public function configureOptions(OptionsResolver $resolver): void

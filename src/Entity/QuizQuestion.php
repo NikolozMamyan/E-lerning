@@ -2,56 +2,84 @@
 
 namespace App\Entity;
 
-use App\Repository\QuizQuestionRepository;
-use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: QuizQuestionRepository::class)]
+#[ORM\Entity]
 class QuizQuestion
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
-    
-    #[ORM\Column(type: 'text')]
-    private string $question;
 
-    #[ORM\ManyToOne(inversedBy: 'quizQuestions')]
+    #[ORM\Column(type: 'text')]
+    private ?string $question = null;
+
+    #[ORM\ManyToOne(targetEntity: Course::class, inversedBy: 'quizQuestions')]
+    #[ORM\JoinColumn(nullable: false)]
     private ?Course $course = null;
 
-    #[ORM\OneToMany(mappedBy: 'question', targetEntity: QuizAnswer::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
+    #[ORM\OneToMany(
+        targetEntity: QuizAnswer::class, 
+        mappedBy: 'question', 
+        cascade: ['persist', 'remove'],  // 👈 Ajout des cascades
+        orphanRemoval: true
+    )]
     private Collection $answers;
 
     public function __construct()
     {
         $this->answers = new ArrayCollection();
-
-        // Préremplir 4 réponses vides par défaut
-        for ($i = 0; $i < 4; $i++) {
-            $this->addAnswer(new QuizAnswer());
-        }
     }
 
-    public function getId(): ?int { return $this->id; }
-    public function getQuestion(): string { return $this->question; }
-    public function setQuestion(string $question): self { $this->question = $question; return $this; }
+    // Getters et setters...
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
 
-    public function getCourse(): ?Course { return $this->course; }
-    public function setCourse(?Course $course): self { $this->course = $course; return $this; }
+    public function getQuestion(): ?string
+    {
+        return $this->question;
+    }
 
-    /** @return Collection<int, QuizAnswer> */
-    public function getAnswers(): Collection { return $this->answers; }
-    public function addAnswer(QuizAnswer $answer): self
+    public function setQuestion(string $question): static
+    {
+        $this->question = $question;
+        return $this;
+    }
+
+    public function getCourse(): ?Course
+    {
+        return $this->course;
+    }
+
+    public function setCourse(?Course $course): static
+    {
+        $this->course = $course;
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, QuizAnswer>
+     */
+    public function getAnswers(): Collection
+    {
+        return $this->answers;
+    }
+
+    public function addAnswer(QuizAnswer $answer): static
     {
         if (!$this->answers->contains($answer)) {
-            $this->answers[] = $answer;
-            $answer->setQuestion($this);
+            $this->answers->add($answer);
+            $answer->setQuestion($this);  // 👈 Important : établir la relation inverse
         }
         return $this;
     }
-    public function removeAnswer(QuizAnswer $answer): self
+
+    public function removeAnswer(QuizAnswer $answer): static
     {
         if ($this->answers->removeElement($answer)) {
             if ($answer->getQuestion() === $this) {

@@ -8,36 +8,52 @@ export default class extends Controller {
             console.log("Stimulus auth controller is active ✅");
         }
 
-    async login(event) {
-        event.preventDefault()
+async login(event) {
+    event.preventDefault()
 
-        const email = this.emailTarget.value
-        const password = this.passwordTarget.value
+    const email = this.emailTarget.value
+    const password = this.passwordTarget.value
 
-        const response = await fetch('/api/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password }),
-            credentials: 'include'
-        })
+    const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+        credentials: 'include'
+    })
 
-        if (response.ok) {
-            this.resultTarget.innerHTML = `
-                <div style="color: var(--health-color);">✔ Login successful... redirecting...</div>
-                <span class="spinner"></span>
-            `
-            setTimeout(() => {
-                window.location.href = '/app/dashboard'
-            }, 1200)
-        } else {
-            const error = await response.json()
-            this.resultTarget.innerHTML = `
-                <div style="color: var(--damage-color);">
-                    ⚠ ${error.error || 'Login failed'}
-                </div>
-            `
+    if (response.ok) {
+        const data = await response.json()
+
+        this.resultTarget.innerHTML = `
+            <div style="color: var(--health-color);">✔ Login successful... redirecting...</div>
+            <span class="spinner"></span>
+        `
+
+        // Récupère les rôles de l’utilisateur
+        const roles = data.user.roles || []
+        let redirectUrl = '/app/dashboard' // par défaut
+
+        if (roles.includes('ROLE_ADMIN')) {
+            redirectUrl = '/admin/courses'
+        } else if (roles.includes('ROLE_EMPLOYEE')) {
+            redirectUrl = '/app/dashboard'
         }
+
+        setTimeout(() => {
+            window.location.href = redirectUrl
+        }, 1200)
+
+    } else {
+        const error = await response.json()
+        this.resultTarget.innerHTML = `
+            <div style="color: var(--damage-color);">
+                ⚠ ${error.error || 'Login failed'}
+            </div>
+        `
     }
+}
+
+
 
  async logout(event) {
     event.preventDefault()

@@ -37,7 +37,8 @@ class ApiTokenAuthenticator extends AbstractAuthenticator
         // - requête API (/api/)
         // - ou requête sur une page HTML (/app/) et le cookie est présent
         return str_starts_with($path, '/api/') ||
-               str_starts_with($path, '/app/') && $request->cookies->has('AUTH_TOKEN');
+               str_starts_with($path, '/app/') && $request->cookies->has('AUTH_TOKEN') ||
+               str_starts_with($path, '/admin/') && $request->cookies->has('AUTH_TOKEN');
     }
     
 

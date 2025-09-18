@@ -21,11 +21,6 @@ public function certificate(QuizAttemptRepository $quizAttemptRepo): Response
     // on va chercher *tous* les quiz attempts de cet utilisateur
      $userAttempts = $quizAttemptRepo->findByUser($user);
 
-    if (!$userAttempts) {
-        $this->addFlash('info', 'No quiz Found for this User.');
-        return $this->redirectToRoute('app_dashboard');
-    }
-
     return $this->render('certificates/index.html.twig', [
         'userAttempts' => $userAttempts
     ]);

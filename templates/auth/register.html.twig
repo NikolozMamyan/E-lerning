@@ -251,6 +251,20 @@ body {
 @media (max-width: 500px) {
   .social-row { flex-direction: column; }
 }
+
+.account-type-option input[disabled] + .account-type-label {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.coming-soon {
+  display: block;
+  font-size: 0.8rem;
+  color: #999;
+  margin-top: 0.3rem;
+  font-style: italic;
+}
+
 </style>
 
 <div class="auth-layout" data-controller="auth">
@@ -302,14 +316,16 @@ body {
           <span class="account-type-text">Employee</span>
         </label>
       </div>
-      <div class="account-type-option">
-        <input type="radio" id="company" name="account_type" value="company"
-               data-auth-target="accountType">
-        <label for="company" class="account-type-label">
-          <div class="radio-custom"></div>
-          <span class="account-type-text">Company</span>
-        </label>
-      </div>
+<div class="account-type-option">
+  <input type="radio" id="company" name="account_type" value="company"
+         data-auth-target="accountType" disabled>
+  <label for="company" class="account-type-label">
+    <div class="radio-custom"></div>
+    <span class="account-type-text">Company</span>
+    <span class="coming-soon">Coming soon</span>
+  </label>
+</div>
+
     </div>
   </div>
 
