@@ -4,11 +4,12 @@ namespace App\Form;
 
 use App\Entity\Course;
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\Extension\Core\Type\CollectionType;
-use Symfony\Component\Form\Extension\Core\Type\TextareaType;
-use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Vich\UploaderBundle\Form\Type\VichFileType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\Extension\Core\Type\TextareaType;
+use Symfony\Component\Form\Extension\Core\Type\CollectionType;
 
 class CourseType extends AbstractType
 {
@@ -22,6 +23,11 @@ $builder
     ->add('description', TextareaType::class, [
         'label' => 'Description',
         'required' => false,
+    ])
+     ->add('thumbFile', VichFileType::class, [
+        'required' => false,
+        'label' => 'Miniature (image)',
+        'download_uri' => false,
     ])
     ->add('coursePrices', CollectionType::class, [
         'entry_type' => CoursePriceType::class,

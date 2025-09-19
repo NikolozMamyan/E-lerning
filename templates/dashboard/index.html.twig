@@ -34,21 +34,30 @@
     <div class="card-header">
       <h2 class="card-title">Progress Tracking</h2>
     </div>
-    <div style="margin-bottom: 2rem;">
-      {% for course in courses %}
-        {% set percent = progressData[course.id] ?? 0 %}
-        <div class="progress-item">
-          <div class="progress-header">
-            <span class="progress-label">{{ course.title }} :</span>
-          </div>
-          <div class="progress-bar">
-            <div class="progress-fill" style="width: {{ percent }}%;"></div>
-          </div>
+<div style="margin-bottom: 2rem;">
+  {% set hasProgress = false %}
+  
+  {% for course in courses %}
+    {% set percent = progressData[course.id] ?? 0 %}
+    
+    {% if percent > 0 %}
+      {% set hasProgress = true %}
+      <div class="progress-item">
+        <div class="progress-header">
+          <span class="progress-label">{{ course.title }} :</span>
         </div>
-      {% else %}
-        <p>No progress yet.</p>
-      {% endfor %}
-    </div>
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: {{ percent }}%;"></div>
+        </div>
+      </div>
+    {% endif %}
+  {% endfor %}
+
+  {% if not hasProgress %}
+    <p>No progress yet.</p>
+  {% endif %}
+</div>
+
     <a href="" class="view-courses-btn">View My Courses</a>
   </div>
 
@@ -97,20 +106,26 @@
     
   </div>
   
-  <div class="certificates-list">
-{% set seen = [] %}
-{% for attempt in userAttempts %}
+<div class="certificates-list">
+  {% set seen = [] %}
+  {% set hasCertificate = false %}
+
+  {% for attempt in userAttempts %}
     {% if attempt.passed and attempt.course.title not in seen %}
-        <div class="certificate-item">
-      <div class="certificate-icon">🎓</div>
-      <span class="certificate-name">{{ attempt.course.title }}</span>
-    </div>
-        {% set seen = seen|merge([attempt.course.title]) %}
+      {% set hasCertificate = true %}
+      <div class="certificate-item">
+        <div class="certificate-icon">🎓</div>
+        <span class="certificate-name">{{ attempt.course.title }}</span>
+      </div>
+      {% set seen = seen|merge([attempt.course.title]) %}
     {% endif %}
-{% endfor %}
+  {% endfor %}
 
+  {% if not hasCertificate %}
+    <p>No certificates yet.</p>
+  {% endif %}
+</div>
 
-  </div>
   <a href="{{path('app_certificates')}}" class="download-all-btn">View All</a>
 
 </div>

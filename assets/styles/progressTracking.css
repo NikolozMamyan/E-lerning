@@ -31,6 +31,7 @@
 .course-card.in-progress::before {
   content: "In Progress";
   position: absolute;
+  z-index: 10;
   top: 8px;
   left: 8px;
   background: orange;

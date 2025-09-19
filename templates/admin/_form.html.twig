@@ -373,6 +373,20 @@ textarea.form-control {
         {{ form_row(form.description) }}
     </div>
 </div>
+<div class="form-section">
+    <div class="section-header">
+        <h2>Miniature du cours</h2>
+        <p>Upload une image de couverture</p>
+    </div>
+    <div class="form-grid">
+        {{ form_row(form.thumbFile) }}
+        {% if course is defined and course.thumb %}
+            <img src="{{ asset('uploads/courses/' ~ course.thumb) }}" 
+                 alt="{{ course.title }}" 
+                 class="preview-img" width="200">
+        {% endif %}
+    </div>
+</div>
 <div class="divider"></div>
 
 <div class="form-section">
@@ -760,24 +774,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     secondsInput.value = seconds;
                 }
             });
-        }
-    });
-
-    /**
-     * =========================
-     * Détection URL YouTube (bonus)
-     * =========================
-     */
-    document.addEventListener('paste', function(e) {
-        if (e.target.name && e.target.name.includes('[url]')) {
-            setTimeout(() => {
-                const url = e.target.value;
-                const youtubeMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
-                if (youtubeMatch) {
-                    const videoId = youtubeMatch[1];
-                    console.log('YouTube video detected:', videoId);
-                }
-            }, 100);
         }
     });
 });

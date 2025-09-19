@@ -19,8 +19,9 @@ class Video
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $description = null;
 
-    #[ORM\Column]
-    private int $duration; // secondes
+    #[ORM\Column(type: 'float')]
+    private float $duration; 
+
 
     #[ORM\Column(length: 255)]
     private string $url;
@@ -36,8 +37,16 @@ class Video
     public function getDescription(): ?string { return $this->description; }
     public function setDescription(?string $description): self { $this->description = $description; return $this; }
 
-    public function getDuration(): int { return $this->duration; }
-    public function setDuration(int $duration): self { $this->duration = $duration; return $this; }
+    public function getDuration(): float
+{
+    return $this->duration;
+}
+
+public function setDuration(float $duration): self
+{
+    $this->duration = $duration;
+    return $this;
+}
 
     public function getUrl(): string { return $this->url; }
     public function setUrl(string $url): self { $this->url = $url; return $this; }

@@ -10,21 +10,34 @@
           {% for video in course.videos %}
             <div class="course-card">
               <div class="course-thumbnail bg-aml">
-                {% set userProgress = progress|filter(p => p.video.id == video.id)|first %}
-                {% if userProgress and userProgress.completed %}
-                  <div class="status-badge status-complete">Complete</div>
-                {% elseif userProgress %}
-                  <div class="status-badge status-progress">In progress</div>
+                
+                {# Afficher la miniature seulement si accès #}
+                {% if access[course.id] is defined and access[course.id] %}
+                  <img class="course-thumbnail bg-aml" src="{{ asset('uploads/courses/' ~ course.thumb) }}" alt="{{ course.title }}">
                 {% else %}
-                  <div class="lock-overlay">
-                    <div class="lock-icon">
-                      <svg viewBox="0 0 24 24">
-                        <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
-                      </svg>
-                    </div>
+                  <div class="">
+                  <img class="course-thumbnail bg-aml" src="{{ asset('uploads/courses/' ~ course.thumb) }}" alt="{{ course.title }}">
+                 <div class="lock-overlay">
+    <div class="lock-icon">
+      <svg viewBox="0 0 24 24">
+        <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
+      </svg>
+    </div>
+  </div>
                   </div>
                 {% endif %}
+
+                {# Badge progression si accès #}
+                {% if access[course.id] is defined and access[course.id] %}
+                  {% set userProgress = progress[video.id] ?? null %}
+                  {% if userProgress and userProgress.completed %}
+                    <div class="status-badge status-complete">Complete</div>
+                  {% elseif userProgress %}
+                    <div class="status-badge status-progress">In progress</div>
+                  {% endif %}
+                {% endif %}
               </div>
+
               <div class="course-info">
                 <h3 class="course-title">{{ video.title }}</h3>
                 <p class="course-subtitle">{{ course.description }}</p>
@@ -33,7 +46,12 @@
                     <span>00:00</span>
                     <span>{{ (video.duration / 60)|round(0, 'floor') }}:{{ (video.duration % 60)|default('00') }}</span>
                   </div>
-                  <a href="{{ path('app_course_show', {id: course.id, videoId: video.id}) }}" class="see-course-btn">See Course</a>
+
+                  {% if access[course.id] is defined and access[course.id] %}
+                    <a href="{{ path('app_course_show', {id: course.id, videoId: video.id}) }}" class="see-course-btn">See Course</a>
+                  {% else %}
+                    <a href="{{ path('app_course_show', {id: course.id}) }}" class="see-course-btn locked">Subscribe</a>
+                  {% endif %}
                 </div>
               </div>
             </div>

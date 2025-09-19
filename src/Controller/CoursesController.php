@@ -16,11 +16,25 @@ class CoursesController extends AbstractController
 #[Route('app/courses', name: 'app_courses')]
 public function index(
     CourseRepository $courseRepo,
-    ProgressRepository $progressRepo
+    ProgressRepository $progressRepo,
+    EnrollmentRepository $enrollmentRepo
 ): Response {
     $user = $this->getUser();
     $courses = $courseRepo->findAll();
 
+    // Préparer tableau des accès
+    $access = [];
+    if ($user) {
+        foreach ($courses as $course) {
+            $enrollment = $enrollmentRepo->findOneBy([
+                'user' => $user,
+                'course' => $course,
+            ]);
+            $access[$course->getId()] = (bool) $enrollment;
+        }
+    }
+
+    // Préparer tableau des progressions
     $progress = [];
     if ($user) {
         $userProgress = $progressRepo->findBy(['user' => $user]);
@@ -32,8 +46,10 @@ public function index(
     return $this->render('courses/index.html.twig', [
         'courses' => $courses,
         'progress' => $progress,
+        'access' => $access
     ]);
 }
+
 
 
 

@@ -4,9 +4,12 @@ namespace App\Entity;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Symfony\Component\HttpFoundation\File\File;
+use Vich\UploaderBundle\Mapping\Annotation as Vich;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
+#[Vich\Uploadable]
 class Course
 {
     #[ORM\Id]
@@ -23,7 +26,7 @@ class Course
     #[ORM\OneToMany(
         targetEntity: CoursePrice::class, 
         mappedBy: 'course', 
-        cascade: ['persist', 'remove'],  // 👈 Ajout des cascades
+        cascade: ['persist', 'remove'],  
         orphanRemoval: true
     )]
     private Collection $coursePrices;
@@ -31,7 +34,7 @@ class Course
     #[ORM\OneToMany(
         targetEntity: Video::class, 
         mappedBy: 'course', 
-        cascade: ['persist', 'remove'],  // 👈 Ajout des cascades
+        cascade: ['persist', 'remove'],  
         orphanRemoval: true
     )]
     private Collection $videos;
@@ -39,10 +42,19 @@ class Course
     #[ORM\OneToMany(
         targetEntity: QuizQuestion::class, 
         mappedBy: 'course', 
-        cascade: ['persist', 'remove'],  // 👈 Ajout des cascades
+        cascade: ['persist', 'remove'],  
         orphanRemoval: true
     )]
     private Collection $quizQuestions;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $thumb = null;
+
+    #[Vich\UploadableField(mapping: 'course_thumbs', fileNameProperty: 'thumb')]
+    private ?File $thumbFile = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $updatedAt = null;
 
     public function __construct()
     {
@@ -91,7 +103,7 @@ class Course
     {
         if (!$this->coursePrices->contains($coursePrice)) {
             $this->coursePrices->add($coursePrice);
-            $coursePrice->setCourse($this);  // 👈 Important : établir la relation inverse
+            $coursePrice->setCourse($this);  
         }
         return $this;
     }
@@ -118,7 +130,7 @@ class Course
     {
         if (!$this->videos->contains($video)) {
             $this->videos->add($video);
-            $video->setCourse($this);  // 👈 Important : établir la relation inverse
+            $video->setCourse($this);  
         }
         return $this;
     }
@@ -145,7 +157,7 @@ class Course
     {
         if (!$this->quizQuestions->contains($quizQuestion)) {
             $this->quizQuestions->add($quizQuestion);
-            $quizQuestion->setCourse($this);  // 👈 Important : établir la relation inverse
+            $quizQuestion->setCourse($this);  
         }
         return $this;
     }
@@ -157,6 +169,43 @@ class Course
                 $quizQuestion->setCourse(null);
             }
         }
+        return $this;
+    }
+
+
+     public function setThumbFile(?File $file = null): void
+    {
+        $this->thumbFile = $file;
+
+        if ($file) {
+            $this->updatedAt = new \DateTimeImmutable();
+        }
+    }
+
+    public function getThumbFile(): ?File
+    {
+        return $this->thumbFile;
+    }
+
+    public function getThumb(): ?string
+    {
+        return $this->thumb;
+    }
+
+    public function setThumb(?string $thumb): static
+    {
+        $this->thumb = $thumb;
+        return $this;
+    }
+
+    public function getUpdatedAt(): ?\DateTimeImmutable
+    {
+        return $this->updatedAt;
+    }
+
+    public function setUpdatedAt(?\DateTimeImmutable $updatedAt): static
+    {
+        $this->updatedAt = $updatedAt;
         return $this;
     }
 }
