@@ -42,10 +42,10 @@
                 <h3 class="course-title">{{ video.title }}</h3>
                 <p class="course-subtitle">{{ course.description }}</p>
                 <div class="course-footer">
-                  <div class="course-duration">
-                    <span>00:00</span>
-                    <span>{{ (video.duration / 60)|round(0, 'floor') }}:{{ (video.duration % 60)|default('00') }}</span>
-                  </div>
+<div class="course-duration">
+    <span>{{ '%02d:%02d'|format((video.duration / 60)|round(0, 'floor'), (video.duration % 60)) }}</span>
+</div>
+
 
                   {% if access[course.id] is defined and access[course.id] %}
                     <a href="{{ path('app_course_show', {id: course.id, videoId: video.id}) }}" class="see-course-btn">See Course</a>
