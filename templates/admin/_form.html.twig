@@ -520,10 +520,32 @@ textarea.form-control {
         <h2>Quiz Questions</h2>
         <p>Create interactive questions to test knowledge</p>
     </div>
-    <div id="course_questions"
-         data-prototype="{{ form_widget(form.quizQuestions.vars.prototype)|e('html_attr') }}"
-         data-index="{{ form.quizQuestions|length }}"
-         class="collection-container">
+   <div id="course_questions"
+     data-prototype="
+        <div class='question-item card collection-item'>
+            <div class='item-header'>
+                <span class='item-number'>Question __name__</span>
+                <button type='button' class='btn btn-danger btn-small remove-item' title='Remove this question'>
+                    <span class='btn-icon'>×</span> Remove Question
+                </button>
+            </div>
+
+            {{ form_row(form.quizQuestions.vars.prototype.question)|e('html_attr') }}
+
+            <div class='answers-section'>
+                <h4>Answer Options</h4>
+                <div class='answers'
+                     data-prototype='{{ form_widget(form.quizQuestions.vars.prototype.answers.vars.prototype)|e('html_attr') }}'
+                     data-index='0'>
+                </div>
+                <button type='button' class='btn btn-secondary btn-small add-answer'>
+                    <span class='btn-icon'>+</span> Add Answer Option
+                </button>
+            </div>
+        </div>
+     "
+     data-index="{{ form.quizQuestions|length }}"
+     class="collection-container">
         {% for qForm in form.quizQuestions %}
             <div class="question-item card collection-item">
                 <div class="item-header">
@@ -636,7 +658,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     /**
      * =========================
-     * Gestion des collections (prices, videos, quiz)
+     * Gestion des collections
      * =========================
      */
     function updateItemNumbers() {
@@ -683,6 +705,65 @@ document.addEventListener('DOMContentLoaded', function () {
 
     /**
      * =========================
+     * Ajout / suppression d’items
+     * =========================
+     */
+    function addItem(button) {
+        const target = document.querySelector(button.dataset.target);
+        const index = parseInt(target.dataset.index);
+        let proto = target.dataset.prototype.replace(/__name__/g, index);
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = proto;
+        const div = wrapper.firstElementChild;
+
+        target.appendChild(div);
+        target.dataset.index = index + 1;
+
+        if (target.id === 'course_videos') {
+            setupDurationInputs(div);
+        }
+
+        const emptyState = target.querySelector('.empty-state');
+        if (emptyState) emptyState.remove();
+
+        updateItemNumbers();
+    }
+
+    function removeItem(button) {
+        const item = button.closest('.video-item, .question-item, .answer-item, .price-item');
+        if (item) {
+            item.style.animation = 'slideOut 0.3s ease';
+            setTimeout(() => {
+                item.remove();
+                updateItemNumbers();
+                toggleEmptyStates();
+            }, 300);
+        }
+    }
+
+    function addAnswer(button) {
+        const answers = button.closest('.question-item').querySelector('.answers');
+        const index = parseInt(answers.dataset.index);
+        let proto = answers.dataset.prototype.replace(/__name__/g, index);
+
+        const div = document.createElement('div');
+        div.className = 'answer-item';
+        div.innerHTML = `
+            <div class="answer-content">
+                ${proto}
+                <div class="answer-controls">
+                    <button type="button" class="btn btn-danger btn-small remove-item" title="Remove this answer">
+                        <span class="btn-icon">×</span>
+                    </button>
+                </div>
+            </div>
+        `;
+        answers.appendChild(div);
+        answers.dataset.index = index + 1;
+    }
+
+    /**
+     * =========================
      * Initialisation
      * =========================
      */
@@ -695,64 +776,15 @@ document.addEventListener('DOMContentLoaded', function () {
      * =========================
      */
     document.addEventListener('click', function (e) {
-        // Ajouter un item
         if (e.target.classList.contains('add-item')) {
-            const target = document.querySelector(e.target.dataset.target);
-            const index = parseInt(target.dataset.index);
-            let proto = target.dataset.prototype.replace(/__name__/g, index);
-            const wrapper = document.createElement('div');
-            wrapper.innerHTML = proto;
-            const div = wrapper.firstElementChild;
-
-            target.appendChild(div);
-            target.dataset.index = index + 1;
-
-            // Init si vidéo
-            if (target.id === 'course_videos') {
-                setupDurationInputs(div);
-            }
-
-            // Supprimer empty state
-            const emptyState = target.querySelector('.empty-state');
-            if (emptyState) emptyState.remove();
-
-            updateItemNumbers();
+            addItem(e.target);
         }
-
-        // Supprimer un item
         if (e.target.classList.contains('remove-item')) {
             e.preventDefault();
-            const item = e.target.closest('.video-item, .question-item, .answer-item, .price-item');
-            if (item) {
-                item.style.animation = 'slideOut 0.3s ease';
-                setTimeout(() => {
-                    item.remove();
-                    updateItemNumbers();
-                    toggleEmptyStates();
-                }, 300);
-            }
+            removeItem(e.target);
         }
-
-        // Ajouter une réponse
         if (e.target.classList.contains('add-answer')) {
-            const answers = e.target.closest('.question-item').querySelector('.answers');
-            const index = parseInt(answers.dataset.index);
-            let proto = answers.dataset.prototype.replace(/__name__/g, index);
-
-            const div = document.createElement('div');
-            div.className = 'answer-item';
-            div.innerHTML = `
-                <div class="answer-content">
-                    ${proto}
-                    <div class="answer-controls">
-                        <button type="button" class="btn btn-danger btn-small remove-item" title="Remove this answer">
-                            <span class="btn-icon">×</span>
-                        </button>
-                    </div>
-                </div>
-            `;
-            answers.appendChild(div);
-            answers.dataset.index = index + 1;
+            addAnswer(e.target);
         }
     });
 
@@ -764,7 +796,6 @@ document.addEventListener('DOMContentLoaded', function () {
     document.addEventListener('submit', function(e) {
         const form = e.target;
         if (form.classList.contains('course-form')) {
-            // Forcer la conversion minutes → secondes avant submit
             document.querySelectorAll('.duration-minutes').forEach(input => {
                 const targetName = input.dataset.target;
                 const secondsInput = document.querySelector(`[name="${targetName}"]`);
@@ -778,4 +809,5 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 </script>
+
 
