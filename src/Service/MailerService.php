@@ -4,27 +4,43 @@ namespace App\Service;
 
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
+use Twig\Environment;
 
-class MailerService
+class MailService
 {
     private MailerInterface $mailer;
+    private Environment $twig;
 
-    public function __construct(MailerInterface $mailer)
+    public function __construct(MailerInterface $mailer, Environment $twig)
     {
         $this->mailer = $mailer;
+        $this->twig = $twig;
     }
 
-    public function sendEmail(
+    /**
+     * @param string      $to       Destinataire
+     * @param string      $subject  Sujet du mail
+     * @param string      $template Nom du template Twig (ex: 'emails/welcome.html.twig')
+     * @param array       $context  Variables passées au template Twig
+     */
+    public function send(
         string $to,
         string $subject,
-        string $htmlContent,
-        ?string $from = null
+        string $template,
+        array $context = [],
     ): void {
+        // rendu du template HTML
+        $html = $this->twig->render($template, $context);
+
+        // tu peux aussi prévoir un "fallback" texte brut
+        $text = strip_tags($html);
+
         $email = (new Email())
-            ->from('no-reply@test-51ndgwv6wqqlzqx8.mlsender.net')
+            ->from('contact@les-consultants.com')
             ->to($to)
             ->subject($subject)
-            ->html($htmlContent);
+            ->text($text)
+            ->html($html);
 
         $this->mailer->send($email);
     }

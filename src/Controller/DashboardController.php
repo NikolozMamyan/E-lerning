@@ -72,25 +72,6 @@ final class DashboardController extends AbstractController{
             'userAttempts' => $userAttempts
         ]);
     }
-
-
-
-
-
-// #[Route('/app/test-mail', name: 'test_mail')]
-// public function testMail(\Symfony\Component\Mailer\MailerInterface $mailer): Response
-// {
-//     $email = (new \Symfony\Component\Mime\Email())
-//         ->from('nika.mamian@gmail.com') // adresse expéditeur validée dans MailerSend
-//         ->to('ton-email-personnel@gmail.com') // destinataire
-//         ->subject('Test MailerSend SMTP')
-//         ->text('Ceci est un email de test via MailerSend SMTP.');
-
-//     $mailer->send($email);
-
-//     return new Response('✅ Tentative d’envoi faite.');
-// }
-
 }
 
 
