@@ -2,10 +2,101 @@
 
 {% block title %}Reset your password{% endblock %}
 
+{% block stylesheets %}
+<style>
+:root {
+  --green:#1A6D55;
+  --teal:#0D8383;
+  --black:#071717;
+  --mint:#E7F3F3;
+  --grey:#606060;
+  --white:#FFFFFF;
+  --bg:#f4f9f8;
+  --radius:12px;
+  --shadow:0 4px 12px rgba(7,23,23,.08);
+}
+
+body {
+  background: var(--bg);
+  font-family: system-ui, sans-serif;
+  color: var(--black);
+}
+
+.reset-container {
+  max-width: 420px;
+  margin: 4rem auto;
+  padding: 2rem;
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.reset-container h1 {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  color: var(--green);
+  text-align: center;
+}
+
+.alert {
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius);
+  margin-bottom: 1rem;
+}
+
+.alert-danger {
+  background: #fdd;
+  color: #900;
+}
+
+form div {
+  margin-bottom: 1rem;
+}
+
+label {
+  font-weight: 600;
+  color: var(--grey);
+}
+
+input[type="email"] {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--mint);
+  border-radius: var(--radius);
+  font-size: 1rem;
+  outline: none;
+}
+
+input[type="email"]:focus {
+  border-color: var(--teal);
+  box-shadow: 0 0 0 2px rgba(13,131,131,0.1);
+}
+
+button.btn {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius);
+  border: none;
+  background: var(--green);
+  color: var(--white);
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s ease-in-out;
+}
+
+button.btn:hover {
+  background: var(--teal);
+}
+</style>
+{% endblock %}
+
 {% block body %}
+<div class="reset-container">
     {% for flash_error in app.flashes('reset_password_error') %}
         <div class="alert alert-danger" role="alert">{{ flash_error }}</div>
     {% endfor %}
+
     <h1>Reset your password</h1>
 
     {{ form_start(requestForm) }}
@@ -16,7 +107,7 @@
                 link to reset your password.
             </small>
         </div>
-
-        <button class="btn btn-primary">Send password reset email</button>
+        <button class="btn">Send password reset email</button>
     {{ form_end(requestForm) }}
+</div>
 {% endblock %}

@@ -6,7 +6,7 @@ use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
 use Twig\Environment;
 
-class MailService
+class MailerService
 {
     private MailerInterface $mailer;
     private Environment $twig;
@@ -36,7 +36,8 @@ class MailService
         $text = strip_tags($html);
 
         $email = (new Email())
-            ->from('contact@les-consultants.com')
+            // ->from('contact@les-consultants.com')
+            ->from('pro@ultrapop.com')
             ->to($to)
             ->subject($subject)
             ->text($text)

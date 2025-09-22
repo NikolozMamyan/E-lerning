@@ -2,11 +2,91 @@
 
 {% block title %}Reset your password{% endblock %}
 
+{% block stylesheets %}
+<style>
+:root {
+  --green:#1A6D55;
+  --teal:#0D8383;
+  --black:#071717;
+  --mint:#E7F3F3;
+  --grey:#606060;
+  --white:#FFFFFF;
+  --bg:#f4f9f8;
+  --radius:12px;
+  --shadow:0 4px 12px rgba(7,23,23,.08);
+}
+
+body {
+  background: var(--bg);
+  font-family: system-ui, sans-serif;
+  color: var(--black);
+}
+
+.reset-container {
+  max-width: 420px;
+  margin: 4rem auto;
+  padding: 2rem;
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.reset-container h1 {
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+  color: var(--green);
+  text-align: center;
+}
+
+form div {
+  margin-bottom: 1rem;
+}
+
+label {
+  font-weight: 600;
+  color: var(--grey);
+}
+
+input[type="password"] {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--mint);
+  border-radius: var(--radius);
+  font-size: 1rem;
+  outline: none;
+}
+
+input[type="password"]:focus {
+  border-color: var(--teal);
+  box-shadow: 0 0 0 2px rgba(13,131,131,0.1);
+}
+
+button.btn {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius);
+  border: none;
+  background: var(--green);
+  color: var(--white);
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s ease-in-out;
+}
+
+button.btn:hover {
+  background: var(--teal);
+}
+</style>
+{% endblock %}
+
 {% block body %}
+<div class="reset-container">
     <h1>Reset your password</h1>
 
     {{ form_start(resetForm) }}
         {{ form_row(resetForm.plainPassword) }}
-        <button class="btn btn-primary">Reset password</button>
+        <button class="btn">Reset password</button>
     {{ form_end(resetForm) }}
+</div>
 {% endblock %}

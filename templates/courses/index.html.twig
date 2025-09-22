@@ -3,60 +3,46 @@
 {% block title %}Available Courses{% endblock %}
 
 {% block body %}
-    {% for course in courses %}
-      <section class="course-section">
-        <h2 class="section-title">{{ course.title }}</h2>
-        <div class="course-grid">
-          {% for video in course.videos %}
-            <div class="course-card">
-              <div class="course-thumbnail bg-aml">
-                
-                {# Afficher la miniature seulement si accès #}
-                {% if access[course.id] is defined and access[course.id] %}
-                  <img class="course-thumbnail bg-aml" src="{{ asset('uploads/courses/' ~ course.thumb) }}" alt="{{ course.title }}">
-                {% else %}
-                  <div class="">
-                  <img class="course-thumbnail bg-aml" src="{{ asset('uploads/courses/' ~ course.thumb) }}" alt="{{ course.title }}">
-                 <div class="lock-overlay">
-    <div class="lock-icon">
-      <svg viewBox="0 0 24 24">
-        <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
-      </svg>
-    </div>
-  </div>
-                  </div>
-                {% endif %}
-
-                {# Badge progression si accès #}
-                {% if access[course.id] is defined and access[course.id] %}
-                  {% set userProgress = progress[video.id] ?? null %}
-                  {% if userProgress and userProgress.completed %}
-                    <div class="status-badge status-complete">Complete</div>
-                  {% elseif userProgress %}
-                    <div class="status-badge status-progress">In progress</div>
-                  {% endif %}
-                {% endif %}
-              </div>
-
-              <div class="course-info">
-                <h3 class="course-title">{{ video.title }}</h3>
-                <p class="course-subtitle">{{ course.description }}</p>
-                <div class="course-footer">
-<div class="course-duration">
-    <span>{{ '%02d:%02d'|format((video.duration / 60)|round(0, 'floor'), (video.duration % 60)) }}</span>
-</div>
-
-
-                  {% if access[course.id] is defined and access[course.id] %}
-                    <a href="{{ path('app_course_show', {id: course.id, videoId: video.id}) }}" class="see-course-btn">See Course</a>
-                  {% else %}
-                    <a href="{{ path('app_course_show', {id: course.id}) }}" class="see-course-btn locked">Subscribe</a>
-                  {% endif %}
+  <section class="course-section">
+    <h2 class="section-title">Available Courses</h2>
+    <div class="course-grid">
+      {% for course in courses %}
+        <div class="course-card">
+          <div class="course-thumbnail bg-aml">
+            {% if access[course.id] is defined and access[course.id] %}
+              <img src="{{ asset('uploads/courses/' ~ course.thumb) }}" alt="{{ course.title }}">
+            {% else %}
+              <div class="lock-overlay">
+                <div class="lock-icon">
+                  <svg viewBox="0 0 24 24">
+                    <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 
+                      1.1.9 2 2 2h12c1.1 0 2-.9 
+                      2-2V10c0-1.1-.9-2-2-2zm-6 
+                      9c-1.1 0-2-.9-2-2s.9-2 
+                      2-2 2 .9 2 2-.9 2-2 
+                      2zm3.1-9H8.9V6c0-1.71 
+                      1.39-3.1 3.1-3.1 1.71 0 
+                      3.1 1.39 3.1 3.1v2z"/>
+                  </svg>
                 </div>
               </div>
+              <img src="{{ asset('uploads/courses/' ~ course.thumb) }}" alt="{{ course.title }}">
+            {% endif %}
+          </div>
+
+          <div class="course-info">
+            <h3 class="course-title">{{ course.title }}</h3>
+            <p class="course-subtitle">{{ course.description }}</p>
+            <div class="course-footer">
+              {% if access[course.id] is defined and access[course.id] %}
+                <a href="{{ path('app_course_show', {id: course.id}) }}" class="see-course-btn">See Course</a>
+              {% else %}
+                <a href="{{ path('app_course_show', {id: course.id}) }}" class="see-course-btn locked">Subscribe</a>
+              {% endif %}
             </div>
-          {% endfor %}
+          </div>
         </div>
-      </section>
-    {% endfor %}
+      {% endfor %}
+    </div>
+  </section>
 {% endblock %}

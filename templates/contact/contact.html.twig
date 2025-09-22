@@ -1,0 +1,328 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Contact Us{% endblock %}
+
+{% block stylesheets %}
+<style>
+:root {
+  --green: #4a9b8e;
+  --dark-green: #2d6a5d;
+  --light-green: #e8f5f3;
+  --grey: #6b7280;
+  --dark-grey: #374151;
+  --light-grey: #f3f4f6;
+  --white: #ffffff;
+  --border: #e5e7eb;
+  --radius: 8px;
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+body {
+  background: var(--light-grey);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: var(--dark-grey);
+  line-height: 1.6;
+}
+
+.contact-container {
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  gap: 2rem;
+  align-items: start;
+}
+
+/* Formulaire */
+.contact-form {
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 2rem;
+}
+
+.contact-form h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--dark-grey);
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--dark-grey);
+  margin-bottom: 0.5rem;
+}
+
+.form-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  background: var(--light-grey);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px rgba(74, 155, 142, 0.1);
+  background: var(--white);
+}
+
+.form-input::placeholder {
+  color: var(--grey);
+}
+
+.message-field {
+  grid-column: 1 / -1;
+}
+
+.message-input {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.submit-btn {
+  width: 100%;
+  background: var(--green);
+  color: var(--white);
+  border: none;
+  padding: 0.875rem 1.5rem;
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  margin-top: 0.5rem;
+}
+
+.submit-btn:hover {
+  background: var(--dark-green);
+}
+
+/* Section informations */
+.contact-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.info-card {
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1.5rem 1rem;
+}
+
+.info-card h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--dark-grey);
+  margin-bottom: 1rem;
+}
+
+.contact-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 0.875rem;
+}
+
+.contact-item:last-child {
+  margin-bottom: 0;
+}
+
+.contact-icon {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--green);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.contact-icon img {
+  width: 10px;
+  height: 10px;
+  object-fit: contain;
+}
+
+.contact-details h4 {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--dark-grey);
+  margin: 0 0 0.25rem 0;
+}
+
+.contact-details p {
+  font-size: 0.875rem;
+  color: var(--grey);
+  margin: 0;
+}
+
+/* Section horaires */
+.hours-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.day-hours {
+  text-align: center;
+}
+
+.day-hours h4 {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--dark-grey);
+  margin-bottom: 0.5rem;
+}
+
+.day-hours p {
+  font-size: 0.75rem;
+  color: var(--grey);
+  margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .contact-container {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    margin: 1rem auto;
+  }
+  
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .hours-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+  
+  .day-hours {
+    text-align: left;
+  }
+}
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="contact-container">
+  <!-- Formulaire de contact -->
+  <div class="contact-form">
+    <h2>Get in Touch</h2>
+    <form method="post">
+      <div class="form-row">
+        <div class="form-field">
+          <label class="form-label">First Name</label>
+          <input type="text" name="firstname" class="form-input" placeholder="Enter Your First Name..." required>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Last Name</label>
+          <input type="text" name="lastname" class="form-input" placeholder="Enter Your Last Name..." required>
+        </div>
+      </div>
+      
+      <div class="form-row">
+        <div class="form-field">
+          <label class="form-label">Email</label>
+          <input type="email" name="email" class="form-input" placeholder="Enter Your email..." required>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Phone Number</label>
+          <input type="tel" name="phone" class="form-input" placeholder="Enter Your Phone Number...">
+        </div>
+      </div>
+      
+      <div class="form-field message-field">
+        <label class="form-label">Message</label>
+        <textarea name="message" class="form-input message-input" placeholder="Enter Your email..." required></textarea>
+      </div>
+      
+      <button type="submit" class="submit-btn">Send Message</button>
+    </form>
+  </div>
+
+  <!-- Informations de contact -->
+  <div class="contact-info">
+    <div class="info-card">
+      <h3>Contact Information</h3>
+      
+      <div class="contact-item">
+        <div class="">
+          <img src="{{ asset('images/Call.svg') }}" alt="Phone icon">
+        </div>
+        <div class="contact-details">
+          <h4>Phone Number</h4>
+          <p>773-365-1240</p>
+        </div>
+      </div>
+
+      <div class="contact-item">
+        <div class="">
+          <img src="{{ asset('images/Location.svg') }}" alt="Address icon">
+        </div>
+        <div class="contact-details">
+          <h4>Address</h4>
+          <p>1234 Elm Street, Suite 567,<br>Springfield, IL 62704</p>
+        </div>
+      </div>
+
+      <div class="contact-item">
+        <div class="">
+          <img src="{{ asset('images/Mail.svg') }}" alt="Mail icon">
+        </div>
+        <div class="contact-details">
+          <h4>Mail</h4>
+          <p>Supportattccr780@gmail.com</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="info-card">
+      <h3>Business Hours</h3>
+      <div class="hours-grid">
+        <div class="day-hours">
+          <h4>Monday - Friday</h4>
+          <p>09:00 am - 08:00 pm</p>
+        </div>
+        <div class="day-hours">
+          <h4>Saturday</h4>
+          <p>09:00 am - 06:00 pm</p>
+        </div>
+        <div class="day-hours">
+          <h4>Sunday</h4>
+          <p>09:00 am - 05:00 pm</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

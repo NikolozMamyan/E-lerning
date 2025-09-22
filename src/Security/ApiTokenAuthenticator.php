@@ -23,23 +23,33 @@ class ApiTokenAuthenticator extends AbstractAuthenticator
     {
         $this->userRepository = $userRepository;
     }
+public function supports(Request $request): ?bool
+{
+    $path = $request->getPathInfo();
 
-    public function supports(Request $request): ?bool
-    {
-        $path = $request->getPathInfo();
-    
-        // Ne pas activer l'authenticator pour ces routes API publiques
-        if (in_array($path, ['/api/register', '/api/login', '/api/logout' , '/api/stripe/webhook', '/reset-password'])) {
-            return false;
-        }
-    
-        // Activer si :
-        // - requête API (/api/)
-        // - ou requête sur une page HTML (/app/) et le cookie est présent
-        return str_starts_with($path, '/api/') ||
-               str_starts_with($path, '/app/') && $request->cookies->has('AUTH_TOKEN') ||
-               str_starts_with($path, '/admin/') && $request->cookies->has('AUTH_TOKEN');
+    // Routes publiques sans authentification
+    if (
+        in_array($path, [
+            '/api/register',
+            '/api/login',
+            '/api/logout',
+            '/api/stripe/webhook',
+            '/reset-password',          // la page demande email
+            '/reset-password/check-email'
+        ])
+        || str_starts_with($path, '/reset-password/reset') // exclut toutes les URL avec token
+    ) {
+        return false;
     }
+
+    // Activer si :
+    // - requête API (/api/)
+    // - ou requête sur une page HTML (/app/) et le cookie est présent
+    return str_starts_with($path, '/api/')
+        || (str_starts_with($path, '/app/') && $request->cookies->has('AUTH_TOKEN'))
+        || (str_starts_with($path, '/admin/') && $request->cookies->has('AUTH_TOKEN'));
+}
+
     
 
     public function authenticate(Request $request): Passport

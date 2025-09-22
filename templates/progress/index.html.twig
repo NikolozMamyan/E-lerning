@@ -6,69 +6,66 @@
 
 <div class="courses-wrapper">
 
-    <h2>All Courses</h2>
-    <div class="courses-grid">
+  <h2>All Courses</h2>
+  <div class="courses-grid">
     {% for item in coursesData %}
-        <div class="course-card {{ item.certified ? 'complete' : 'in-progress' }}">
-            
-            {# Boucle sur les vidéos du cours #}
-{% set firstVideo = item.course.videos|first %}
-{% if firstVideo %}
-    <div class="thumb main-video">
-        <img class="course-thumbnail bg-aml" 
-     src="{{ asset('uploads/courses/' ~ item.course.thumb) }}" 
-     alt="{{ item.course.title }}">
+      <div class="course-card {{ item.certified ? 'complete' : 'in-progress' }}">
 
-    </div>
-{% endif %}
+        {# Lien vers la page du cours #}
+        <a href="{{ path('app_course_show', {id: item.course.id}) }}" class="course-link">
 
-<div class="video-list">
-    {% for video in item.course.videos|slice(1) %}
-        <p><a href="{{ video.url }}" target="_blank">{{ video.title ?? 'Other video' }}</a></p>
-    {% endfor %}
-</div>
+          {% set firstVideo = item.course.videos|first %}
+          {% if firstVideo %}
+            <div class="thumb main-video">
+              <img class="course-thumbnail bg-aml"
+                   src="{{ asset('uploads/courses/' ~ item.course.thumb) }}"
+                   alt="{{ item.course.title }}">
+            </div>
+          {% endif %}
 
-
+          <div class="course-info">
             <h3>{{ item.course.title ?? 'Untitled Course' }}</h3>
             <p>{{ item.course.description ?? '' }}</p>
-        </div>
+          </div>
+          <a href="{{ path('app_course_show', {id: item.course.id}) }}" class="see-course-btn">See Course</a>
+        </a>
+      </div>
     {% endfor %}
-</div>
+  </div>
 
-
-    <h2>User Progress</h2>
-    <table class="progress-table">
-        <thead>
-            <tr>
-                <th>Courses Name</th>
-                <th>Start On</th>
-                <th>Quiz Score</th>
-                <th>Progress on Course</th>
-                <th>Certification Status</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for item in coursesData %}
-                <tr>
-                    <td>{{ item.course.title ?? 'Untitled Course' }}</td>
-                    <td>{{ item.enrollment.createdAt|date('d/m/Y') }}</td>
-                    <td>{{ item.quizScore ?? '-' }}</td>
-                    <td>
-                        <div class="progress-bar">
-                            <span style="width: {{ item.progressPercent }}%"></span>
-                        </div>
-                    </td>
-                    <td>
-                        {% if item.certified %}
-                            <span class="certified">certified</span>
-                        {% else %}
-                            <span class="in-learning">In Learning</span>
-                        {% endif %}
-                    </td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+  <h2>User Progress</h2>
+  <table class="progress-table">
+    <thead>
+      <tr>
+        <th>Courses Name</th>
+        <th>Start On</th>
+        <th>Quiz Score</th>
+        <th>Progress on Course</th>
+        <th>Certification Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in coursesData %}
+        <tr>
+          <td>{{ item.course.title ?? 'Untitled Course' }}</td>
+          <td>{{ item.enrollment.createdAt|date('d/m/Y') }}</td>
+          <td>{{ item.quizScore ?? '-' }}</td>
+          <td>
+            <div class="progress-bar">
+              <span style="width: {{ item.progressPercent }}%"></span>
+            </div>
+          </td>
+          <td>
+            {% if item.certified %}
+              <span class="certified">certified</span>
+            {% else %}
+              <span class="in-learning">In Learning</span>
+            {% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </div>
 
 {% endblock %}
