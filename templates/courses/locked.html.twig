@@ -109,6 +109,24 @@
             margin-bottom: 20px;
             color: #333;
         }
+        .course-features {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+    flex-wrap: wrap;
+}
+
+.course-feature {
+    border: 1px solid #ddd;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 14px;
+    background: #fff;
+    color: #333;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
         
         @media (max-width: 968px) {
             .payment-layout {
@@ -153,11 +171,12 @@
                         €{{ euroPrice|default('null') }}
                     </div>
                     
-                    <div class="course-features">
-                        <p><i class="fas fa-check"></i> Lifetime access</p>
-                        <p><i class="fas fa-check"></i> Certificate of completion</p>
-                        <p><i class="fas fa-check"></i> 24/7 Support</p>
-                    </div>
+<div class="course-features">
+    <span class="course-feature">Full access</span>
+    <span class="course-feature">Certificate of completion</span>
+    <span class="course-feature">24/7 Support</span>
+</div>
+
                 </div>
             </div>
             
@@ -246,9 +265,9 @@
             </div>
 
             <div class="footer-links">
-                <a href="#">Terms & Conditions</a>
-                <a href="#">Privacy Policy</a>
-                <a href="#">Help</a>
+                <a href="/legales/TermsConditions.html">Terms & Conditions</a>
+                <a href="/legales/Privacy.html">Privacy Policy</a>
+                <a href="{{path('app_contact')}}">Help</a>
             </div>
         </div>
     </div>

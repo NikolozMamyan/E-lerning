@@ -265,6 +265,9 @@
   }
 
   /* ------- Recent Videos ------- */
+  .dashboard_bottom{
+    display:grid; gap:50px; flex-wrap: wrap; grid-template-columns: 1fr 1fr;
+  }
   .video-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);

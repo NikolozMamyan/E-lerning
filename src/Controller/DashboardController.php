@@ -4,7 +4,6 @@ namespace App\Controller;
 
 
 use App\Service\MailerService;
-
 use App\Repository\CourseRepository;
 use App\Repository\ProgressRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -27,6 +26,7 @@ final class DashboardController extends AbstractController{
 
         // Tous les cours
         $courses = $courseRepo->findAll();
+        $latestCourses = $courseRepo->findBy([], ['updatedAt' => 'DESC'], 3);
 
         // Progression par cours
         $progressData = [];
@@ -69,7 +69,8 @@ final class DashboardController extends AbstractController{
             'courses' => $courses,
             'progressData' => $progressData,
             'recentVideos' => $recentVideos,
-            'userAttempts' => $userAttempts
+            'userAttempts' => $userAttempts,
+            'latestCourses' => $latestCourses,
         ]);
     }
 }

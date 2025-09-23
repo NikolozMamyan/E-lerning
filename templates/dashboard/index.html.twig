@@ -58,7 +58,7 @@
   {% endif %}
 </div>
 
-    <a href="" class="view-courses-btn">View My Courses</a>
+    <a href="{{path('app_courses')}}" class="view-courses-btn">View My Courses</a>
   </div>
 
   <!-- Transactions (static) -->
@@ -73,13 +73,14 @@
       </svg>
     </div>
     <div>
-      {# <div class="transaction-item">
+       {# <div class="transaction-item">
         <div class="transaction-info">
           <h4>Project management Course</h4>
           <p>11 April, 07:11 AM</p>
         </div>
         <div class="transaction-amount">$123.64</div>
-      </div> #}
+      </div>  #}
+       <p>No certificates yet.</p>
     </div>
 
     <button class="view-all-btn">View All</button>
@@ -88,16 +89,25 @@
 </div>
 
 <style>
-
+  .certif-card{
+        display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
 @media (max-width: 1024px) {
   .certif-card{
      width:100%;
   } .video-card {
     width:100%;
   }
+  .dashboard_bottom{
+    display:grid; gap:50px; flex-wrap: wrap; grid-template-columns: 1fr;
+  }
+
 }
 </style>
-<div style="display:flex; gap:50px; flex-wrap: wrap;"> 
+<div class="dashboard_bottom"> 
 
 
 <div class="card certif-card">
@@ -129,44 +139,42 @@
   <a href="{{path('app_certificates')}}" class="download-all-btn">View All</a>
 
 </div>
-
-  <!-- Recent Videos -->
-  <div class="card video-card">
-    <div class="card-header">
-      <h2 class="card-title">Recent Videos</h2>
-      <a href="{{path('app_courses')}}" class="view-all-link">View All</a>
-    </div>
-    <div class="video-grid">
-      {% for progress in recentVideos %}
-        {% set video = progress.video %}
-        <div class="video-card">
-          <div class="video-thumbnail" style="background: linear-gradient(135deg, var(--green) 0%, var(--teal) 100%);">
-            {% if progress.completed %}
-              <div class="status-badge status-complete">Complete</div>
-            {% else %}
-              <div class="status-badge status-progress">In progress</div>
-            {% endif %}
-            <div class="video-overlay">
-              <a href="{{ path('app_course_show', { id: video.course.id, videoId: video.id }) }}" class="play-button">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="var(--teal)">
-                  <path d="M8 5v14l11-7z"/>
-                </svg>
-              </a>
-            </div>
-          </div>
-          <div class="video-info">
-            <h3 class="video-title">{{ video.course.title }}</h3>
-            <p class="video-subtitle">{{ video.title }}</p>
-            <div class="video-duration">
-              <span>00:00</span>
-              <span>{{ (video.duration / 60)|round(0, 'floor') }}:{{ (video.duration % 60)|default('00') }}</span>
-            </div>
+<!-- Recent Courses -->
+<div class="card video-card">
+  <div class="card-header">
+    <h2 class="card-title">Recent Courses</h2>
+    <a href="{{ path('app_courses') }}" class="view-all-link">View All</a>
+  </div>
+  <div class="video-grid">
+    {% for course in latestCourses %}
+      <div class="video-card">
+        <div class="video-thumbnail" style="background: linear-gradient(135deg, var(--green) 0%, var(--teal) 100%);">
+          <div class="video-overlay">
+            <a href="{{ path('app_course_show', { id: course.id }) }}" class="play-button">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="var(--teal)">
+                <path d="M8 5v14l11-7z"/>
+              </svg>
+            </a>
           </div>
         </div>
-      {% else %}
-        <p>No recent videos.</p>
-      {% endfor %}
-    </div>
+        <div class="video-info">
+          <h3 class="video-title">{{ course.title }}</h3>
+          {% if course.videos|length > 0 %}
+            <p class="video-subtitle">{{ course.videos|first.title }}</p>
+            <div class="video-duration">
+              <span>00:00</span>
+              <span>{{ (course.videos|first.duration / 60)|round(0, 'floor') }}:{{ (course.videos|first.duration % 60)|default('00') }}</span>
+            </div>
+          {% else %}
+            <p class="video-subtitle">No videos yet</p>
+          {% endif %}
+        </div>
+      </div>
+    {% else %}
+      <p>No recent courses.</p>
+    {% endfor %}
   </div>
+</div>
+
 </div>
 {% endblock %}

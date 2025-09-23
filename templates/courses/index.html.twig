@@ -34,11 +34,9 @@
             <h3 class="course-title">{{ course.title }}</h3>
             <p class="course-subtitle">{{ course.description }}</p>
             <div class="course-footer">
-              {% if access[course.id] is defined and access[course.id] %}
+
                 <a href="{{ path('app_course_show', {id: course.id}) }}" class="see-course-btn">See Course</a>
-              {% else %}
-                <a href="{{ path('app_course_show', {id: course.id}) }}" class="see-course-btn locked">Subscribe</a>
-              {% endif %}
+
             </div>
           </div>
         </div>
