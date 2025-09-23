@@ -78,18 +78,19 @@ public function generateCertificate(
         $pdf->Image($background, 0, 0, $pageWidth, $pageHeight);
 
         // Nom de l’étudiant
-        $pdf->SetFont('Arial', 'B', 26);
-        $pdf->SetTextColor(0, 0, 0);
-        $nameWidth = $pdf->GetStringWidth(utf8_decode($user->getUserName()));
-        $x = ($pageWidth - $nameWidth) / 2;
-        $y = 95;
-        $pdf->SetXY($x, $y);
-        $pdf->Cell($nameWidth, 10, utf8_decode($user->getUserName()));
+$pdf->SetFont('Arial', 'B', 26);
+$pdf->SetTextColor(0, 0, 0);
+$nameWidth = $pdf->GetStringWidth(utf8_decode($user->getUserName()));
+$x = ($pageWidth - $nameWidth) / 2;
+$y = 95;
+$pdf->SetXY($x, $y);
+$pdf->Cell($nameWidth, 10, utf8_decode($user->getUserName()));
 
-        // Titre du cours
-        $pdf->SetFont('Arial', 'B', 18);
-        $pdf->Ln(12);
-        $pdf->Cell($pageWidth, 10, utf8_decode($course->getTitle()), 0, 0, 'C');
+
+$pdf->SetFont('Arial', 'B', 18);
+$titleY = 130; // ajuste cette valeur pour le descendre
+$pdf->SetXY(0, $titleY);
+$pdf->Cell($pageWidth, 10, utf8_decode($course->getTitle()), 0, 0, 'C');
 
         // Date
         $pdf->SetFont('Arial', '', 14);
