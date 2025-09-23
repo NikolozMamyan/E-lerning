@@ -148,7 +148,8 @@
   <div class="video-grid">
     {% for course in latestCourses %}
       <div class="video-card">
-        <div class="video-thumbnail" style="background: linear-gradient(135deg, var(--green) 0%, var(--teal) 100%);">
+        <div class="video-thumbnail">
+        <img class="video-thumbnail" src="{{ asset('uploads/courses/' ~ course.thumb) }}" alt="{{ course.title }}">
           <div class="video-overlay">
             <a href="{{ path('app_course_show', { id: course.id }) }}" class="play-button">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="var(--teal)">

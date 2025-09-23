@@ -28,19 +28,50 @@
               </div>
               <img src="{{ asset('uploads/courses/' ~ course.thumb) }}" alt="{{ course.title }}">
             {% endif %}
+
+            {# Badge durée dans un coin de l'image #}
+            {% if course.videos|length > 0 %}
+              <span class="duration-badge">
+                {{ (course.videos|first.duration / 60)|round(0, 'floor') }}:
+                {{ '%02d'|format(course.videos|first.duration % 60) }}
+              </span>
+            {% endif %}
           </div>
 
           <div class="course-info">
             <h3 class="course-title">{{ course.title }}</h3>
-            <p class="course-subtitle">{{ course.description }}</p>
+
+            {# Limiter la description à 120 caractères #}
+            <p class="course-subtitle">
+              {{ course.description|slice(0, 120) }}{% if course.description|length > 120 %}...{% endif %}
+            </p>
+
             <div class="course-footer">
-
-                <a href="{{ path('app_course_show', {id: course.id}) }}" class="see-course-btn">See Course</a>
-
+              <a href="{{ path('app_course_show', {id: course.id}) }}" class="see-course-btn">See Course</a>
             </div>
           </div>
         </div>
       {% endfor %}
     </div>
   </section>
+{% endblock %}
+
+{% block stylesheets %}
+<style>
+.duration-badge {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  background: rgba(7, 23, 23, 0.75); /* noir semi-transparent */
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+.course-thumbnail {
+  position: relative;
+  overflow: hidden;
+}
+</style>
 {% endblock %}
