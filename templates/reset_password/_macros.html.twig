@@ -1,0 +1,36 @@
+{% macro backHeader(path, label) %}
+    <div class="back-header">
+        <a href="{{ path(path) }}" class="back-link">
+            <span class="arrow">←</span> {{ label }}
+        </a>
+    </div>
+{% endmacro %}
+
+{% block stylesheets %}
+<style>
+.back-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  color: var(--teal, #0D8383);
+  text-decoration: none;
+  transition: color 0.2s ease-in-out;
+}
+
+.back-link:hover {
+  color: var(--green, #1A6D55);
+}
+
+.arrow {
+  font-size: 1.2rem;
+  line-height: 1;
+}
+</style>
+{% endblock %}

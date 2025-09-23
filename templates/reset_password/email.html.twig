@@ -1,9 +1,63 @@
-<h1>Hi!</h1>
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Password Reset</title>
+</head>
+<body style="margin:0; padding:0; font-family: system-ui, sans-serif; background-color:#f4f9f8; color:#071717;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#f4f9f8; padding:2rem 0;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width:600px; background:#ffffff; border-radius:12px; box-shadow:0 4px 12px rgba(7,23,23,.08); padding:2rem;">
+          <tr>
+            <td align="center" style="padding-bottom:1rem;">
+              <h1 style="color:#1A6D55; font-size:1.6rem; margin:0;">Hi!</h1>
+            </td>
+          </tr>
 
-<p>To reset your password, please visit the following link</p>
+          <tr>
+            <td style="padding-bottom:1rem; color:#606060; font-size:1rem; line-height:1.5;">
+              <p style="margin:0 0 1rem 0;">To reset your password, please click the button below:</p>
+            </td>
+          </tr>
 
-<a href="{{ url('app_reset_password', {token: resetToken.token}) }}">{{ url('app_reset_password', {token: resetToken.token}) }}</a>
+          <tr>
+            <td align="center" style="padding:1.5rem 0;">
+              <a href="{{ url('app_reset_password', {token: resetToken.token}) }}"
+                 style="display:inline-block; padding:0.75rem 1.5rem; background:#1A6D55; color:#ffffff; font-weight:600; text-decoration:none; border-radius:8px; font-size:1rem;">
+                Reset Password
+              </a>
+            </td>
+          </tr>
 
-<p>This link will expire in {{ resetToken.expirationMessageKey|trans(resetToken.expirationMessageData, 'ResetPasswordBundle') }}.</p>
+          <tr>
+            <td style="padding-bottom:1rem; color:#606060; font-size:0.95rem; line-height:1.5;">
+              <p style="margin:0;">If the button doesn’t work, copy and paste this link in your browser:</p>
+              <p style="margin:0; word-break:break-all; color:#0D8383;">
+                <a href="{{ url('app_reset_password', {token: resetToken.token}) }}" style="color:#0D8383; text-decoration:none;">
+                  {{ url('app_reset_password', {token: resetToken.token}) }}
+                </a>
+              </p>
+            </td>
+          </tr>
 
-<p>Cheers!</p>
+          <tr>
+            <td style="padding-bottom:1rem; color:#606060; font-size:0.95rem; line-height:1.5;">
+              <p style="margin:0;">
+                This link will expire in 
+                <strong>{{ resetToken.expirationMessageKey|trans(resetToken.expirationMessageData, 'ResetPasswordBundle') }}</strong>.
+              </p>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding-top:1.5rem; color:#606060; font-size:0.95rem; text-align:center;">
+              <p style="margin:0;">Cheers!<br>The Team</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

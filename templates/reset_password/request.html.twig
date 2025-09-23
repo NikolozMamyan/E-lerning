@@ -92,7 +92,9 @@ button.btn:hover {
 {% endblock %}
 
 {% block body %}
+{% import 'reset_password/_macros.html.twig' as ui %}
 <div class="reset-container">
+  {{ ui.backHeader('show_login', 'Back to login') }}
     {% for flash_error in app.flashes('reset_password_error') %}
         <div class="alert alert-danger" role="alert">{{ flash_error }}</div>
     {% endfor %}
