@@ -3,7 +3,10 @@
 namespace App\Controller;
 
 use App\Entity\User;
+use App\Entity\Notification;
+use Psr\Log\LoggerInterface;
 use App\Repository\UserRepository;
+use App\Service\NotificationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\HttpFoundation\Request;
@@ -16,62 +19,88 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 final class AuthController extends AbstractController
 {
-    #[Route('/api/register', name: 'api_register', methods: ['POST'])]
-    public function register(
-        Request $request,
-        UserRepository $userRepository,
-        UserPasswordHasherInterface $passwordHasher,
-        EntityManagerInterface $em
-    ): JsonResponse {
-        $data = json_decode($request->getContent(), true);
+   #[Route('/api/register', name: 'api_register', methods: ['POST'])]
+public function register(
+    Request $request,
+    UserRepository $userRepository,
+    UserPasswordHasherInterface $passwordHasher,
+    EntityManagerInterface $em,
+    NotificationService $notificationService, // 👈 injecter ton service
+    LoggerInterface $logger // 👈 pour loguer les erreurs
+): JsonResponse {
+    $data = json_decode($request->getContent(), true);
 
- 
+    if ($userRepository->findOneBy(['email' => $data['email']])) {
+        return new JsonResponse(['error' => 'Email already in use'], 409);
+    }
 
-        if ($userRepository->findOneBy(['email' => $data['email']])) {
-            return new JsonResponse(['error' => 'Email already in use'], 409);
-        }
+    $user = new User();
+    $user->setEmail($data['email']);
+    $user->setUsername($data['userName']);
 
-        $user = new User();
-        $user->setEmail($data['email']);
-        $user->setUsername($data['userName']);
-          if ($data['role'] === 'employee') {
+    if ($data['role'] === 'employee') {
         $user->setRoles(['ROLE_EMPLOYEE']);
     } elseif ($data['role'] === 'company') {
         $user->setRoles(['ROLE_COMPANY']);
     } else {
         return new JsonResponse(['error' => 'Role invalide'], 400);
     }
-        $user->setPassword(
-            $passwordHasher->hashPassword($user, $data['password'])
+
+    $user->setPassword(
+        $passwordHasher->hashPassword($user, $data['password'])
+    );
+
+    $token = bin2hex(random_bytes(32));
+    $expiresAt = (new \DateTime())->modify('+4 hour');
+    $user->setApiToken($token);
+    $user->setTokenExpiresAt($expiresAt);
+
+    $em->persist($user);
+    $em->flush();
+
+    // 👇 Création de la notification de bienvenue
+    try {
+        $notificationService->createEntityNotification(
+            $user,
+            '👋 Welcome!',
+            $user, // entité liée (ici on peut mettre l'user lui-même)
+            "Hello dear, please complete your profile to get started.",
+            Notification::TYPE_INFO,
+            '/app/settings', // lien vers la page profil
+            'profile-completion',
+            Notification::PRIORITY_LOW
         );
 
-        $token = bin2hex(random_bytes(32));
-        $expiresAt = (new \DateTime())->modify('+4 hour');
-        $user->setApiToken($token);
-        $user->setTokenExpiresAt($expiresAt);
-
-        $em->persist($user);
-        $em->flush();
-
-        $response = new JsonResponse([
-            'message' => 'Inscription réussie',
-            'user' => [
-                'email' => $user->getEmail(),
-                'roles' => $user->getRoles(),
-            ]
-        ], 201);
-
-        $response->headers->setCookie(
-            Cookie::create('AUTH_TOKEN')
-                ->withValue($token)
-                ->withHttpOnly(true)
-                ->withSecure(false) // en prod : true (HTTPS only)
-                ->withPath('/')
-                ->withExpires($expiresAt->getTimestamp())
-        );
-
-        return $response;
+        $logger->info('Notification created for new user registration', [
+            'userId' => $user->getId(),
+        ]);
+    } catch (\Exception $e) {
+        $logger->error('Failed to create registration notification', [
+            'userId' => $user->getId(),
+            'error' => $e->getMessage()
+        ]);
     }
+
+    $response = new JsonResponse([
+        'message' => 'Inscription réussie',
+        'user' => [
+            'email' => $user->getEmail(),
+            'roles' => $user->getRoles(),
+        ]
+    ], 201);
+
+    $response->headers->setCookie(
+        Cookie::create('AUTH_TOKEN')
+            ->withValue($token)
+            ->withHttpOnly(true)
+            ->withSecure(false) // en prod : true
+            ->withPath('/')
+            ->withExpires($expiresAt->getTimestamp())
+    );
+
+    return $response;
+}
+
 
     #[Route('/api/login', name: 'api_login', methods: ['POST'])]
     public function login(
