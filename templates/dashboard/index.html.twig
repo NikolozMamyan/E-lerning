@@ -3,8 +3,8 @@
 {% block title %}My Dashboard{% endblock %}
 
 {% block body %}
-
 <div class="dashboard-grid">
+  
   <!-- Available Courses -->
   <div class="card">
     <div class="card-header">
@@ -13,10 +13,12 @@
     <p style="color: var(--grey); margin-bottom: 1.5rem; font-size: 0.9rem;">
       Explore all the courses currently available to you.
     </p>
-    <ul class="course-list">
+
+    <ul class="course-list {{ courses|length > 3 ? 'scrollable' : '' }}">
       {% for course in courses %}
         <li class="course-item">
-          <a href="{{ path('app_course_show', { id: course.id }) }}" style="text-decoration:none; color:inherit; display:flex; justify-content:space-between; align-items:center;">
+          <a href="{{ path('app_course_show', { id: course.id }) }}" 
+             style="text-decoration:none; color:inherit; display:flex; justify-content:space-between; align-items:center;">
             <span class="course-name">{{ course.title }}</span>
             <svg class="course-arrow" viewBox="0 0 24 24" fill="currentColor">
               <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
@@ -34,162 +36,194 @@
     <div class="card-header">
       <h2 class="card-title">Progress Tracking</h2>
     </div>
-<div style="margin-bottom: 2rem;">
-  {% set hasProgress = false %}
-  
-  {% for course in courses %}
-    {% set percent = progressData[course.id] ?? 0 %}
-    
-    {% if percent > 0 %}
-      {% set hasProgress = true %}
-      <div class="progress-item">
-        <div class="progress-header">
-          <span class="progress-label">{{ course.title }} :</span>
-        </div>
-        <div class="progress-bar">
-          <div class="progress-fill" style="width: {{ percent }}%;"></div>
-        </div>
-      </div>
-    {% endif %}
-  {% endfor %}
 
-  {% if not hasProgress %}
-    <p>No progress yet.</p>
-  {% endif %}
-</div>
-
-    <a href="{{path('app_courses')}}" class="view-courses-btn">View My Courses</a>
-  </div>
-
-<!-- Transactions -->
-<div class="card">
-  <div class="card-header">
-    <h2 class="card-title">Transactions</h2>
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2">
-      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-      <line x1="16" y1="2" x2="16" y2="6"/>
-      <line x1="8" y1="2" x2="8" y2="6"/>
-      <line x1="3" y1="10" x2="21" y2="10"/>
-    </svg>
-  </div>
-
-  <div>
-    {% if enrollments is not empty %}
-      {% for e in enrollments %}
-        <div class="transaction-item">
-          <div class="transaction-info">
-            <h4>{{ e.course.title }}</h4>
-            <p>{{ e.createdAt|date('d M, H:i') }}</p>
+    <div style="margin-bottom: 2rem;">
+      {% set hasProgress = false %}
+      
+      {% for course in courses|slice(0, 3) %}
+        {% set percent = progressData[course.id] ?? 0 %}
+        
+        {% if percent > 0 %}
+          {% set hasProgress = true %}
+          <div class="progress-item">
+            <div class="progress-header">
+              <span class="progress-label">{{ course.title }} :</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: {{ percent }}%;"></div>
+            </div>
           </div>
-<div class="transaction-amount">
-  {% for price in e.course.coursePrices %}
-    {% if price.currency == 'EUR' %}
-      {{ price.price / 100 }} €
-    {% endif %}
-  {% endfor %}
-</div>
-
-        </div>
+        {% endif %}
       {% endfor %}
-    {% else %}
-      <p>No transactions yet.</p>
-    {% endif %}
+
+      {% if not hasProgress %}
+        <p>No progress yet.</p>
+      {% endif %}
+    </div>
+
+    <a href="{{ path('app_courses') }}" class="view-courses-btn">View My Courses</a>
   </div>
 
-  <a href="{{path('app_transactions')}}" class="view-all-btn">View All</a>
-</div>
+  <!-- Transactions -->
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title">Transactions</h2>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2">
+        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+        <line x1="16" y1="2" x2="16" y2="6"/>
+        <line x1="8" y1="2" x2="8" y2="6"/>
+        <line x1="3" y1="10" x2="21" y2="10"/>
+      </svg>
+    </div>
 
+    <div>
+      {% if enrollments is not empty %}
+          {% for e in enrollments|slice(0, 3) %}
+          <div class="transaction-item">
+            <div class="transaction-info">
+              <h4>{{ e.course.title }}</h4>
+              <p>{{ e.createdAt|date('d M, H:i') }}</p>
+            </div>
+            <div class="transaction-amount">
+              {% for price in e.course.coursePrices %}
+                {% if price.currency == 'EUR' %}
+                  {{ price.price / 100 }} €
+                {% endif %}
+              {% endfor %}
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <p>No transactions yet.</p>
+      {% endif %}
+    </div>
 
+    <a href="{{ path('app_transactions') }}" class="view-all-btn">View All</a>
+  </div>
 </div>
 
 <style>
-  .certif-card{
-        display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: space-between;
-  }
-@media (max-width: 1024px) {
-  .certif-card{
-     width:100%;
-  } .video-card {
-    width:100%;
-  }
-  .dashboard_bottom{
-    display:grid; gap:50px; flex-wrap: wrap; grid-template-columns: 1fr;
-  }
+.course-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
 
+.course-item {
+  padding: .8rem 1rem;
+  border-bottom: 1px solid var(--bg);
+}
+
+.course-item:last-child {
+  border-bottom: none;
+}
+
+/* Scrollable version when more than 3 courses */
+.course-list.scrollable {
+  max-height: 180px; /* environ la hauteur de 3 items */
+  overflow-y: auto;
+  padding-right: .5rem;
+}
+
+/* Scrollbar style (optionnel) */
+.course-list.scrollable::-webkit-scrollbar {
+  width: 6px;
+}
+
+.course-list.scrollable::-webkit-scrollbar-thumb {
+  background-color: var(--teal);
+  border-radius: var(--radius);
+}
+
+.certif-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+@media (max-width: 1024px) {
+  .certif-card {
+    width: 100%;
+  }
+  .video-card {
+    width: 100%;
+  }
+  .dashboard_bottom {
+    display: grid;
+    gap: 50px;
+    flex-wrap: wrap;
+    grid-template-columns: 1fr;
+  }
 }
 </style>
+
 <div class="dashboard_bottom"> 
-
-
-<div class="card certif-card">
-  <div class="card-header">
-    <h2 class="card-title">My Certificates</h2>
+  <!-- Certificates -->
+  <div class="card certif-card">
+    <div class="card-header">
+      <h2 class="card-title">My Certificates</h2>
+    </div>
     
+    <div class="certificates-list">
+      {% set seen = [] %}
+      {% set hasCertificate = false %}
+
+      {% for attempt in userAttempts %}
+        {% if attempt.passed and attempt.course.title not in seen %}
+          {% set hasCertificate = true %}
+          <div class="certificate-item">
+            <div class="certificate-icon">🎓</div>
+            <span class="certificate-name">{{ attempt.course.title }}</span>
+          </div>
+          {% set seen = seen|merge([attempt.course.title]) %}
+        {% endif %}
+      {% endfor %}
+
+      {% if not hasCertificate %}
+        <p>No certificates yet.</p>
+      {% endif %}
+    </div>
+
+    <a href="{{ path('app_certificates') }}" class="download-all-btn">View All</a>
   </div>
-  
-<div class="certificates-list">
-  {% set seen = [] %}
-  {% set hasCertificate = false %}
 
-  {% for attempt in userAttempts %}
-    {% if attempt.passed and attempt.course.title not in seen %}
-      {% set hasCertificate = true %}
-      <div class="certificate-item">
-        <div class="certificate-icon">🎓</div>
-        <span class="certificate-name">{{ attempt.course.title }}</span>
-      </div>
-      {% set seen = seen|merge([attempt.course.title]) %}
-    {% endif %}
-  {% endfor %}
-
-  {% if not hasCertificate %}
-    <p>No certificates yet.</p>
-  {% endif %}
-</div>
-
-  <a href="{{path('app_certificates')}}" class="download-all-btn">View All</a>
-
-</div>
-<!-- Recent Courses -->
-<div class="card video-card">
-  <div class="card-header">
-    <h2 class="card-title">Recent Courses</h2>
-    <a href="{{ path('app_courses') }}" class="view-all-link">View All</a>
-  </div>
-  <div class="video-grid">
-    {% for course in latestCourses %}
-      <div class="video-card">
-        <div class="video-thumbnail">
-        <img class="video-thumbnail" src="{{ asset('uploads/courses/' ~ course.thumb) }}" alt="{{ course.title }}">
-          <div class="video-overlay">
-            <a href="{{ path('app_course_show', { id: course.id }) }}" class="play-button">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="var(--teal)">
-                <path d="M8 5v14l11-7z"/>
-              </svg>
-            </a>
+  <!-- Recent Courses -->
+  <div class="card video-card">
+    <div class="card-header">
+      <h2 class="card-title">Recent Courses</h2>
+      <a href="{{ path('app_courses') }}" class="view-all-link">View All</a>
+    </div>
+    <div class="video-grid">
+      {% for course in latestCourses %}
+        <div class="video-card">
+          <div class="video-thumbnail">
+            <img class="video-thumbnail" src="{{ asset('uploads/courses/' ~ course.thumb) }}" alt="{{ course.title }}">
+            <div class="video-overlay">
+              <a href="{{ path('app_course_show', { id: course.id }) }}" class="play-button">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="var(--teal)">
+                  <path d="M8 5v14l11-7z"/>
+                </svg>
+              </a>
+            </div>
+          </div>
+          <div class="video-info">
+            <h3 class="video-title">{{ course.title }}</h3>
+            {% if course.videos|length > 0 %}
+              <p class="video-subtitle">{{ course.videos|first.title }}</p>
+              <div class="video-duration">
+                <span>00:00</span>
+                <span>{{ (course.videos|first.duration / 60)|round(0, 'floor') }}:{{ (course.videos|first.duration % 60)|default('00') }}</span>
+              </div>
+            {% else %}
+              <p class="video-subtitle">No videos yet</p>
+            {% endif %}
           </div>
         </div>
-        <div class="video-info">
-          <h3 class="video-title">{{ course.title }}</h3>
-          {% if course.videos|length > 0 %}
-            <p class="video-subtitle">{{ course.videos|first.title }}</p>
-            <div class="video-duration">
-              <span>00:00</span>
-              <span>{{ (course.videos|first.duration / 60)|round(0, 'floor') }}:{{ (course.videos|first.duration % 60)|default('00') }}</span>
-            </div>
-          {% else %}
-            <p class="video-subtitle">No videos yet</p>
-          {% endif %}
-        </div>
-      </div>
-    {% else %}
-      <p>No recent courses.</p>
-    {% endfor %}
+      {% else %}
+        <p>No recent courses.</p>
+      {% endfor %}
+    </div>
   </div>
-</div>
-
 </div>
 {% endblock %}
