@@ -30,3 +30,7 @@
 npm-debug.log
 yarn-error.log
 ###< symfony/webpack-encore-bundle ###
+
+# Uploaded files (avatars, etc.)
+/public/uploads/avatars/
+/public/uploads/courses/
