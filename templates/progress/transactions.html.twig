@@ -1,0 +1,56 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}User Transactions{% endblock %}
+
+{% block body %}
+
+<div class="courses-wrapper">
+
+  <h2>All Transactions</h2>
+
+  <table class="progress-table" style="margin-bottom:50px;">
+    <thead>
+      <tr>
+        <th>Course</th>
+        <th>Purchased On</th>
+        <th>Price</th>
+        <th>Currency</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for e in enrollments %}
+        <tr>
+          <td>
+            <a href="{{ path('app_course_show', {id: e.course.id}) }}">
+              {{ e.course.title ?? 'Untitled Course' }}
+            </a>
+          </td>
+          <td>{{ e.createdAt|date('d/m/Y H:i') }}</td>
+          <td>
+            {% for price in e.course.coursePrices %}
+              {% if price.currency == 'EUR' %}
+                {{ price.price / 100 }}
+              {% endif %}
+            {% endfor %}
+          </td>
+          <td>
+            {% for price in e.course.coursePrices %}
+              {% if price.currency == 'EUR' %}
+              €
+              {% endif %}
+            {% endfor %}
+          </td>
+        </tr>
+      {% else %}
+        <tr>
+          <td colspan="4" style="text-align:center;">No transactions yet</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+
+
+</div>
+
+{% endblock %}

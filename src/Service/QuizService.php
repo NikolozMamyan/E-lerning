@@ -3,13 +3,18 @@ namespace App\Service;
 
 use App\Entity\User;
 use App\Entity\Course;
-use App\Entity\QuizAttempt;
 use App\Entity\Enrollment;
+use App\Entity\QuizAttempt;
+use App\Entity\Notification;
+use App\Service\NotificationService;
 use Doctrine\ORM\EntityManagerInterface;
 
 class QuizService
 {
-    public function __construct(private EntityManagerInterface $em) {}
+    public function __construct(private EntityManagerInterface $em, NotificationService $notificationService) 
+    {
+        $this->notificationService = $notificationService;
+    }
 
     /**
      * Évalue un quiz pour un utilisateur et un cours.
@@ -63,6 +68,32 @@ class QuizService
 
         $this->em->persist($attempt);
         $this->em->flush();
+        if ($passed) {
+    try {
+        $this->notificationService->createEntityNotification(
+            $user,
+            '🎉 Congratulations!',
+            $enrollment,
+            "You passed the quiz for the course \"{$course->getTitle()}\" with a score of {$score}%. Well done!",
+            Notification::TYPE_SUCCESS,
+            '/app/course/' . $course->getId(),
+            'quiz-success',
+            Notification::PRIORITY_HIGH
+        );
+
+        $this->logger->info('Quiz success notification created', [
+            'userId' => $user->getId(),
+            'courseId' => $course->getId(),
+            'score' => $score
+        ]);
+    } catch (\Exception $e) {
+        $this->logger->error('Failed to create quiz success notification', [
+            'userId' => $user->getId(),
+            'courseId' => $course->getId(),
+            'error' => $e->getMessage()
+        ]);
+    }
+}
 
         return $attempt;
     }

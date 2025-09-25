@@ -2,9 +2,10 @@
 
 namespace App\Repository;
 
+use App\Entity\User;
 use App\Entity\Enrollment;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 
 /**
  * @extends ServiceEntityRepository<Enrollment>
@@ -40,4 +41,15 @@ class EnrollmentRepository extends ServiceEntityRepository
     //            ->getOneOrNullResult()
     //        ;
     //    }
+    public function findByUserWithCourse(User $user)
+    {
+        return $this->createQueryBuilder('e')
+            ->join('e.course', 'c')
+            ->addSelect('c')
+            ->where('e.user = :user')
+            ->setParameter('user', $user)
+            ->orderBy('e.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
 }

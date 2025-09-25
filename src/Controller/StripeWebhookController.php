@@ -2,8 +2,10 @@
 namespace App\Controller;
 
 use App\Entity\Enrollment;
+use App\Entity\Notification;
 use Psr\Log\LoggerInterface;
 use App\Service\MailerService;
+use App\Service\NotificationService;
 use App\Repository\UserRepository;
 use App\Repository\CourseRepository;
 use App\Repository\EnrollmentRepository;
@@ -23,9 +25,9 @@ class StripeWebhookController extends AbstractController
         CourseRepository $courseRepo,
         EnrollmentRepository $enrollmentRepo,
         MailerService $mailer,
+        NotificationService $notificationService,
         LoggerInterface $logger
     ): Response {
-
 
         $payload   = $request->getContent();
         $sigHeader = $request->headers->get('Stripe-Signature');
@@ -97,21 +99,49 @@ class StripeWebhookController extends AbstractController
             $em->flush();
 
             // ✅ Envoi facture
-        $amount = $session->amount_total / 100; // Stripe en centimes
-        $tva = null; 
+            $amount = $session->amount_total / 100; // Stripe en centimes
+            $tva = null; 
 
-        $mailer->send(
-            $user->getEmail(),
-            'Votre facture - ' . $course->getTitle(),
-            'emails/invoice.html.twig',
-            [
-                'user'   => $user,
-                'course' => $course,
-                'amount' => $amount,
-                'tva'    => $tva,
-                'date'   => new \DateTime(),
-            ]
-        );
+            $mailer->send(
+                $user->getEmail(),
+                'Votre facture - ' . $course->getTitle(),
+                'emails/invoice.html.twig',
+                [
+                    'user'   => $user,
+                    'course' => $course,
+                    'amount' => $amount,
+                    'tva'    => $tva,
+                    'date'   => new \DateTime(),
+                ]
+            );
+
+            // ✅ NOUVELLE NOTIFICATION après le paiement
+            try {
+                $notificationService->createEntityNotification(
+                    $user,
+                    '🎉 Payment confirmed!',
+                    $enrollment,
+                    "Your enrollment in the course  \"{$course->getTitle()}\" has been confirmed. : {$amount}€",
+                    Notification::TYPE_SUCCESS,
+                    '/app/course/' . $course->getId(), 
+                    'payment-success', 
+                    Notification::PRIORITY_HIGH
+                );
+
+                $logger->info('Notification created for payment', [
+                    'userId' => $user->getId(),
+                    'courseId' => $course->getId(),
+                    'amount' => $amount
+                ]);
+
+            } catch (\Exception $e) {
+                // On log l'erreur mais on n'interrompt pas le processus
+                $logger->error('Failed to create payment notification', [
+                    'userId' => $user->getId(),
+                    'courseId' => $course->getId(),
+                    'error' => $e->getMessage()
+                ]);
+            }
 
             return new Response('Enrollment created', 200);
         }

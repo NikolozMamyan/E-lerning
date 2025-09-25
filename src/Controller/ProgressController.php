@@ -134,5 +134,23 @@ public function progress(
     ]);
 }
 
+#[Route('/app/transactions', name: 'app_transactions')]
+public function transactions(
+    EnrollmentRepository $enrollmentRepo
+): Response {
+    $user = $this->getUser();
+
+    if (!$user) {
+        throw $this->createAccessDeniedException('Vous devez être connecté.');
+    }
+
+    // récupère les enrollments de l’utilisateur avec leurs cours
+    $enrollments = $enrollmentRepo->findByUserWithCourse($user);
+
+    return $this->render('progress/transactions.html.twig', [
+        'enrollments' => $enrollments,
+    ]);
+}
+
 
 }

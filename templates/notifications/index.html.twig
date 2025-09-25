@@ -1,0 +1,207 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mes Notifications{% endblock %}
+
+{% block body %}
+
+    {% if notifications|length > 0 %}
+        <div class="page-header">
+        <form method="post" action="{{ path('app_notifications_delete_all') }}" onsubmit="return confirm('Delete all notifications?');">
+            <button type="submit" class="btn-delete-all">🗑 Delete all</button>
+        </form>
+    </div>
+        <div class="notifications-list">
+            {% for notification in notifications %}
+                <div class="notification-card {{ not notification.isRead ? 'unread' : '' }}">
+                    <div class="notification-icon">
+                        <i class="fas fa-bell"></i>
+                    </div>
+                    <div class="notification-content">
+                        <div class="notification-header">
+                            <h4>{{ notification.title }}</h4>
+                            <small>{{ notification.createdAt|date('d/m/Y H:i') }}</small>
+                        </div>
+                        
+                        {% if notification.message %}
+                            <p>{{ notification.message }}</p>
+                        {% endif %}
+                        
+                        <div class="notification-actions">
+                            {% if notification.actionUrl %}
+                                <a href="{{ notification.actionUrl }}" class="btn-details">
+                                    View details
+                                </a>
+                            {% endif %}
+
+                            <form method="post" action="{{ path('app_notification_delete', {id: notification.id}) }}" onsubmit="return confirm('Delete this notification?');">
+                                <button type="submit" class="btn-delete">🗑</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <i class="fas fa-inbox"></i>
+            <p>No notifications</p>
+        </div>
+    {% endif %}
+
+
+<style>
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.btn-delete-all {
+  background: var(--grey);
+  color: var(--white);
+  border: none;
+  padding: .5rem 1rem;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: .9rem;
+  transition: background .2s;
+}
+.btn-delete-all:hover {
+  background: var(--black);
+}
+
+.notification-actions {
+  display: flex;
+  gap: .5rem;
+  margin-top: .5rem;
+}
+
+.btn-delete {
+  background: transparent;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: var(--grey);
+  transition: color .2s;
+}
+.btn-delete:hover {
+  color: var(--black);
+}
+:root {
+  --green:#1A6D55;
+  --teal:#0D8383;
+  --black:#071717;
+  --mint:#E7F3F3;
+  --grey:#606060;
+  --white:#FFFFFF;
+  --bg:#f4f9f8;
+  --radius:12px;
+  --shadow:0 4px 12px rgba(7,23,23,.08);
+}
+
+body {
+  background: var(--bg);
+  font-family: 'Segoe UI', Roboto, sans-serif;
+  color: var(--black);
+}
+
+.container {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 1rem;
+}
+
+.page-title {
+  margin-bottom: 1.5rem;
+  font-weight: 600;
+  color: var(--green);
+}
+
+.notifications-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.notification-card {
+  display: flex;
+  gap: 1rem;
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1rem 1.2rem;
+  transition: transform .2s ease;
+}
+
+.notification-card:hover {
+  transform: translateY(-2px);
+}
+
+.notification-card.unread {
+  border-left: 6px solid var(--teal);
+  background: var(--mint);
+}
+
+.notification-icon {
+  flex-shrink: 0;
+  font-size: 1.8rem;
+  color: var(--teal);
+  display: flex;
+  align-items: center;
+}
+
+.notification-content {
+  flex: 1;
+}
+
+.notification-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.notification-header h4 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: var(--black);
+}
+
+.notification-header small {
+  color: var(--grey);
+}
+
+.notification-content p {
+  margin: .5rem 0 1rem;
+  color: var(--grey);
+}
+
+.btn-details {
+  display: inline-block;
+  background: var(--green);
+  color: var(--white);
+  padding: .4rem .8rem;
+  border-radius: var(--radius);
+  font-size: .85rem;
+  text-decoration: none;
+  transition: background .2s ease;
+}
+
+.btn-details:hover {
+  background: var(--teal);
+}
+
+.empty-state {
+  text-align: center;
+  color: var(--grey);
+  padding: 3rem 1rem;
+}
+
+.empty-state i {
+  font-size: 2.5rem;
+  color: var(--teal);
+  margin-bottom: .5rem;
+}
+</style>
+{% endblock %}

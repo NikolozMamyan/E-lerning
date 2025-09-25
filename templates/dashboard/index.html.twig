@@ -61,30 +61,44 @@
     <a href="{{path('app_courses')}}" class="view-courses-btn">View My Courses</a>
   </div>
 
-  <!-- Transactions (static) -->
-  <div class="card">
-    <div class="card-header">
-      <h2 class="card-title">Transactions</h2>
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2">
-        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-        <line x1="16" y1="2" x2="16" y2="6"/>
-        <line x1="8" y1="2" x2="8" y2="6"/>
-        <line x1="3" y1="10" x2="21" y2="10"/>
-      </svg>
-    </div>
-    <div>
-       {# <div class="transaction-item">
-        <div class="transaction-info">
-          <h4>Project management Course</h4>
-          <p>11 April, 07:11 AM</p>
-        </div>
-        <div class="transaction-amount">$123.64</div>
-      </div>  #}
-       <p>No certificates yet.</p>
-    </div>
-
-    <button class="view-all-btn">View All</button>
+<!-- Transactions -->
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title">Transactions</h2>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2">
+      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+      <line x1="16" y1="2" x2="16" y2="6"/>
+      <line x1="8" y1="2" x2="8" y2="6"/>
+      <line x1="3" y1="10" x2="21" y2="10"/>
+    </svg>
   </div>
+
+  <div>
+    {% if enrollments is not empty %}
+      {% for e in enrollments %}
+        <div class="transaction-item">
+          <div class="transaction-info">
+            <h4>{{ e.course.title }}</h4>
+            <p>{{ e.createdAt|date('d M, H:i') }}</p>
+          </div>
+<div class="transaction-amount">
+  {% for price in e.course.coursePrices %}
+    {% if price.currency == 'EUR' %}
+      {{ price.price / 100 }} €
+    {% endif %}
+  {% endfor %}
+</div>
+
+        </div>
+      {% endfor %}
+    {% else %}
+      <p>No transactions yet.</p>
+    {% endif %}
+  </div>
+
+  <a href="{{path('app_transactions')}}" class="view-all-btn">View All</a>
+</div>
+
 
 </div>
 
