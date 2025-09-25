@@ -35,8 +35,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * @var string The hashed password
      */
-    #[ORM\Column]
-    private ?string $password = null;
+#[ORM\Column(type: 'string', length: 255, nullable: true)]
+private ?string $password = null;
+
 
     #[ORM\Column(length: 64, nullable: true)]
     private ?string $apiToken = null;
