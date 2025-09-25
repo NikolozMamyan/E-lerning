@@ -1,10 +1,11 @@
 <form id="ajaxForm" method="post" enctype="multipart/form-data">
   {{ form_widget(form) }}
-  <div style="margin-top:1rem; display:flex; gap:1rem; justify-content:flex-end;">
+  <div class="form-footer">
     <button type="submit" class="btn-save">💾 Save</button>
     <button type="button" class="btn-close">❌ Close</button>
   </div>
 </form>
+
 
 {% if section == 'avatar' %}
 <script>

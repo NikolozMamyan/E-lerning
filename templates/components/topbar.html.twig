@@ -37,8 +37,8 @@
 
 /* Icône de notifications */
 .notification-icon {
-  width: 24px;
-  height: 24px;
+  width: 32px;
+  height: 32px;
   opacity: 0.7;
   transition: opacity 0.2s ease;
 }
@@ -330,12 +330,14 @@
     </div>
 
     <!-- Profil utilisateur -->
+    <a href="{{path(('app_settings'))}}" >
     <div class="user-profile">
       <img class="user-avatar" src="{{ asset(app.user.avatar ? 'uploads/avatars/' ~ app.user.avatar : 'images/User.svg') }}" />
       <div class="user-info">
         <h3>{{app.user.userName}}</h3>
       </div>
     </div>
+    </a>
   </div>
 </header>
 
