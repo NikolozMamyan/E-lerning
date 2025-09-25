@@ -1,0 +1,9 @@
+<div class="profile-header">
+  <img src="{{ asset(user.avatar ? 'uploads/' ~ user.avatar : 'images/User.svg') }}" 
+       alt="User avatar" 
+       class="profile-avatar">
+  <div>
+    <h3>{{ user.username }}</h3>
+    <p>{{ user.bio ?? 'No bio yet' }}</p>
+  </div>
+</div>

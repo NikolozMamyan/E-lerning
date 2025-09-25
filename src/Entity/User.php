@@ -39,7 +39,35 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $password = null;
 
     #[ORM\Column(length: 64, nullable: true)]
-private ?string $apiToken = null;
+    private ?string $apiToken = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $phone = null;
+
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $bio = null;
+
+    #[ORM\Column(length: 100, nullable: true)]
+    private ?string $country = null;
+
+    #[ORM\Column(length: 100, nullable: true)]
+    private ?string $city = null;
+
+    #[ORM\Column(length: 20, nullable: true)]
+    private ?string $postalCode = null;
+
+    #[ORM\Column(length: 50, nullable: true)]
+    private ?string $taxId = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $masterDegree = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $bachelorDegree = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $avatar = null;
+
 
 #[ORM\Column(type: 'datetime', nullable: true)]
 private ?\DateTimeInterface $tokenExpiresAt = null;
@@ -263,6 +291,112 @@ public function getUnreadNotifications(): Collection
 }
 
 
+public function getPhone(): ?string
+{
+    return $this->phone;
+}
+
+public function setPhone(?string $phone): self
+{
+    $this->phone = $phone;
+
+    return $this;
+}
+
+public function getBio(): ?string
+{
+    return $this->bio;
+}
+
+public function setBio(?string $bio): self
+{
+    $this->bio = $bio;
+
+    return $this;
+}
+
+public function getCountry(): ?string
+{
+    return $this->country;
+}
+
+public function setCountry(?string $country): self
+{
+    $this->country = $country;
+
+    return $this;
+}
+
+public function getCity(): ?string
+{
+    return $this->city;
+}
+
+public function setCity(?string $city): self
+{
+    $this->city = $city;
+
+    return $this;
+}
+
+public function getPostalCode(): ?string
+{
+    return $this->postalCode;
+}
+
+public function setPostalCode(?string $postalCode): self
+{
+    $this->postalCode = $postalCode;
+
+    return $this;
+}
+
+public function getTaxId(): ?string
+{
+    return $this->taxId;
+}
+
+public function setTaxId(?string $taxId): self
+{
+    $this->taxId = $taxId;
+
+    return $this;
+}
+
+public function getMasterDegree(): ?string
+{
+    return $this->masterDegree;
+}
+
+public function setMasterDegree(?string $masterDegree): self
+{
+    $this->masterDegree = $masterDegree;
+
+    return $this;
+}
+
+public function getBachelorDegree(): ?string
+{
+    return $this->bachelorDegree;
+}
+
+public function setBachelorDegree(?string $bachelorDegree): self
+{
+    $this->bachelorDegree = $bachelorDegree;
+
+    return $this;
+}
+public function getAvatar(): ?string
+{
+    return $this->avatar;
+}
+
+public function setAvatar(?string $avatar): self
+{
+    $this->avatar = $avatar;
+
+    return $this;
+}
 
 
 }

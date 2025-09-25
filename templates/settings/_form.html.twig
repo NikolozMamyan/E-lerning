@@ -1,0 +1,24 @@
+<form id="ajaxForm" method="post" enctype="multipart/form-data">
+  {{ form_widget(form) }}
+  <div style="margin-top:1rem; display:flex; gap:1rem; justify-content:flex-end;">
+    <button type="submit" class="btn-save">💾 Save</button>
+    <button type="button" class="btn-close">❌ Close</button>
+  </div>
+</form>
+
+{% if section == 'avatar' %}
+<script>
+  const input = document.querySelector('#ajaxForm input[type="file"]');
+  input.addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = ev => {
+        // mettre à jour l’aperçu de l’avatar directement
+        document.querySelector('#profileAvatar').src = ev.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+</script>
+{% endif %}

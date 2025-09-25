@@ -110,10 +110,10 @@
         }
 
         .user-avatar {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            margin-right: 10px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
         }
 /* ------- Main Content ------- */
   .main-content {
