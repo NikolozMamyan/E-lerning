@@ -2,15 +2,16 @@
 namespace App\Controller;
 
 use App\Entity\Enrollment;
-use App\Repository\CourseRepository;
+use Psr\Log\LoggerInterface;
+use App\Service\MailerService;
 use App\Repository\UserRepository;
+use App\Repository\CourseRepository;
 use App\Repository\EnrollmentRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Psr\Log\LoggerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class StripeWebhookController extends AbstractController
 {
@@ -21,6 +22,7 @@ class StripeWebhookController extends AbstractController
         UserRepository $userRepo,
         CourseRepository $courseRepo,
         EnrollmentRepository $enrollmentRepo,
+        MailerService $mailer,
         LoggerInterface $logger
     ): Response {
 
@@ -93,6 +95,23 @@ class StripeWebhookController extends AbstractController
 
             $em->persist($enrollment);
             $em->flush();
+
+            // ✅ Envoi facture
+        $amount = $session->amount_total / 100; // Stripe en centimes
+        $tva = null; 
+
+        $mailer->send(
+            $user->getEmail(),
+            'Votre facture - ' . $course->getTitle(),
+            'emails/invoice.html.twig',
+            [
+                'user'   => $user,
+                'course' => $course,
+                'amount' => $amount,
+                'tva'    => $tva,
+                'date'   => new \DateTime(),
+            ]
+        );
 
             return new Response('Enrollment created', 200);
         }

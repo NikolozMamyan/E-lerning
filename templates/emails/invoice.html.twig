@@ -1,0 +1,13 @@
+<h2>Facture</h2>
+
+<p><strong>Date :</strong> {{ date|date('d/m/Y') }}</p>
+<p><strong>Acheteur :</strong> {{ user.fullName }} ({{ user.email }})</p>
+<p><strong>Cours :</strong> {{ course.title }}</p>
+
+<p><strong>Montant HT :</strong> {{ amount|number_format(2, ',', ' ') }} €</p>
+{% if tva is not null %}
+    <p><strong>TVA ({{ tva }}%) :</strong> {{ (amount * tva / 100)|number_format(2, ',', ' ') }} €</p>
+{% endif %}
+<p><strong>Total TTC :</strong>
+    {{ (amount + (tva ? (amount * tva / 100) : 0))|number_format(2, ',', ' ') }} €
+</p>
