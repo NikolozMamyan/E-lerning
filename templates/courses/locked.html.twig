@@ -216,11 +216,14 @@
                     </div>
                 </div>
                 <div class="info-item">
-                    <div class="icon"><img class="icon" src="{{ asset('images/co.svg') }}" /></div>
-                    <div class="info-value">
-                        {{ app.user ? app.user.username ~ ' ' ~ 'co'|default('Saranco.') : 'Saranco.' }}
-                    </div>
-                </div>
+    <div class="icon">
+        <img class="icon" src="{{ asset('images/co.svg') }}" />
+    </div>
+    <div class="info-value">
+        {{ app.user ? app.user.companyNameFromEmail : 'Saranco.' }}
+    </div>
+</div>
+
             </div>
         </div>
     </div>
@@ -249,7 +252,27 @@
                 <div class="methods-grid">
                     <div class="method-option">
                         <div class="card-icon">
-                            <img class="card-icon" src="{{ asset('images/CreditCard.svg') }}" />
+                            
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="56" height="30" viewBox="0 0 56 30">
+            <rect width="56" height="30" rx="4" fill="#1a3871ff"/>
+            <text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="12" fill="white">VISA</text>
+        </svg>
+         <svg xmlns="http://www.w3.org/2000/svg" width="56" height="30" viewBox="0 0 56 30">
+            <rect width="56" height="30" rx="4" fill="#fff"/>
+            <circle cx="22" cy="15" r="9" fill="#eb001b"/>
+            <circle cx="34" cy="15" r="9" fill="#f79e1b"/>
+            <path d="M25 15a9 9 0 0 1 9-9 9 9 0 0 1 0 18 9 9 0 0 1-9-9z" fill="#ff5f00"/>
+        </svg>
+         <svg xmlns="http://www.w3.org/2000/svg" width="56" height="30" viewBox="0 0 56 30">
+                <rect width="56" height="30" rx="4" fill="#0099cc"/>
+                <text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle"
+                      font-family="Arial Black" font-size="12" fill="white">CB</text>
+            </svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="56" height="30" viewBox="0 0 56 30">
+            <rect width="56" height="30" rx="4" fill="#2e77bc"/>
+            <text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="10" fill="white">AMEX</text>
+        </svg>
+        
                         </div>
                     </div>
                 </div>

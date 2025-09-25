@@ -34,8 +34,10 @@ public function supports(Request $request): ?bool
             '/api/login',
             '/api/logout',
             '/api/stripe/webhook',
-            '/reset-password',          // la page demande email
-            '/reset-password/check-email'
+            '/reset-password',
+            '/reset-password/check-email',
+            '/google',
+            '/google/callback'
         ])
         || str_starts_with($path, '/reset-password/reset') // exclut toutes les URL avec token
     ) {

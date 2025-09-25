@@ -194,6 +194,26 @@ public function removeCertificate(Certificate $certificate): static
 
     return $this;
 }
+public function getCompanyNameFromEmail(): string
+{
+    if (!$this->email) {
+        return 'Saranco.';
+    }
+
+    // Récupère le domaine après le @
+    $parts = explode('@', $this->email);
+    $domain = $parts[1] ?? '';
+
+    // Enlève l’extension (.com, .fr, etc.)
+    $domainParts = explode('.', $domain);
+    $companyRaw = $domainParts[0] ?? '';
+
+    // Mets en forme : "xyzbank" → "XYZ Bank"
+    $company = preg_replace('/([a-z])([A-Z])/', '$1 $2', ucfirst($companyRaw));
+
+    return $company ?: 'Saranco.';
+}
+
 
 
 
