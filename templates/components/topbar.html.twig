@@ -331,7 +331,7 @@
 
     <!-- Profil utilisateur -->
     <div class="user-profile">
-      <img class="user-avatar" src="{{ asset(user.avatar ? 'uploads/avatars/' ~ user.avatar : 'images/User.svg') }}" />
+      <img class="user-avatar" src="{{ asset(app.user.avatar ? 'uploads/avatars/' ~ app.user.avatar : 'images/User.svg') }}" />
       <div class="user-info">
         <h3>{{app.user.userName}}</h3>
       </div>
