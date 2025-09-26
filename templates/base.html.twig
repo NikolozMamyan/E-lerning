@@ -18,6 +18,9 @@
 {% elseif "ROLE_EMPLOYEE" in app.user.roles %}
     {% include 'components/sidebar.html.twig' %}
     <div class="overlay" id="overlay"></div>
+    {% elseif "ROLE_COMPANY" in app.user.roles %}
+    {% include 'company/components/sidebar.html.twig' %}
+    <div class="overlay" id="overlay"></div>
 {% endif %}
 
     <main class="main-content">

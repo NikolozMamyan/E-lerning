@@ -1,61 +1,60 @@
 import { Controller } from '@hotwired/stimulus'
 
 export default class extends Controller {
-    static targets = ['email', 'password', 'userName', 'accountType', 'result' , 'button']
+  static targets = ['email', 'password', 'userName', 'accountType', 'result', 'button']
 
+  connect() {
+    console.log("Stimulus auth controller is active ✅");
+  }
 
-        connect() {
-            console.log("Stimulus auth controller is active ✅");
-        }
-
-async login(event) {
+  async login(event) {
     event.preventDefault()
 
     const email = this.emailTarget.value
     const password = this.passwordTarget.value
 
     const response = await fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-        credentials: 'include'
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+      credentials: 'include'
     })
 
     if (response.ok) {
-        const data = await response.json()
+      const data = await response.json()
 
-        this.resultTarget.innerHTML = `
-            <div style="color: var(--health-color);">✔ Login successful... redirecting...</div>
-            <span class="spinner"></span>
-        `
+      this.resultTarget.innerHTML = `
+        <div style="color: var(--health-color);">✔ Login successful... redirecting...</div>
+        <span class="spinner"></span>
+      `
 
-        // Récupère les rôles de l’utilisateur
-        const roles = data.user.roles || []
-        let redirectUrl = '/app/dashboard' // par défaut
+      // Récupère les rôles de l’utilisateur
+      const roles = data.user.roles || []
+      let redirectUrl = '/app/dashboard' // par défaut
 
-        if (roles.includes('ROLE_ADMIN')) {
-            redirectUrl = '/admin/courses'
-        } else if (roles.includes('ROLE_EMPLOYEE')) {
-            redirectUrl = '/app/dashboard'
-        }
+      if (roles.includes('ROLE_ADMIN')) {
+        redirectUrl = '/admin/courses'
+      } else if (roles.includes('ROLE_EMPLOYEE')) {
+        redirectUrl = '/app/dashboard'
+      } else if (roles.includes('ROLE_COMPANY')) {
+        redirectUrl = '/company/dashboard'
+      }
 
-        setTimeout(() => {
-            window.location.href = redirectUrl
-        }, 1200)
+      setTimeout(() => {
+        window.location.href = redirectUrl
+      }, 1200)
 
     } else {
-        const error = await response.json()
-        this.resultTarget.innerHTML = `
-            <div style="color: var(--damage-color);">
-                ⚠ ${error.error || 'Login failed'}
-            </div>
-        `
+      const error = await safeJson(response)
+      this.resultTarget.innerHTML = `
+        <div style="color: var(--damage-color);">
+          ⚠ ${error?.error || 'Login failed'}
+        </div>
+      `
     }
-}
+  }
 
-
-
- async logout(event) {
+  async logout(event) {
     event.preventDefault()
 
     try {
@@ -76,13 +75,11 @@ async login(event) {
       const data = await response.json()
       console.log(data.message) // "Déconnexion réussie"
 
-      // Exemple : rediriger vers la page de login
       window.location.href = "/login"
     } catch (err) {
       console.error("Erreur réseau :", err)
     }
   }
-
 
   async register(event) {
     event.preventDefault()
@@ -93,11 +90,21 @@ async login(event) {
     const selectedAccountType =
       this.accountTypeTargets.find(radio => radio.checked)?.value || "employee"
 
-    // (Optionnel) CSRF si votre backend en a besoin:
+    if (!email || !password || !userName) {
+      this.resultTarget.innerHTML = `
+        <div style="color: var(--damage-color);">
+          ⚠ Please fill in all fields.
+        </div>
+      `
+      return
+    }
+
     const csrf = document.querySelector('meta[name="csrf-token"]')?.content
 
     try {
-      this.resultTarget.textContent = "Creating your account…"
+      this.resultTarget.innerHTML = `
+        <span class="spinner"></span> Creating your account…
+      `
 
       const response = await fetch("/api/register", {
         method: "POST",
@@ -114,12 +121,27 @@ async login(event) {
       })
 
       if (response.ok) {
+        const data = await response.json()
+
         this.resultTarget.innerHTML = `
-          <div style="color: var(--health-color);">✔ Account created! You can now log in.</div>
+          <div style="color: var(--health-color);">✔ Account created! Redirecting…</div>
           <span class="spinner"></span>
         `
+
+        // Redirection selon rôle
+        const roles = data.user?.roles || [selectedAccountType.toUpperCase()]
+        let redirectUrl = '/app/dashboard'
+
+        if (roles.includes('ROLE_ADMIN')) {
+          redirectUrl = '/admin/courses'
+        } else if (roles.includes('ROLE_EMPLOYEE')) {
+          redirectUrl = '/app/dashboard'
+        } else if (roles.includes('ROLE_COMPANY')) {
+          redirectUrl = '/company/dashboard'
+        }
+
         setTimeout(() => {
-          window.location.href = "/app/dashboard"
+          window.location.href = redirectUrl
         }, 1500)
       } else {
         const errorData = await safeJson(response)
@@ -140,10 +162,7 @@ async login(event) {
   }
 }
 
-// Petit helper pour éviter un crash si le backend ne renvoie pas du JSON
+// Helper safe JSON
 async function safeJson(res) {
   try { return await res.json() } catch { return null }
 }
-
-
-

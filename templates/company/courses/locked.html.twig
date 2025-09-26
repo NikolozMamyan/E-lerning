@@ -1,0 +1,298 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Payment - {{ course.title }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('styles/courseLocked.css') }}">
+    <style>
+        .payment-layout {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+        
+        .course-presentation {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .course-hero {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .course-thumbnail {
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .course-thumbnail img {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+        }
+        
+        .play-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 50%;
+            padding: 15px;
+            color: white;
+            font-size: 24px;
+        }
+        
+        .course-details h1 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        .course-meta {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .course-price {
+            font-size: 24px;
+            font-weight: 600;
+            color: #007bff;
+            margin: 15px 0;
+        }
+        
+        .course-description {
+            margin-top: 30px;
+        }
+        
+        .course-description h3 {
+            font-size: 20px;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        .payment-sidebar {
+            position: sticky;
+            top: 20px;
+            height: fit-content;
+        }
+        
+        .customer-section, .payment-section {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .customer-section h3, .payment-section h3 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .course-features {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+    flex-wrap: wrap;
+}
+
+.course-feature {
+    border: 1px solid #ddd;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 14px;
+    background: #fff;
+    color: #333;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+        
+        @media (max-width: 968px) {
+            .payment-layout {
+                grid-template-columns: 1fr;
+            }
+            
+            .course-hero {
+                grid-template-columns: 1fr;
+            }
+            
+            .payment-sidebar {
+                position: static;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="payment-layout">
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+        <!-- COURSE PRESENTATION -->
+        <div class="course-presentation">
+            <div class="course-hero">
+                <div class="course-thumbnail">
+                    <img src="{{ asset('uploads/courses/' ~ course.thumb) }}" alt="{{ course.title }}">
+                    <div class="play-overlay">
+                        <i class="fas fa-play"></i>
+                    </div>
+                </div>
+                
+                <div class="course-details">
+                    <h1>{{ course.title }}</h1>
+                    
+                    <div class="course-meta">
+                        <span><i class="fas fa-clock"></i> 08:00 min</span>
+                        <span><i class="fas fa-user"></i> {{ course.instructor|default('Expert') }}</span>
+                        <span><i class="fas fa-star"></i> 4.8 (124 reviews)</span>
+                    </div>
+                    
+                    <div class="course-price">
+                        €{{ euroPrice|default('null') }}
+                    </div>
+                    
+<div class="course-features">
+    <span class="course-feature">Full access</span>
+    <span class="course-feature">Certificate of completion</span>
+    <span class="course-feature">24/7 Support</span>
+</div>
+
+                </div>
+            </div>
+            
+<div class="course-description">
+    <h3>Course Description</h3>
+    <p>{{ course.description }}</p>
+    
+    <h3>What you will learn</h3>
+    <ul>
+        {% for video in course.videos %}
+            <li>{{ video.title }}</li>
+        {% else %}
+            <li>No videos available yet.</li>
+        {% endfor %}
+    </ul>
+    
+    <h3>Requirements</h3>
+    <p>No specific requirements. This course is suitable for both beginners and professionals who want to deepen their knowledge.</p>
+</div>
+
+        </div>
+
+        <!-- CUSTOMER INFORMATION (bottom) -->
+        <div class="customer-section">
+            <h3>Customer Information</h3>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="icon"><img class="icon" src="{{ asset('images/User.svg') }}" /></div>
+                    <div class="info-value">
+                        {{ app.user ? app.user.username|default('Sara Smith') : 'Sara Smith' }}
+                    </div>
+                </div>
+                <div class="info-item">
+                    <div class="icon"><img class="icon" src="{{ asset('images/email.svg') }}" /></div>
+                    <div class="info-value">
+                        {{ app.user ? app.user.email|default('user@example.com') : 'user@example.com' }}
+                    </div>
+                </div>
+                <div class="info-item">
+    <div class="icon">
+        <img class="icon" src="{{ asset('images/co.svg') }}" />
+    </div>
+    <div class="info-value">
+        {{ app.user ? app.user.companyNameFromEmail : 'Saranco.' }}
+    </div>
+</div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- PAYMENT SIDEBAR (right) -->
+    <div class="payment-sidebar">
+        <div class="payment-section">
+            <div class="order-header">
+                <span class="order-id">Order ID: {{ 'ID-GadgetPay-' ~ course.id ~ random() }}</span>
+            </div>
+
+            <div class="payment-summary">
+                <h4>Order Summary</h4>
+                <div class="summary-line">
+                    <span>{{ course.title }}</span>
+                    <span>€{{ euroPrice }}</span>
+                </div>
+                <div class="summary-line total">
+                    <span>Total</span>
+                    <span>€{{ euroPrice|default('null') }}</span>
+                </div>
+            </div>
+
+            <div class="payment-methods">
+                <h4>Payment Method</h4>
+                <div class="methods-grid">
+                    <div class="method-option">
+                        <div class="card-icon">
+                            
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="56" height="30" viewBox="0 0 56 30">
+            <rect width="56" height="30" rx="4" fill="#1a3871ff"/>
+            <text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="12" fill="white">VISA</text>
+        </svg>
+         <svg xmlns="http://www.w3.org/2000/svg" width="56" height="30" viewBox="0 0 56 30">
+            <rect width="56" height="30" rx="4" fill="#fff"/>
+            <circle cx="22" cy="15" r="9" fill="#eb001b"/>
+            <circle cx="34" cy="15" r="9" fill="#f79e1b"/>
+            <path d="M25 15a9 9 0 0 1 9-9 9 9 0 0 1 0 18 9 9 0 0 1-9-9z" fill="#ff5f00"/>
+        </svg>
+         <svg xmlns="http://www.w3.org/2000/svg" width="56" height="30" viewBox="0 0 56 30">
+                <rect width="56" height="30" rx="4" fill="#0099cc"/>
+                <text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle"
+                      font-family="Arial Black" font-size="12" fill="white">CB</text>
+            </svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="56" height="30" viewBox="0 0 56 30">
+            <rect width="56" height="30" rx="4" fill="#2e77bc"/>
+            <text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="10" fill="white">AMEX</text>
+        </svg>
+        
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <form method="post" action="{{ path('app_course_checkout', { id: course.id }) }}">
+                <button type="submit" class="pay-button">Buy Now</button>
+            </form>
+
+            <div class="security-note">
+                <i class="fas fa-shield-alt"></i>
+                Secure and encrypted payments
+            </div>
+
+            <div class="footer-links">
+                <a href="/legales/TermsConditions.html">Terms & Conditions</a>
+                <a href="/legales/Privacy.html">Privacy Policy</a>
+                <a href="{{path('app_contact')}}">Help</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

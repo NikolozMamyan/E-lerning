@@ -1,0 +1,245 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Available Courses{% endblock %}
+
+{% block body %}
+  <section class="course-section">
+    <h2 class="section-title">Available Courses</h2>
+    <div class="course-grid">
+      {% for course in courses %}
+        <div class="course-card">
+          <div class="course-thumbnail bg-aml">
+            {% if access[course.id] is defined and access[course.id] %}
+              <img src="{{ asset('uploads/courses/' ~ course.thumb) }}" alt="{{ course.title }}">
+            {% else %}
+              <div class="lock-overlay">
+                <div class="lock-icon">
+                  <svg viewBox="0 0 24 24">
+                    <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 
+                      1.1.9 2 2 2h12c1.1 0 2-.9 
+                      2-2V10c0-1.1-.9-2-2-2zm-6 
+                      9c-1.1 0-2-.9-2-2s.9-2 
+                      2-2 2 .9 2 2-.9 2-2 
+                      2zm3.1-9H8.9V6c0-1.71 
+                      1.39-3.1 3.1-3.1 1.71 0 
+                      3.1 1.39 3.1 3.1v2z"/>
+                  </svg>
+                </div>
+              </div>
+              <img src="{{ asset('uploads/courses/' ~ course.thumb) }}" alt="{{ course.title }}">
+            {% endif %}
+
+            {# Badge durée #}
+            {% if course.videos|length > 0 %}
+              <span class="duration-badge">
+                {{ (course.videos|first.duration / 60)|round(0, 'floor') }}:
+                {{ '%02d'|format(course.videos|first.duration % 60) }}
+              </span>
+            {% endif %}
+          </div>
+
+          <div class="course-info">
+            <h3 class="course-title">{{ course.title }}</h3>
+
+            {# Description limitée #}
+            <p class="course-subtitle">
+              {{ course.description|slice(0, 120) }}{% if course.description|length > 120 %}...{% endif %}
+            </p>
+
+            <div class="course-footer">
+              <button
+                type="button"
+                class="see-course-btn"
+                onclick="openAssignModal('{{ course.id }}', '{{ course.title|e('js') }}')"
+              >
+                Buy & Assign
+                <svg class="icon-plus" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" aria-hidden="true">
+                  <rect x="28" y="12" width="8" height="40" />
+                  <rect x="12" y="28" width="40" height="8" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- Modal d'assignation -->
+  <div id="assignModal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Assign Course</h3>
+        <button type="button" class="modal-close" onclick="closeAssignModal()">×</button>
+      </div>
+
+      <div class="modal-body">
+        <p class="modal-description">
+          Assign "<span id="courseName"></span>" to a team member
+        </p>
+
+        {# IMPORTANT: form POST normal pour suivre la redirection Stripe #}
+        <form id="assignForm" class="assign-form" method="POST">
+          <input
+            type="email"
+            id="userEmail"
+            name="email"
+            placeholder="Enter user's email"
+            required
+          >
+          <input type="hidden" name="_token" id="csrfToken" value="{{ csrf_token('company_checkout') }}">
+          <div class="form-error" id="emailError"></div>
+
+          <div class="modal-buttons">
+            <button type="button" class="btn-cancel" onclick="closeAssignModal()">Cancel</button>
+            <button type="submit" class="see-course-btn" id="submitBtn">
+              <span id="btnText">Buy & Assign</span>
+              <span id="spinner" style="display: none;">...</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+<style>
+.icon-plus {
+  width: 16px;
+  height: 16px;
+  fill: white;
+}
+
+.duration-badge {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  background: rgba(7, 23, 23, 0.75);
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+
+.course-thumbnail {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000;
+  opacity: 0; visibility: hidden;
+  transition: all 0.3s ease;
+}
+.modal-overlay.active { opacity: 1; visibility: visible; }
+
+.modal-content {
+  background: white; border-radius: 8px;
+  width: 90%; max-width: 400px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  transform: scale(0.9); transition: transform 0.3s ease;
+}
+.modal-overlay.active .modal-content { transform: scale(1); }
+
+.modal-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 20px 20px 0 20px; border-bottom: 1px solid #eee; padding-bottom: 15px;
+}
+.modal-title { font-size: 18px; font-weight: 600; margin: 0; color: #333; }
+
+.modal-close {
+  background: none; border: none; font-size: 24px; cursor: pointer; color: #999; padding: 0;
+  width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;
+}
+.modal-close:hover { color: #333; }
+
+.modal-body { padding: 20px; }
+.modal-description { margin: 0 0 20px 0; color: #666; font-size: 14px; }
+
+.assign-form input[type="email"] {
+  width: 100%; padding: 12px; border: 2px solid #e1e5e9; border-radius: 6px;
+  font-size: 14px; margin-bottom: 10px; transition: border-color 0.2s ease;
+}
+.assign-form input[type="email"]:focus { outline: none; border-color: #007bff; }
+
+.form-error { color: #dc3545; font-size: 12px; margin-bottom: 15px; min-height: 16px; }
+
+.modal-buttons { display: flex; gap: 10px; justify-content: flex-end; }
+
+.btn-cancel {
+  padding: 10px 20px; border-radius: 6px; font-size: 14px; font-weight: 500;
+  cursor: pointer; transition: all 0.2s ease;
+  background: #f8f9fa; color: #6c757d; border: 1px solid #dee2e6;
+}
+.btn-cancel:hover { background: #e9ecef; }
+
+/* Responsive */
+@media (max-width: 480px) {
+  .modal-content { width: 95%; }
+  .modal-buttons { flex-direction: column; }
+  .btn-cancel { width: 100%; }
+}
+</style>
+
+<script>
+  let currentCourseId = null;
+
+  function openAssignModal(courseId, courseTitle) {
+    currentCourseId = courseId;
+    document.getElementById('courseName').textContent = courseTitle;
+    document.getElementById('userEmail').value = '';
+    document.getElementById('emailError').textContent = '';
+    document.getElementById('assignModal').classList.add('active');
+    setTimeout(() => { document.getElementById('userEmail').focus(); }, 300);
+  }
+
+  function closeAssignModal() {
+    document.getElementById('assignModal').classList.remove('active');
+    currentCourseId = null;
+  }
+
+  // Fermer avec Escape ou clic sur overlay
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeAssignModal();
+  });
+  document.getElementById('assignModal').addEventListener('click', function(e) {
+    if (e.target === this) closeAssignModal();
+  });
+
+  // Soumission : POST normal vers /company/pay/course/{id}
+  document.getElementById('assignForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const email = document.getElementById('userEmail').value.trim();
+    const errorDiv = document.getElementById('emailError');
+    const submitBtn = document.getElementById('submitBtn');
+    const btnText = document.getElementById('btnText');
+    const spinner = document.getElementById('spinner');
+
+    if (!email) {
+      errorDiv.textContent = 'Please enter an email address';
+      return;
+    }
+
+    // (optionnel) petite validation format email
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!re.test(email)) {
+      errorDiv.textContent = 'Please enter a valid email';
+      return;
+    }
+
+    errorDiv.textContent = '';
+    submitBtn.disabled = true; btnText.style.display = 'none'; spinner.style.display = 'inline';
+
+    // Définir l’action dynamiquement pour cibler le bon cours
+    this.action = `/company/pay/course/${currentCourseId}`;
+    this.method = 'POST';
+    this.submit(); // Laisse le navigateur suivre la redirection Stripe
+  });
+</script>
+{% endblock %}

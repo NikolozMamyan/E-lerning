@@ -47,9 +47,11 @@ public function supports(Request $request): ?bool
     // Activer si :
     // - requête API (/api/)
     // - ou requête sur une page HTML (/app/) et le cookie est présent
+    
     return str_starts_with($path, '/api/')
         || (str_starts_with($path, '/app/') && $request->cookies->has('AUTH_TOKEN'))
-        || (str_starts_with($path, '/admin/') && $request->cookies->has('AUTH_TOKEN'));
+        || (str_starts_with($path, '/admin/') && $request->cookies->has('AUTH_TOKEN'))
+        || (str_starts_with($path, '/company/') && $request->cookies->has('AUTH_TOKEN'));
 }
 
     

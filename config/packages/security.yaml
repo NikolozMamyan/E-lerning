@@ -42,6 +42,7 @@ security:
         # Pages HTML protégées
         - { path: ^/app/, roles: [ROLE_EMPLOYEE] }
         - { path: ^/admin, roles: [ROLE_ADMIN] }
+        - { path: ^/company, roles: [ROLE_COMPANY] }
     
 
 when@test:

@@ -1,5 +1,5 @@
 {
-  "build/app.css": "/build/app.edeca991.css",
+  "build/app.css": "/build/app.8a1614af.css",
   "build/app.js": "/build/app.dc0750bc.js",
   "build/runtime.js": "/build/runtime.7337ff42.js",
   "build/945.34e7ac8c.js": "/build/945.34e7ac8c.js",
@@ -8,5 +8,13 @@
   "build/images/login.svg": "/build/images/login.svg",
   "build/images/quiz_passed.svg": "/build/images/quiz_passed.svg",
   "build/images/logo.png": "/build/images/logo.png",
-  "build/images/congrats.svg": "/build/images/congrats.svg"
+  "build/images/congrats.svg": "/build/images/congrats.svg",
+  "build/images/co.svg": "/build/images/co.svg",
+  "build/images/Call.svg": "/build/images/Call.svg",
+  "build/images/Bell.svg": "/build/images/Bell.svg",
+  "build/images/CreditCard.svg": "/build/images/CreditCard.svg",
+  "build/images/User.svg": "/build/images/User.svg",
+  "build/images/email.svg": "/build/images/email.svg",
+  "build/images/Mail.svg": "/build/images/Mail.svg",
+  "build/images/Location.svg": "/build/images/Location.svg"
 }

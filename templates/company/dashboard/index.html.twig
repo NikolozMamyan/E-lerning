@@ -1,0 +1,587 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}My Dashboard{% endblock %}
+
+{% block body %}
+<div class="dashboard-grid">
+  
+  <!-- Available Courses -->
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title">Available Courses</h2>
+    </div>
+    <p style="color: var(--grey); margin-bottom: 1.5rem; font-size: 0.9rem;">
+      Explore all the courses currently available to you.
+    </p>
+
+    <ul class="course-list {{ courses|length > 3 ? 'scrollable' : '' }}">
+      {% for course in courses %}
+        <li class="course-item">
+          <a href="{{ path('app_course_show', { id: course.id }) }}" 
+             style="text-decoration:none; color:inherit; display:flex; justify-content:space-between; align-items:center;">
+            <span class="course-name">{{ course.title }}</span>
+            <svg class="course-arrow" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
+            </svg>
+          </a>
+        </li>
+      {% else %}
+        <li class="course-item">No courses available</li>
+      {% endfor %}
+    </ul>
+  </div>
+
+  <!-- Progress Tracking -->
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title">Progress Tracking</h2>
+    </div>
+
+    <div style="margin-bottom: 2rem;">
+      {% set hasProgress = false %}
+      
+      {% for course in courses|slice(0, 3) %}
+        {% set percent = progressData[course.id] ?? 0 %}
+        
+        {% if percent > 0 %}
+          {% set hasProgress = true %}
+          <div class="progress-item">
+            <div class="progress-header">
+              <span class="progress-label">{{ course.title }} :</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: {{ percent }}%;"></div>
+            </div>
+          </div>
+        {% endif %}
+      {% endfor %}
+
+      {% if not hasProgress %}
+        <p>No progress yet.</p>
+      {% endif %}
+    </div>
+
+    <a href="{{ path('app_courses') }}" class="view-courses-btn">View My Courses</a>
+  </div>
+
+  <!-- Transactions -->
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title">Transactions</h2>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2">
+        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+        <line x1="16" y1="2" x2="16" y2="6"/>
+        <line x1="8" y1="2" x2="8" y2="6"/>
+        <line x1="3" y1="10" x2="21" y2="10"/>
+      </svg>
+    </div>
+
+    <div>
+      {% if enrollments is not empty %}
+          {% for e in enrollments|slice(0, 3) %}
+          <div class="transaction-item">
+            <div class="transaction-info">
+              <h4>{{ e.course.title }}</h4>
+              <p>{{ e.createdAt|date('d M, H:i') }}</p>
+            </div>
+            <div class="transaction-amount">
+              {% for price in e.course.coursePrices %}
+                {% if price.currency == 'EUR' %}
+                  {{ price.price / 100 }} €
+                {% endif %}
+              {% endfor %}
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <p>No transactions yet.</p>
+      {% endif %}
+    </div>
+
+    <a href="{{ path('app_transactions') }}" class="view-all-btn">View All</a>
+  </div>
+</div>
+
+<style>
+.course-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.course-item {
+  padding: .8rem 1rem;
+  border-bottom: 1px solid var(--bg);
+}
+
+.course-item:last-child {
+  border-bottom: none;
+}
+
+/* Scrollable version when more than 3 courses */
+.course-list.scrollable {
+  max-height: 180px; /* environ la hauteur de 3 items */
+  overflow-y: auto;
+  padding-right: .5rem;
+}
+
+/* Scrollbar style (optionnel) */
+.course-list.scrollable::-webkit-scrollbar {
+  width: 6px;
+}
+
+.course-list.scrollable::-webkit-scrollbar-thumb {
+  background-color: var(--teal);
+  border-radius: var(--radius);
+}
+
+.certif-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+@media (max-width: 1024px) {
+  .certif-card {
+    width: 100%;
+  }
+  .video-card {
+    width: 100%;
+  }
+  .dashboard_bottom {
+    display: grid;
+    gap: 50px;
+    flex-wrap: wrap;
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+
+<div class="dashboard_bottom"> 
+  <!-- Recently Added Employees -->
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title">Recently Added Employees</h2>
+      <a href="#" class="view-all">View All</a>
+    </div>
+    <div class="card-body">
+      <div class="table-container">
+        <table class="employee-table">
+          <thead>
+            <tr>
+              <th class="checkbox-col">
+                <input type="checkbox" class="main-checkbox">
+              </th>
+              <th>Name</th>
+              <th class="hide-mobile">User ID</th>
+              <th class="hide-tablet">Email ID</th>
+              <th class="hide-mobile">Join Date</th>
+              <th>Role</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><input type="checkbox" class="row-checkbox"></td>
+              <td class="name-cell">
+                <div class="name-info">
+                  <span class="name">Sara Wilson</span>
+                  <span class="mobile-info">123456 • 18/11/2024</span>
+                </div>
+              </td>
+              <td class="hide-mobile">123456</td>
+              <td class="hide-tablet">sarawilson1808@gmail.com</td>
+              <td class="hide-mobile">18/11/2024</td>
+              <td>Project Manager</td>
+              <td><span class="status completed">Completed</span></td>
+              <td class="actions-cell">
+                <button class="action-btn delete-btn" title="Delete">
+                   <img src="{{ asset('images/Delete.svg') }}" alt="delete icon">
+                </button>
+                <button class="action-btn edit-btn" title="Edit">
+                     <img src="{{ asset('images/edit.svg') }}" alt="edit icon">
+                </button>
+              </td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" class="row-checkbox"></td>
+              <td class="name-cell">
+                <div class="name-info">
+                  <span class="name">Aarya Stark</span>
+                  <span class="mobile-info">987696 • 17/11/2024</span>
+                </div>
+              </td>
+              <td class="hide-mobile">987696</td>
+              <td class="hide-tablet">aaryastark556@gmail.com</td>
+              <td class="hide-mobile">17/11/2024</td>
+              <td>Project Manager</td>
+              <td><span class="status in-learning">In Learning</span></td>
+              <td class="actions-cell">
+                <button class="action-btn delete-btn" title="Delete">
+                   <img src="{{ asset('images/Delete.svg') }}" alt="delete icon">
+                </button>
+                <button class="action-btn edit-btn" title="Edit">
+                     <img src="{{ asset('images/edit.svg') }}" alt="edit icon">
+                </button>
+              </td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" class="row-checkbox"></td>
+              <td class="name-cell">
+                <div class="name-info">
+                  <span class="name">Marleigh Jaramillo</span>
+                  <span class="mobile-info">852369 • 17/11/2024</span>
+                </div>
+              </td>
+              <td class="hide-mobile">852369</td>
+              <td class="hide-tablet">marleighjaram@gmail.com</td>
+              <td class="hide-mobile">17/11/2024</td>
+              <td>Project Manager</td>
+              <td><span class="status completed">Completed</span></td>
+              <td class="actions-cell">
+                <button class="action-btn delete-btn" title="Delete">
+                   <img src="{{ asset('images/Delete.svg') }}" alt="delete icon">
+                </button>
+                <button class="action-btn edit-btn" title="Edit">
+                     <img src="{{ asset('images/edit.svg') }}" alt="edit icon">
+                </button>
+              </td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" class="row-checkbox"></td>
+              <td class="name-cell">
+                <div class="name-info">
+                  <span class="name">Maisie Hood</span>
+                  <span class="mobile-info">673216 • 17/11/2024</span>
+                </div>
+              </td>
+              <td class="hide-mobile">673216</td>
+              <td class="hide-tablet">maisiehood1808@gmail.com</td>
+              <td class="hide-mobile">17/11/2024</td>
+              <td>Project Manager</td>
+              <td><span class="status in-learning">In Learning</span></td>
+              <td class="actions-cell">
+                <button class="action-btn delete-btn" title="Delete">
+                   <img src="{{ asset('images/Delete.svg') }}" alt="delete icon">
+                </button>
+                <button class="action-btn edit-btn" title="Edit">
+                     <img src="{{ asset('images/edit.svg') }}" alt="edit icon">
+                </button>
+              </td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" class="row-checkbox"></td>
+              <td class="name-cell">
+                <div class="name-info">
+                  <span class="name">Luna Reid</span>
+                  <span class="mobile-info">976548 • 16/11/2024</span>
+                </div>
+              </td>
+              <td class="hide-mobile">976548</td>
+              <td class="hide-tablet">lunareid8752@gmail.com</td>
+              <td class="hide-mobile">16/11/2024</td>
+              <td>Project Manager</td>
+              <td><span class="status completed">Completed</span></td>
+              <td class="actions-cell">
+                <button class="action-btn delete-btn" title="Delete">
+                   <img src="{{ asset('images/Delete.svg') }}" alt="delete icon">
+                </button>
+                <button class="action-btn edit-btn" title="Edit">
+                     <img src="{{ asset('images/edit.svg') }}" alt="edit icon">
+                </button>
+              </td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" class="row-checkbox"></td>
+              <td class="name-cell">
+                <div class="name-info">
+                  <span class="name">Waverly Ruiz</span>
+                  <span class="mobile-info">213546 • 16/11/2024</span>
+                </div>
+              </td>
+              <td class="hide-mobile">213546</td>
+              <td class="hide-tablet">waverlyruiz2541@gmail.com</td>
+              <td class="hide-mobile">16/11/2024</td>
+              <td>Project Manager</td>
+              <td><span class="status in-learning">In Learning</span></td>
+              <td class="actions-cell">
+                <button class="action-btn delete-btn" title="Delete">
+                   <img src="{{ asset('images/Delete.svg') }}" alt="delete icon">
+                </button>
+                <button class="action-btn edit-btn" title="Edit">
+                     <img src="{{ asset('images/edit.svg') }}" alt="edit icon">
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .dashboard_bottom{
+    display:grid; flex-wrap: wrap; grid-template-columns: 1fr;
+  }
+  .card {
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    margin-bottom: 24px;
+  }
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px;
+    border-bottom: 1px solid var(--mint);
+  }
+
+  .card-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--black);
+    margin: 0;
+  }
+
+  .view-all {
+    color: var(--grey);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: color 0.2s ease;
+  }
+
+  .view-all:hover {
+    color: var(--teal);
+  }
+
+  .card-body {
+    padding: 0;
+  }
+
+  .table-container {
+    overflow-x: auto;
+  }
+
+  .employee-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    min-width: 800px;
+  }
+
+  .employee-table th {
+    background-color: var(--green);
+    color: var(--white);
+    padding: 16px 20px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 14px;
+    border: none;
+    white-space: nowrap;
+  }
+
+  .employee-table td {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--mint);
+    vertical-align: middle;
+    color: var(--black);
+  }
+
+  .employee-table tbody tr:hover {
+    background-color: #fafcfc;
+  }
+
+  .checkbox-col {
+    width: 50px;
+  }
+
+  .main-checkbox,
+  .row-checkbox {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: var(--teal);
+  }
+
+  .name-cell {
+    min-width: 180px;
+  }
+
+  .name-info .name {
+    font-weight: 600;
+    color: var(--black);
+    display: block;
+  }
+
+  .mobile-info {
+    display: none;
+    font-size: 12px;
+    color: var(--grey);
+    margin-top: 4px;
+  }
+
+  .status {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+  }
+
+  .status.completed {
+    background-color: #e6f7f1;
+    color: var(--green);
+  }
+
+  .status.in-learning {
+    background-color: #fff4e6;
+    color: #d97706;
+  }
+
+  .actions-cell {
+    width: 100px;
+    display:flex;
+  }
+
+  .action-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    margin: 0 2px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .action-btn:hover {
+    background-color: var(--mint);
+    transform: translateY(-1px);
+  }
+
+  .delete-btn {
+    color: #dc2626;
+  }
+
+  .delete-btn:hover {
+    background-color: #fee2e2;
+  }
+
+  .edit-btn {
+    color: var(--grey);
+  }
+
+  .edit-btn:hover {
+    color: var(--teal);
+  }
+
+  /* Responsive Design */
+  @media (max-width: 1024px) {
+    .hide-tablet {
+      display: none;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .card-header {
+      padding: 20px 16px;
+    }
+
+    .card-title {
+      font-size: 18px;
+    }
+
+    .employee-table {
+      min-width: 600px;
+    }
+
+    .hide-mobile {
+      display: none;
+    }
+
+    .mobile-info {
+      display: block;
+    }
+
+    .employee-table th,
+    .employee-table td {
+      padding: 12px 16px;
+      font-size: 13px;
+    }
+
+    .name-cell {
+      min-width: 160px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .card-header {
+      padding: 16px;
+      flex-direction: column;
+      gap: 12px;
+      text-align: center;
+    }
+
+    .employee-table {
+      min-width: 500px;
+    }
+
+    .employee-table th,
+    .employee-table td {
+      padding: 10px 12px;
+      font-size: 12px;
+    }
+
+    .action-btn {
+      padding: 6px;
+    }
+
+    .action-btn svg {
+      width: 14px;
+      height: 14px;
+    }
+  }
+
+  /* Amélioration de l'accessibilité */
+  .action-btn:focus {
+    outline: 2px solid var(--teal);
+    outline-offset: 2px;
+  }
+
+  .main-checkbox:focus,
+  .row-checkbox:focus {
+    outline: 2px solid var(--teal);
+    outline-offset: 2px;
+  }
+
+  /* Animation de chargement */
+  .employee-table tbody tr {
+    opacity: 0;
+    animation: fadeIn 0.3s ease forwards;
+  }
+
+  .employee-table tbody tr:nth-child(1) { animation-delay: 0.1s; }
+  .employee-table tbody tr:nth-child(2) { animation-delay: 0.15s; }
+  .employee-table tbody tr:nth-child(3) { animation-delay: 0.2s; }
+  .employee-table tbody tr:nth-child(4) { animation-delay: 0.25s; }
+  .employee-table tbody tr:nth-child(5) { animation-delay: 0.3s; }
+  .employee-table tbody tr:nth-child(6) { animation-delay: 0.35s; }
+
+  @keyframes fadeIn {
+    to {
+      opacity: 1;
+    }
+  }
+</style>
+{% endblock %}
