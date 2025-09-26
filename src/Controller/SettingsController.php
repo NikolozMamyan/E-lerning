@@ -17,13 +17,13 @@ use Symfony\Component\HttpFoundation\File\Exception\FileException;
 
 class SettingsController extends AbstractController
 {
-    #[Route('/app/settings', name: 'app_settings')]
+    #[Route('/settings', name: 'app_settings')]
     public function index(Request $request, EntityManagerInterface $em): Response
     {
         $user = $this->getUser();
 
         if (!$user) {
-            return $this->redirectToRoute('app_login');
+            return $this->redirectToRoute('show_login');
         }
 
         $form = $this->createForm(UserType::class, $user);
@@ -63,7 +63,7 @@ class SettingsController extends AbstractController
     }
 
 
-#[Route('/app/settings/edit/{section}', name: 'app_settings_edit', methods: ['GET','POST'])]
+#[Route('/settings/edit/{section}', name: 'app_settings_edit', methods: ['GET','POST'])]
 public function editSection(string $section, Request $request, EntityManagerInterface $em): Response
 {
     $user = $this->getUser();

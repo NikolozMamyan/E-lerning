@@ -9,7 +9,7 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class NotificationController extends AbstractController
 {
-    #[Route('/app/notifications', name: 'app_notifications')]
+    #[Route('/notifications', name: 'app_notifications')]
     public function index(NotificationService $notificationService): Response
     {
         $user = $this->getUser();
@@ -23,7 +23,7 @@ class NotificationController extends AbstractController
         ]);
     }
 
-    #[Route('/app//notifications/{id}/mark-read', name: 'app_notification_mark_read', methods: ['POST'])]
+    #[Route('/notifications/{id}/mark-read', name: 'app_notification_mark_read', methods: ['POST'])]
     public function markAsRead(int $id, NotificationService $notificationService): Response
     {
         // Logique pour marquer une notification comme lue via AJAX
@@ -31,7 +31,7 @@ class NotificationController extends AbstractController
         
         return $this->json(['success' => true]);
     }
-    #[Route('/app/notifications/{id}/delete', name: 'app_notification_delete', methods: ['POST'])]
+    #[Route('/notifications/{id}/delete', name: 'app_notification_delete', methods: ['POST'])]
 public function delete(int $id, NotificationService $notificationService): Response
 {
     $user = $this->getUser();
@@ -45,7 +45,7 @@ public function delete(int $id, NotificationService $notificationService): Respo
     return $this->redirectToRoute('app_notifications');
 }
 
-#[Route('/app/notifications/delete-all', name: 'app_notifications_delete_all', methods: ['POST'])]
+#[Route('/notifications/delete-all', name: 'app_notifications_delete_all', methods: ['POST'])]
 public function deleteAll(NotificationService $notificationService): Response
 {
     $user = $this->getUser();

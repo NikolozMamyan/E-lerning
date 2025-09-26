@@ -51,7 +51,9 @@ public function supports(Request $request): ?bool
     return str_starts_with($path, '/api/')
         || (str_starts_with($path, '/app/') && $request->cookies->has('AUTH_TOKEN'))
         || (str_starts_with($path, '/admin/') && $request->cookies->has('AUTH_TOKEN'))
-        || (str_starts_with($path, '/company/') && $request->cookies->has('AUTH_TOKEN'));
+        || (str_starts_with($path, '/company/') && $request->cookies->has('AUTH_TOKEN'))
+        || (str_starts_with($path, '/settings/') && $request->cookies->has('AUTH_TOKEN'))
+        || (str_starts_with($path, '/notifications/') && $request->cookies->has('AUTH_TOKEN'));
 }
 
     

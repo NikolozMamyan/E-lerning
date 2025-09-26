@@ -344,7 +344,7 @@ document.querySelectorAll('.btn-edit').forEach(btn => {
   btn.addEventListener('click', function () {
     let section = this.dataset.section;
 
-    fetch(`/app/settings/edit/${section}`)
+    fetch(`/settings/edit/${section}`)
       .then(res => res.text())
       .then(html => {
 let modal = document.createElement('div');
@@ -379,7 +379,7 @@ setTimeout(() => modal.classList.add("show"), 20);
           saveBtn.disabled = true;
           saveBtn.textContent = "⏳ Saving...";
 
-          fetch(`/app/settings/edit/${section}`, {
+          fetch(`/settings/edit/${section}`, {
             method: 'POST',
             body: formData
           })

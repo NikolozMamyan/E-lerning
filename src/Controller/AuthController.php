@@ -66,7 +66,7 @@ public function register(
             $user, // entité liée (ici on peut mettre l'user lui-même)
             "Hello dear, please complete your profile to get started.",
             Notification::TYPE_INFO,
-            '/app/settings', // lien vers la page profil
+            '/settings', // lien vers la page profil
             'profile-completion',
             Notification::PRIORITY_LOW
         );
