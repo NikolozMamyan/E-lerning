@@ -69,6 +69,12 @@ private ?string $password = null;
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $avatar = null;
 
+        #[ORM\OneToMany(mappedBy: 'company', targetEntity: Collaboration::class, orphanRemoval: true)]
+    private Collection $collaborationsAsCompany;
+
+    #[ORM\OneToMany(mappedBy: 'employee', targetEntity: Collaboration::class, orphanRemoval: true)]
+    private Collection $collaborationsAsEmployee;
+
 
 #[ORM\Column(type: 'datetime', nullable: true)]
 private ?\DateTimeInterface $tokenExpiresAt = null;
@@ -87,8 +93,10 @@ private Collection $notifications;
 
 public function __construct()
 {
-    $this->certificates = new ArrayCollection();
-    $this->notifications = new ArrayCollection();
+        $this->certificates = new ArrayCollection();
+        $this->notifications = new ArrayCollection();
+        $this->collaborationsAsCompany = new ArrayCollection();
+        $this->collaborationsAsEmployee = new ArrayCollection();
 }
 
     public function getId(): ?int
@@ -398,6 +406,64 @@ public function setAvatar(?string $avatar): self
 
     return $this;
 }
+
+ /**
+     * @return Collection<int, Collaboration>
+     */
+    public function getCollaborationsAsCompany(): Collection
+    {
+        return $this->collaborationsAsCompany;
+    }
+
+    public function addCollaborationAsCompany(Collaboration $collaboration): self
+    {
+        if (!$this->collaborationsAsCompany->contains($collaboration)) {
+            $this->collaborationsAsCompany->add($collaboration);
+            $collaboration->setCompany($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCollaborationAsCompany(Collaboration $collaboration): self
+    {
+        if ($this->collaborationsAsCompany->removeElement($collaboration)) {
+            if ($collaboration->getCompany() === $this) {
+                $collaboration->setCompany(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Collaboration>
+     */
+    public function getCollaborationsAsEmployee(): Collection
+    {
+        return $this->collaborationsAsEmployee;
+    }
+
+    public function addCollaborationAsEmployee(Collaboration $collaboration): self
+    {
+        if (!$this->collaborationsAsEmployee->contains($collaboration)) {
+            $this->collaborationsAsEmployee->add($collaboration);
+            $collaboration->setEmployee($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCollaborationAsEmployee(Collaboration $collaboration): self
+    {
+        if ($this->collaborationsAsEmployee->removeElement($collaboration)) {
+            if ($collaboration->getEmployee() === $this) {
+                $collaboration->setEmployee(null);
+            }
+        }
+
+        return $this;
+    }
 
 
 }

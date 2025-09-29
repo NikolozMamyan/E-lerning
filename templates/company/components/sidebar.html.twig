@@ -34,6 +34,16 @@
           Available Courses
         </a>
       </li>
+       <li class="nav-item">
+        <a href="{{ path('company_colab') }}"
+           class="nav-link {{ app.request.attributes.get('_route') == 'company_colab' ? 'active' : '' }}">
+<svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor">
+  <path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5zm0 2c-3.3 0-10 1.7-10 5v3h20v-3c0-3.3-6.7-5-10-5z"/>
+</svg>
+
+          Employees
+        </a>
+      </li>
 
       <li class="nav-item">
         <a href="{{ path('app_certificates') }}"
@@ -65,7 +75,7 @@
         </a>
       </li>
 
-      <li class="nav-item">
+      {# <li class="nav-item">
         <a href="{{path('app_progress')}}"
            class="nav-link {{ app.request.attributes.get('_route') == 'app_progress' ? 'active' : '' }}">
           <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor">
@@ -73,7 +83,7 @@
           </svg>
           Progress Tracking
         </a>
-      </li>
+      </li> #}
 
       <!-- Séparateur -->
       <div class="separator"></div>

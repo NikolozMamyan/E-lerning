@@ -38,10 +38,12 @@ class CompanyCoursesController extends AbstractController
                 $access[$course->getId()] = (bool) $enrollment;
             }
         }
+        $collaborations = $user->getCollaborationsAsCompany();
 
         return $this->render('company/courses/index.html.twig', [
             'courses' => $courses,
-            'access' => $access
+            'access' => $access,
+            'collaborations' =>$collaborations
         ]);
     }
 
