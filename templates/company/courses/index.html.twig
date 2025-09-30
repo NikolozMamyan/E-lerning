@@ -42,7 +42,7 @@
             <button
               type="button"
               class="see-course-btn"
-              onclick="openAssignModal('{{ course.id }}', '{{ course.title|e('js') }}')"
+              onclick="tryAssign('{{ course.id }}', '{{ course.title|e('js') }}')"
             >
               Buy & Assign
               <svg class="icon-plus" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" aria-hidden="true">
@@ -620,6 +620,21 @@ let currentPage = 1;
 const rowsPerPage = 10;
 let filteredRows = [];
 
+const HAS_COLLABS = {{ collaborations is not empty ? 'true' : 'false' }};
+
+// intercepte le clic sur la card
+function tryAssign(courseId, courseTitle) {
+  if (!HAS_COLLABS) {
+    // petit message flash puis on sort (rien ne s'ouvre)
+    showNotification("You don't have any collaboration yet", 'error');
+    return;
+
+
+  }
+
+  openAssignModal(courseId, courseTitle);
+}
+
 // Ouvrir/Fermer Modal
 function openAssignModal(courseId, courseTitle) {
   currentCourseId = courseId;
@@ -927,7 +942,7 @@ function showNotification(message, type = 'info') {
   const notification = document.createElement('div');
   notification.style.cssText = `
     position: fixed;
-    top: 20px;
+    bottom: 20px;
     right: 20px;
     padding: 16px 20px;
     background: ${type === 'error' ? '#ef4444' : '#3b82f6'};
