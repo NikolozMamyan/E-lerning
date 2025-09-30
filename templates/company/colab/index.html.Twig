@@ -8,7 +8,7 @@
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
         <path d="M10 4V16M4 10H16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
       </svg>
-     Add new
+      Add new
     </button>
   </div>
 
@@ -30,44 +30,42 @@
           </tr>
         </thead>
         <tbody>
-          {% for employee in employees %}
-          <tr>
-            <td><input type="checkbox" class="row-checkbox"></td>
-            <td class="name-cell">
-              <div class="name-info">
-                <span class="name">{{ employee.username }}</span>
-                <span class="mobile-info">{{ employee.id }}</span>
-              </div>
-            </td>
-            <td class="hide-mobile">{{ employee.id }}</td>
-            <td class="hide-tablet">{{ employee.email }}</td>
-            <td class="hide-mobile"></td>
-            <td>{{ employee.bachelorDegree ?? 'No info' }}</td>
-            <td>
-              <span class="status ">
-             
-              </span>
-            </td>
-            <td class="actions-cell">
-  {% for collab in employee.collaborations %}
-    <a href="{{ path('company_colab_delete', {id: collab.id}) }}"
-       class="action-btn delete-btn"
-       title="Delete"
-       onclick="return confirm('Are you sure you want to delete this collaborator?');">
-      <img src="{{ asset('images/Delete.svg') }}" alt="delete icon">
-    </a>
+  {% for collaboration in collaborations %}
+    {% set employee = collaboration.employee %}
+    <tr>
+      <td><input type="checkbox" class="row-checkbox"></td>
+      <td class="name-cell">
+        <div class="name-info">
+          <span class="name">{{ employee.username }}</span>
+          <span class="mobile-info">{{ employee.id }}</span>
+        </div>
+      </td>
+      <td class="hide-mobile">{{ employee.id }}</td>
+      <td class="hide-tablet">{{ employee.email }}</td>
+      <td class="hide-mobile"></td>
+      <td>{{ employee.bachelorDegree ?? 'No info' }}</td>
+      <td>
+        <span class="status"></span>
+      </td>
+      <td class="actions-cell">
+        <a href="{{ path('company_colab_delete', {id: collaboration.id}) }}"
+           class="action-btn delete-btn"
+           title="Delete"
+           onclick="return confirm('Are you sure you want to delete this collaborator?');">
+          <img src="{{ asset('images/Delete.svg') }}" alt="delete icon">
+        </a>
+        <a class="action-btn edit-btn" title="Modifier">
+          <img src="{{ asset('images/edit.svg') }}" alt="edit icon">
+        </a>
+      </td>
+    </tr>
   {% else %}
-    <span class="empty-state">No collaboration</span>
+    <tr>
+      <td colspan="8" class="empty-state">You don’t have any collaboration</td>
+    </tr>
   {% endfor %}
-</td>
+</tbody>
 
-          </tr>
-          {% else %}
-          <tr>
-            <td colspan="8" class="empty-state">You dont have any collaboration</td>
-          </tr>
-          {% endfor %}
-        </tbody>
       </table>
     </div>
   </div>
