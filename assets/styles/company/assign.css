@@ -254,15 +254,7 @@
 }
 .btn-cancel:hover { background: #d0e6e6; color: var(--black); }
 
-.btn-primary {
-  padding: 12px 28px; border-radius: 8px;
-  font-size: 14px; font-weight: 500; cursor: pointer;
-  background: linear-gradient(135deg, var(--teal) 0%, var(--green) 100%);
-  color: var(--white); border: none;
-  display: flex; align-items: center; gap: 8px;
-  transition: all 0.2s;
-  box-shadow: var(--shadow);
-}
+
 .btn-primary:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(13, 131, 131, 0.25);
