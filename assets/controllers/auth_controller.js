@@ -4,7 +4,7 @@ export default class extends Controller {
   static targets = ['email', 'password', 'userName', 'accountType', 'result', 'button']
 
   connect() {
-    console.log("Stimulus auth controller is active ✅");
+
   }
 
   async login(event) {

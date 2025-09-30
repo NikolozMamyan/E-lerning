@@ -4,3 +4,4 @@ import './styles/nav.css';
 import './styles/dashboard.css';
 import './styles/courses.css';
 import './styles/progressTracking.css';
+import './styles/company/assign.css';
