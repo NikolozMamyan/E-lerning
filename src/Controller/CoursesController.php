@@ -7,6 +7,7 @@ use App\Repository\VideoRepository;
 use App\Repository\CourseRepository;
 use App\Repository\ProgressRepository;
 use App\Repository\EnrollmentRepository;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -60,6 +61,7 @@ public function show(
     CourseRepository $courseRepo,
     VideoRepository $videoRepo,
     ProgressRepository $progressRepo,
+    Request $request,
     EnrollmentRepository $enrollmentRepo
 ): Response {
     $course = $courseRepo->find($id);
@@ -109,6 +111,20 @@ if (!$hasAccess) {
     if (!$currentVideo && count($videos) > 0) {
         $currentVideo = $videos[0];
     }
+    // 👉 Choisir la bonne URL selon la locale
+if ($currentVideo) {
+    $locale = $request->getLocale();
+    if ($locale === 'fr' && $currentVideo->getUrlFr()) {
+        $currentVideo->setUrl($currentVideo->getUrlFr());
+    }
+}
+$hasFrench = false;
+foreach ($videos as $video) {
+    if (!empty($video->getUrlFr())) {
+        $hasFrench = true;
+        break; // Sortir dès qu'on trouve une vidéo FR
+    }
+}
 
     // progression
     $progress = [];
@@ -133,6 +149,7 @@ if (!$hasAccess) {
         'currentVideo' => $currentVideo,
         'progress' => $progress,
         'progressPercent' => $progressPercent,
+        'hasFrench' =>$hasFrench
     ]);
 }
 
