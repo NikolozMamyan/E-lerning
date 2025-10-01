@@ -13,6 +13,7 @@
     <div class="question-counter">
       <span id="current-question">Question 01</span>/<span id="total-questions">{{ course.quizQuestions|length }}</span>
     </div>
+
     
     <button class="nav-btn next-btn" onclick="nextQuestion()">
       <svg viewBox="0 0 24 24">
@@ -20,6 +21,48 @@
       </svg>
     </button>
   </div>
+ {# Language Selector - Version améliorée #}
+{% if hasFrench %} 
+<div class="language-selector">
+  <span class="language-selector-label">
+    <svg viewBox="0 0 24 24" width="16" height="16">
+      <path fill="currentColor" d="M12.87 15.07l-2.54-2.51.03-.03c1.74-1.94 2.98-4.17 3.71-6.53H17V4h-7V2H8v2H1v1.99h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/>
+    </svg>
+    Language
+  </span>
+  <div class="language-buttons">
+    <a href="{{ path(app.request.attributes.get('_route'),
+                     app.request.attributes.get('_route_params')|merge({'_locale': 'en'})) }}"
+       class="language-btn {{ app.request.locale == 'en' ? 'active' : '' }}">
+   
+      <span class="lang-text">EN</span>
+    </a>
+    <a href="{{ path(app.request.attributes.get('_route'),
+                     app.request.attributes.get('_route_params')|merge({'_locale': 'fr'})) }}"
+       class="language-btn {{ app.request.locale == 'fr' ? 'active' : '' }}">
+
+      <span class="lang-text">FR</span>
+    </a>
+  </div>
+</div> 
+{% else %} 
+<div class="language-selector">
+  <span class="language-selector-label">
+    <svg viewBox="0 0 24 24" width="16" height="16">
+      <path fill="currentColor" d="M12.87 15.07l-2.54-2.51.03-.03c1.74-1.94 2.98-4.17 3.71-6.53H17V4h-7V2H8v2H1v1.99h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/>
+    </svg>
+    Language
+  </span>
+  <div class="language-buttons">
+    <a href="{{ path(app.request.attributes.get('_route'),
+                     app.request.attributes.get('_route_params')|merge({'_locale': 'en'})) }}"
+       class="language-btn active">
+      
+      <span class="lang-text">EN</span>
+    </a>
+  </div>
+</div> 
+{% endif %}
 
   <form method="post" action="{{ path('course_quiz_submit', {id: course.id}) }}" id="quiz-form">
     {% for question in course.quizQuestions %}
@@ -314,6 +357,135 @@ showQuestion(0);
   
   .answer-text {
     font-size: 0.9rem;
+  }
+}
+/* ------- Language Selector (Version améliorée) ------- */
+.language-selector {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 1rem;
+  background: white;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  margin: 0 auto 2rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+}
+
+.language-selector:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.language-selector-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  white-space: nowrap;
+}
+
+.language-selector-label svg {
+  opacity: 0.7;
+}
+
+.language-buttons {
+  display: flex;
+  gap: 0.35rem;
+  background: #f8fafc;
+  padding: 0.25rem;
+  border-radius: 7px;
+}
+
+.language-btn {
+  padding: 0.4rem 0.75rem;
+  border: none;
+  border-radius: 5px;
+  background: transparent;
+  color: #64748b;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 60px;
+  justify-content: center;
+}
+
+.language-btn .flag {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.language-btn .lang-text {
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.language-btn:hover:not(.active) {
+  background: white;
+  color: #1a6d55;
+  transform: translateY(-1px);
+}
+
+.language-btn.active {
+  background: #1a6d55;
+  color: white;
+  box-shadow: 0 2px 4px rgba(26, 109, 85, 0.2);
+}
+
+.language-btn.active .flag {
+  transform: scale(1.1);
+}
+
+/* Responsive pour mobile */
+@media (max-width: 768px) {
+  .language-selector {
+    padding: 0.45rem 0.85rem;
+    gap: 0.6rem;
+  }
+  
+  .language-selector-label {
+    font-size: 0.8rem;
+  }
+  
+  .language-btn {
+    padding: 0.35rem 0.65rem;
+    font-size: 0.8rem;
+    min-width: 55px;
+  }
+}
+
+@media (max-width: 480px) {
+  .language-selector {
+    padding: 0.4rem 0.75rem;
+    gap: 0.5rem;
+  }
+  
+  .language-selector-label {
+    font-size: 0.75rem;
+  }
+  
+  .language-selector-label svg {
+    width: 14px;
+    height: 14px;
+  }
+  
+  .language-btn {
+    padding: 0.3rem 0.55rem;
+    font-size: 0.75rem;
+    min-width: 50px;
+    gap: 0.3rem;
+  }
+  
+  .language-btn .flag {
+    font-size: 1rem;
   }
 }
 </style>

@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
@@ -28,6 +29,9 @@ class QuizQuestion
         orphanRemoval: true
     )]
     private Collection $answers;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $question_fr = null;
 
     public function __construct()
     {
@@ -86,6 +90,18 @@ class QuizQuestion
                 $answer->setQuestion(null);
             }
         }
+        return $this;
+    }
+
+    public function getQuestionFr(): ?string
+    {
+        return $this->question_fr;
+    }
+
+    public function setQuestionFr(?string $question_fr): static
+    {
+        $this->question_fr = $question_fr;
+
         return $this;
     }
 }

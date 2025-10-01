@@ -22,6 +22,9 @@ class QuizAnswer
     #[ORM\ManyToOne(inversedBy: 'answers')]
     private ?QuizQuestion $question = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $text_fr = null;
+
     public function getId(): ?int { return $this->id; }
 
     public function getText(): ?string { return $this->text; }
@@ -32,4 +35,16 @@ class QuizAnswer
 
     public function getQuestion(): ?QuizQuestion { return $this->question; }
     public function setQuestion(?QuizQuestion $question): self { $this->question = $question; return $this; }
+
+    public function getTextFr(): ?string
+    {
+        return $this->text_fr;
+    }
+
+    public function setTextFr(?string $text_fr): static
+    {
+        $this->text_fr = $text_fr;
+
+        return $this;
+    }
 }

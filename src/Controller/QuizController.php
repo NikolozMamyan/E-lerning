@@ -11,34 +11,63 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class QuizController extends AbstractController
 {
-    #[Route('app/course/{id}/quiz', name: 'course_quiz')]
-    public function quiz(Course $course, QuizService $quizService, EntityManagerInterface $em)
-    {
-        $user = $this->getUser();
+   #[Route('app/course/{id}/quiz', name: 'course_quiz')]
+public function quiz(
+    Course $course, 
+    QuizService $quizService, 
+    EntityManagerInterface $em, 
+    Request $request
+) {
+    $user = $this->getUser();
 
-        if (!$user) {
-            $this->addFlash('error', 'Veuillez vous connecter pour passer le quiz.');
-            return $this->redirectToRoute('app_login');
-        }
+    if (!$user) {
+        $this->addFlash('error', 'Veuillez vous connecter pour passer le quiz.');
+        return $this->redirectToRoute('app_login');
+    }
 
-        // Vérifier si l'utilisateur a un droit de passage
-        $enrollment = $quizService->canAttempt($user, $course);
+    // Vérifier si l'utilisateur a un droit de passage
+    $enrollment = $quizService->canAttempt($user, $course);
 
-        if (!$enrollment) {
-            // Vérifier s'il a déjà passé le quiz
-            $lastAttempt = $em->getRepository(QuizAttempt::class)
-                ->findOneBy(['user' => $user, 'course' => $course], ['id' => 'DESC']);
+    if (!$enrollment) {
+        // Vérifier s'il a déjà passé le quiz
+        $lastAttempt = $em->getRepository(QuizAttempt::class)
+            ->findOneBy(['user' => $user, 'course' => $course], ['id' => 'DESC']);
 
-            return $this->render('quiz/already_done.html.twig', [
-                'course' => $course,
-                'attempt' => $lastAttempt
-            ]);
-        }
-
-        return $this->render('quiz/pass.html.twig', [
-            'course' => $course
+        return $this->render('quiz/already_done.html.twig', [
+            'course' => $course,
+            'attempt' => $lastAttempt
         ]);
     }
+
+    // 👉 Gestion de la langue
+    $locale = $request->getLocale();
+    $hasFrench = false;
+
+    foreach ($course->getQuizQuestions() as $question) {
+        if ($locale === 'fr' && $question->getQuestionFr()) {
+            $question->setQuestion($question->getQuestionFr());
+        }
+
+        foreach ($question->getAnswers() as $answer) {
+            if ($locale === 'fr' && $answer->getTextFr()) {
+                $answer->setText($answer->getTextFr());
+            }
+            if (!empty($answer->getTextFr())) {
+                $hasFrench = true;
+            }
+        }
+
+        if (!empty($question->getQuestionFr())) {
+            $hasFrench = true;
+        }
+    }
+
+    return $this->render('quiz/pass.html.twig', [
+        'course' => $course,
+        'hasFrench' => $hasFrench
+    ]);
+}
+
 
     #[Route('app/course/{id}/quiz/submit', name: 'course_quiz_submit', methods: ['POST'])]
     public function submit(Course $course, Request $request, QuizService $quizService)
