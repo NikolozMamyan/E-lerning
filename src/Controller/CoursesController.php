@@ -72,15 +72,22 @@ public function show(
     $user = $this->getUser();
 
     // 🔒 Vérifier si l’utilisateur a accès au cours
-    $hasAccess = false;
-    if ($user) {
-        $enrollment = $enrollmentRepo->findOneBy([
-            'user' => $user,
-            'course' => $course,
-        ]);
-        $hasAccess = (bool) $enrollment;
-        
-    }
+$hasAccess = false;
+
+if ($user) {
+    $hasSubscription = $user->hasActiveSubscription();
+    
+    $enrollment = $enrollmentRepo->findOneBy([
+        'user' => $user,
+        'course' => $course,
+    ]);
+
+    $hasEnrollment = (bool) $enrollment;
+
+    // ✅ Vérifier si l’utilisateur a une subscription OU un enrollment
+    $hasAccess = $hasSubscription || $hasEnrollment;
+}
+
 
 if (!$hasAccess) {
     // chercher le prix en euros

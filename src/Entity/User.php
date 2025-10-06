@@ -89,6 +89,10 @@ private Collection $certificates;
 private Collection $notifications;
 
 
+#[ORM\OneToMany(mappedBy: 'user', targetEntity: Subscription::class, cascade: ['persist', 'remove'])]
+private Collection $subscriptions;
+
+
 
 
 public function __construct()
@@ -97,6 +101,7 @@ public function __construct()
         $this->notifications = new ArrayCollection();
         $this->collaborationsAsCompany = new ArrayCollection();
         $this->collaborationsAsEmployee = new ArrayCollection();
+        $this->subscriptions = new ArrayCollection();
 }
 
     public function getId(): ?int
@@ -465,5 +470,37 @@ public function setAvatar(?string $avatar): self
         return $this;
     }
 
+    public function getSubscriptions(): Collection
+{
+    return $this->subscriptions;
+}
 
+public function addSubscription(Subscription $subscription): static
+{
+    if (!$this->subscriptions->contains($subscription)) {
+        $this->subscriptions->add($subscription);
+        $subscription->setUser($this);
+    }
+    return $this;
+}
+
+public function removeSubscription(Subscription $subscription): static
+{
+    if ($this->subscriptions->removeElement($subscription)) {
+        if ($subscription->getUser() === $this) {
+            $subscription->setUser(null);
+        }
+    }
+    return $this;
+}
+
+public function hasActiveSubscription(): bool
+{
+    foreach ($this->subscriptions as $subscription) {
+        if ($subscription->isActive()) {
+            return true;
+        }
+    }
+    return false;
+}
 }
