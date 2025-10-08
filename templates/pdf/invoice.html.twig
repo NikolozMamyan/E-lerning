@@ -1,7 +1,7 @@
 <h2>Facture</h2>
 
 <p><strong>Date :</strong> {{ date|date('d/m/Y') }}</p>
-<p><strong>Acheteur :</strong> {{ user.fullName }} ({{ user.email }})</p>
+<p><strong>Acheteur :</strong> {{ user.username}} ({{ user.email }})</p>
 <p><strong>Cours :</strong> {{ course.title }}</p>
 
 <p><strong>Montant HT :</strong> {{ amount|number_format(2, ',', ' ') }} €</p>
