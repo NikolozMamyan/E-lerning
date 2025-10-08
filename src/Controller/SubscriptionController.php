@@ -28,7 +28,7 @@ final class SubscriptionController extends AbstractController
         \Stripe\Stripe::setApiKey($_SERVER['STRIPE_SECRET_KEY'] ?? $_ENV['STRIPE_SECRET_KEY']);
 
         // ⚙️ ID du plan Stripe (récurrent)
-        $priceId = 'price_1SFsWLGYlvTXCIGyJNib1Bi6'; // à remplacer par ton vrai ID Stripe
+        $priceId = 'price_1SFEVoGYlvTXCIGyR8dbgFLA'; // à remplacer par ton vrai ID Stripe
 
         $session = \Stripe\Checkout\Session::create([
             'mode' => 'subscription',
