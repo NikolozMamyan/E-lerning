@@ -204,45 +204,45 @@
     <div class="subscription-container">
 
         <div class="subscription-header">
-            <h1>Débloquez l'accès Premium</h1>
-            <p>Accédez à tous les contenus et fonctionnalités</p>
+            <h1>Unlock Premium Access</h1>
+            <p>Get access to all content and features</p>
         </div>
 
         <div class="plan-card">
             <div class="plan-header">
-                <h2 class="plan-title">Plan Premium</h2>
+                <h2 class="plan-title">Premium Plan</h2>
                 
                 <div class="billing-toggle">
                     <label>
                         <input type="radio" name="billing" value="monthly" checked>
-                        Mensuel
+                        Monthly
                     </label>
-                    <label>
+                    {# <label>
                         <input type="radio" name="billing" value="yearly">
-                        Annuel
-                    </label>
+                        Yearly
+                    </label> #}
                 </div>
 
                 <div class="plan-price">
-                    €20<small>/mois</small>
+                    €29,90<small>/month</small>
                 </div>
             </div>
 
             <ul class="plan-features">
-                <li>Accès unique à toutes les vidéos existantes</li>
-                <li>Accès aux vidéos à venir pendant votre abonnement</li>
-                <li>Facturation mensuelle ou annuelle</li>
-                <li>Certificat de fin de parcours après quiz</li>
-                <li>Nouvelles vidéos publiées régulièrement</li>
+                <li>Exclusive access to all existing videos</li>
+                <li>Access to upcoming videos during your subscription</li>
+                <li>Monthly or yearly billing</li>
+                <li>Certificate of completion after quizzes</li>
+                <li>New videos published regularly</li>
             </ul>
 
             <form action="{{ path('app_subscription_checkout') }}" method="post">
                 <button type="submit" class="subscribe-btn">
-                    S'abonner maintenant
+                    Subscribe now
                 </button>
             </form>
 
-            <p class="engagement-note">Engagement de 12 mois</p>
+            <p class="engagement-note">12-month commitment</p>
         </div>
     </div>
 {% endblock %}
