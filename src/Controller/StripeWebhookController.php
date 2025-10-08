@@ -122,9 +122,7 @@ class StripeWebhookController extends AbstractController
         $interval = $stripeSubscription->items->data[0]->price->recurring->interval ?? 'month';
         $type = ($interval === 'year') ? 'yearly' : 'monthly';
         
-        $endDate = ($interval === 'year') 
-            ? (new \DateTime())->modify('+1 year')
-            : (new \DateTime())->modify('+1 month');
+$endDate = (new \DateTime())->modify('+1 year');
 
         $subscription->setStartDate(new \DateTime());
         $subscription->setEndDate($endDate);
