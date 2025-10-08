@@ -78,6 +78,37 @@ class StripeWebhookController extends AbstractController
         $amount = isset($session->amount_total) ? $session->amount_total / 100 : null;
         $currency = strtoupper($session->currency ?? 'EUR');
 
+        /*Subscription */
+        if ($event->type === 'invoice.payment_succeeded') {
+    $invoice = $event->data->object;
+    $customerId = $invoice->customer;
+    $subscriptionId = $invoice->subscription;
+
+    // On récupère la session ou le customer pour retrouver ton utilisateur
+    $stripe = new \Stripe\StripeClient($_ENV['STRIPE_SECRET_KEY']);
+    $customer = $stripe->customers->retrieve($customerId);
+
+    $user = $userRepo->findOneBy(['email' => $customer->email]);
+    if ($user) {
+        $subscription = $em->getRepository(Subscription::class)->findOneBy(['user' => $user]);
+        if (!$subscription) {
+            $subscription = new Subscription();
+            $subscription->setUser($user);
+        }
+
+        $subscription->setStartDate(new \DateTime());
+        $subscription->setEndDate((new \DateTime())->modify('+1 month'));
+        $subscription->setType('monthly');
+        $subscription->setIsActive(true);
+
+        $em->persist($subscription);
+        $em->flush();
+    }
+
+    return new Response('Subscription updated', 200);
+}
+
+
         // === Branche 1 : paiement employé (ton flux actuel) ====================
         if ($context === 'employee_purchase') {
             $userId = $metadata->user_id ?? null;
