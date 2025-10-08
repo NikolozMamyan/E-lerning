@@ -147,19 +147,22 @@ class StripeWebhookController extends AbstractController
             $em->flush();
 
             // Facture & notification (employé)
-            $mailer->send(
-                $user->getEmail(),
-                'Votre facture - ' . $course->getTitle(),
-                'emails/invoice.html.twig',
-                [
-                    'user'   => $user,
-                    'course' => $course,
-                    'amount' => $amount,
-                    'tva'    => null,
-                    'date'   => new \DateTime(),
-                    'currency' => $currency,
-                ]
-            );
+           $mailer->send(
+    $user->getEmail(),
+    'Votre facture - ' . $course->getTitle(),
+    'emails/invoice.html.twig', // template du mail
+    [
+        'user'     => $user,
+        'course'   => $course,
+        'amount'   => $amount,
+        'tva'      => null,
+        'date'     => new \DateTime(),
+        'currency' => $currency,
+    ],
+    'pdf/invoice.html.twig',      // template Twig du PDF (celui que tu as collé)
+    'facture-' . $course->getId() . '.pdf' // nom du fichier joint
+);
+
 
             try {
                 $notificationService->createEntityNotification(
