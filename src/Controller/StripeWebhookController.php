@@ -7,11 +7,12 @@ use App\Entity\Notification;
 use App\Entity\Subscription;
 use Psr\Log\LoggerInterface;
 use App\Service\MailerService;
-use App\Service\NotificationService;
 use App\Repository\UserRepository;
 use App\Repository\CourseRepository;
+use App\Service\NotificationService;
 use App\Repository\EnrollmentRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use App\Repository\SubscriptionRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -26,6 +27,7 @@ class StripeWebhookController extends AbstractController
         UserRepository $userRepo,
         CourseRepository $courseRepo,
         EnrollmentRepository $enrollmentRepo,
+        SubscriptionRepository $subscriptionRepo,
         MailerService $mailer,
         NotificationService $notificationService,
         LoggerInterface $logger
@@ -53,47 +55,115 @@ class StripeWebhookController extends AbstractController
         /* ==============================================================
          * 🧾 1. Gestion des abonnements (invoice.payment_succeeded)
          * ============================================================== */
-        if ($event->type === 'invoice.payment_succeeded') {
-            $invoice = $event->data->object;
-            $customerId = $invoice->customer ?? null;
-            $subscriptionId = $invoice->subscription ?? null;
+ if ($event->type === 'invoice.payment_succeeded') {
+    $invoice = $event->data->object;
+    $customerId = $invoice->customer ?? null;
+    $subscriptionId = $invoice->subscription ?? null;
 
-            if (!$customerId) {
-                $logger->warning('Stripe invoice without customer ID');
-                return new Response('Missing customer', 200);
-            }
+    $logger->info('🔍 DEBUT invoice.payment_succeeded', [
+        'customerId' => $customerId,
+        'subscriptionId' => $subscriptionId,
+        'invoice_id' => $invoice->id ?? null
+    ]);
 
-            $stripe = new \Stripe\StripeClient($_ENV['STRIPE_SECRET_KEY']);
-            $customer = $stripe->customers->retrieve($customerId);
+    if (!$customerId) {
+        $logger->warning('❌ Stripe invoice without customer ID');
+        return new Response('Missing customer', 200);
+    }
 
-            $user = $userRepo->findOneBy(['email' => $customer->email ?? null]);
-            if (!$user) {
-                $logger->warning('Subscription: user not found for Stripe customer', ['email' => $customer->email]);
-                return new Response('User not found', 200);
-            }
+    try {
+        $stripe = new \Stripe\StripeClient($_ENV['STRIPE_SECRET_KEY']);
+        $customer = $stripe->customers->retrieve($customerId);
+        
+        $customerEmail = $customer->email ?? null;
+        
+        $logger->info('📧 Customer Stripe récupéré', [
+            'email' => $customerEmail,
+            'customerId' => $customerId
+        ]);
 
-            $subscription = $em->getRepository(Subscription::class)->findOneBy(['user' => $user]);
-            if (!$subscription) {
-                $subscription = new Subscription();
-                $subscription->setUser($user);
-            }
-
-            $subscription->setStartDate(new \DateTime());
-            $subscription->setEndDate((new \DateTime())->modify('+1 month'));
-            $subscription->setType('monthly');
-            $subscription->setIsActive(true);
-            $subscription->setStripeSubscriptionId($subscriptionId ?? null);
-
-            $em->persist($subscription);
-            $em->flush();
-
-            $logger->info('Subscription updated/created', [
-                'user' => $user->getEmail(),
-                'subscriptionId' => $subscriptionId,
-            ]);
-
-            return new Response('Subscription updated', 200);
+        if (!$customerEmail) {
+            $logger->warning('❌ Customer Stripe sans email');
+            return new Response('Customer has no email', 200);
         }
+
+        $user = $userRepo->findOneBy(['email' => $customerEmail]);
+        
+        if (!$user) {
+            $logger->warning('❌ User not found in database', ['email' => $customerEmail]);
+            return new Response('User not found', 200);
+        }
+
+        $logger->info('✅ User trouvé', [
+            'userId' => $user->getId(),
+            'email' => $user->getEmail()
+        ]);
+
+        // Récupérer les détails de la subscription Stripe
+        $stripeSubscription = $stripe->subscriptions->retrieve($subscriptionId);
+        
+        $logger->info('📋 Subscription Stripe récupérée', [
+            'subscriptionId' => $subscriptionId,
+            'status' => $stripeSubscription->status,
+            'interval' => $stripeSubscription->items->data[0]->price->recurring->interval ?? 'unknown'
+        ]);
+
+        $subscription = $subscriptionRepo->findOneBy(['user' => $user]);
+        
+        if (!$subscription) {
+            $logger->info('➕ Création nouvelle subscription');
+            $subscription = new Subscription();
+            $subscription->setUser($user);
+        } else {
+            $logger->info('🔄 Mise à jour subscription existante', ['id' => $subscription->getId()]);
+        }
+
+        // Déterminer le type d'abonnement
+        $interval = $stripeSubscription->items->data[0]->price->recurring->interval ?? 'month';
+        $type = ($interval === 'year') ? 'yearly' : 'monthly';
+        
+        $endDate = ($interval === 'year') 
+            ? (new \DateTime())->modify('+1 year')
+            : (new \DateTime())->modify('+1 month');
+
+        $subscription->setStartDate(new \DateTime());
+        $subscription->setEndDate($endDate);
+        $subscription->setType($type);
+        $subscription->setIsActive(true);
+        $subscription->setStripeSubscriptionId($subscriptionId);
+
+        $logger->info('💾 Avant persist/flush', [
+            'type' => $type,
+            'startDate' => $subscription->getStartDate()->format('Y-m-d H:i:s'),
+            'endDate' => $subscription->getEndDate()->format('Y-m-d H:i:s'),
+        ]);
+
+        $em->persist($subscription);
+        $em->flush();
+
+        $logger->info('✅✅✅ Subscription SAVED successfully', [
+            'user' => $user->getEmail(),
+            'subscriptionId' => $subscriptionId,
+            'type' => $type,
+        ]);
+
+        return new Response('Subscription updated', 200);
+        
+    } catch (\Stripe\Exception\ApiErrorException $e) {
+        $logger->error('❌ Stripe API error', [
+            'error' => $e->getMessage(),
+            'code' => $e->getStripeCode()
+        ]);
+        return new Response('Stripe API error', 500);
+    } catch (\Exception $e) {
+        $logger->error('❌ Exception générale', [
+            'error' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine()
+        ]);
+        return new Response('Error', 500);
+    }
+}
 
         /* ==============================================================
          * 💳 2. Gestion des paiements uniques (checkout.session.completed)
