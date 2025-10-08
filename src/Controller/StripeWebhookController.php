@@ -130,7 +130,6 @@ class StripeWebhookController extends AbstractController
         $subscription->setEndDate($endDate);
         $subscription->setType($type);
         $subscription->setIsActive(true);
-        $subscription->setStripeSubscriptionId($subscriptionId);
 
         $logger->info('💾 Avant persist/flush', [
             'type' => $type,
