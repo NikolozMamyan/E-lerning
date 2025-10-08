@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Enrollment;
 use App\Entity\Notification;
+use App\Entity\Subscription;
 use Psr\Log\LoggerInterface;
 use App\Service\MailerService;
 use App\Service\NotificationService;
@@ -31,14 +32,14 @@ class StripeWebhookController extends AbstractController
     ): Response {
         $payload   = $request->getContent();
         $sigHeader = $request->headers->get('Stripe-Signature');
-        $secret    = $_SERVER['STRIPE_WEBHOOK_SECRET'] ?? $_ENV['STRIPE_WEBHOOK_SECRET'] ?? null;
+        $secret    = $_ENV['STRIPE_WEBHOOK_SECRET'] ?? $_SERVER['STRIPE_WEBHOOK_SECRET'] ?? null;
 
         if (!$secret) {
             return new Response('Webhook secret not configured', 500);
         }
 
         try {
-            \Stripe\Stripe::setApiKey($_SERVER['STRIPE_SECRET_KEY'] ?? $_ENV['STRIPE_SECRET_KEY']);
+            \Stripe\Stripe::setApiKey($_ENV['STRIPE_SECRET_KEY'] ?? $_SERVER['STRIPE_SECRET_KEY']);
             $event = \Stripe\Webhook::constructEvent($payload, $sigHeader, $secret);
         } catch (\UnexpectedValueException) {
             return new Response('Invalid payload', 400);
@@ -46,175 +47,176 @@ class StripeWebhookController extends AbstractController
             return new Response('Invalid signature', 400);
         }
 
-        if ($event->type !== 'checkout.session.completed') {
-            return new Response('Event ignored', 200);
-        }
+        // Log pour savoir quel type d’événement Stripe arrive
+        $logger->info('Stripe webhook received', ['type' => $event->type]);
 
-        /** @var \Stripe\Checkout\Session $session */
-        $session = $event->data->object;
-
-        // Sécurité: on ne traite que les paiements effectivement capturés
-        if (($session->payment_status ?? null) !== 'paid') {
-            return new Response('Ignored: not paid', 200);
-        }
-
-        // Idempotence simple: si on stocke session id / payment intent sur Enrollment, on peut ignorer ici
-        $paymentIntentId = is_string($session->payment_intent)
-            ? $session->payment_intent
-            : ($session->payment_intent->id ?? null);
-
-        $metadata = $session->metadata ?? (object)[];
-        $context  = $metadata->context ?? 'employee_purchase'; // valeur par défaut: rétro-compat
-
-        // Données communes
-        $courseId  = $metadata->course_id ?? null;
-        $course    = $courseId ? $courseRepo->find($courseId) : null;
-        if (!$course) {
-            $logger->warning('Webhook: course not found', ['courseId' => $courseId, 'sessionId' => $session->id ?? null]);
-            return new Response('Course not found', 200);
-        }
-
-        // Montant (pour facture / notifications)
-        $amount = isset($session->amount_total) ? $session->amount_total / 100 : null;
-        $currency = strtoupper($session->currency ?? 'EUR');
-
-        /*Subscription */
+        /* ==============================================================
+         * 🧾 1. Gestion des abonnements (invoice.payment_succeeded)
+         * ============================================================== */
         if ($event->type === 'invoice.payment_succeeded') {
-    $invoice = $event->data->object;
-    $customerId = $invoice->customer;
-    $subscriptionId = $invoice->subscription;
+            $invoice = $event->data->object;
+            $customerId = $invoice->customer ?? null;
+            $subscriptionId = $invoice->subscription ?? null;
 
-    // On récupère la session ou le customer pour retrouver ton utilisateur
-    $stripe = new \Stripe\StripeClient($_ENV['STRIPE_SECRET_KEY']);
-    $customer = $stripe->customers->retrieve($customerId);
-
-    $user = $userRepo->findOneBy(['email' => $customer->email]);
-    if ($user) {
-        $subscription = $em->getRepository(Subscription::class)->findOneBy(['user' => $user]);
-        if (!$subscription) {
-            $subscription = new Subscription();
-            $subscription->setUser($user);
-        }
-
-        $subscription->setStartDate(new \DateTime());
-        $subscription->setEndDate((new \DateTime())->modify('+1 month'));
-        $subscription->setType('monthly');
-        $subscription->setIsActive(true);
-
-        $em->persist($subscription);
-        $em->flush();
-    }
-
-    return new Response('Subscription updated', 200);
-}
-
-
-        // === Branche 1 : paiement employé (ton flux actuel) ====================
-        if ($context === 'employee_purchase') {
-            $userId = $metadata->user_id ?? null;
-
-            $user = $userId ? $userRepo->find($userId) : null;
-            if (!$user && !empty($session->customer_email)) {
-                $user = $userRepo->findOneBy(['email' => $session->customer_email]);
+            if (!$customerId) {
+                $logger->warning('Stripe invoice without customer ID');
+                return new Response('Missing customer', 200);
             }
+
+            $stripe = new \Stripe\StripeClient($_ENV['STRIPE_SECRET_KEY']);
+            $customer = $stripe->customers->retrieve($customerId);
+
+            $user = $userRepo->findOneBy(['email' => $customer->email ?? null]);
             if (!$user) {
-                $logger->warning('Webhook employee_purchase: user not found', [
-                    'userId' => $userId,
-                    'customer_email' => $session->customer_email ?? null,
-                    'sessionId' => $session->id ?? null,
-                ]);
+                $logger->warning('Subscription: user not found for Stripe customer', ['email' => $customer->email]);
                 return new Response('User not found', 200);
             }
 
-            // Idempotence enrollment
-            $existing = $enrollmentRepo->findOneBy(['user' => $user, 'course' => $course]);
-            if ($existing) {
-                return new Response('Enrollment already exists', 200);
+            $subscription = $em->getRepository(Subscription::class)->findOneBy(['user' => $user]);
+            if (!$subscription) {
+                $subscription = new Subscription();
+                $subscription->setUser($user);
             }
 
-            $enrollment = new Enrollment();
-            $enrollment->setUser($user);
-            $enrollment->setCourse($course);
+            $subscription->setStartDate(new \DateTime());
+            $subscription->setEndDate((new \DateTime())->modify('+1 month'));
+            $subscription->setType('monthly');
+            $subscription->setIsActive(true);
+            $subscription->setStripeSubscriptionId($subscriptionId ?? null);
 
-            if (property_exists(Enrollment::class, 'stripePaymentIntentId') && method_exists($enrollment, 'setStripePaymentIntentId')) {
-                $enrollment->setStripePaymentIntentId($paymentIntentId);
-            }
-            if (property_exists(Enrollment::class, 'stripeSessionId') && method_exists($enrollment, 'setStripeSessionId')) {
-                $enrollment->setStripeSessionId($session->id ?? null);
-            }
-
-            $em->persist($enrollment);
+            $em->persist($subscription);
             $em->flush();
 
-            // Facture & notification (employé)
-           $mailer->send(
-    $user->getEmail(),
-    'Votre facture - ' . $course->getTitle(),
-    'emails/invoice.html.twig', // template du mail
-    [
-        'user'     => $user,
-        'course'   => $course,
-        'amount'   => $amount,
-        'tva'      => null,
-        'date'     => new \DateTime(),
-        'currency' => $currency,
-    ],
-    'pdf/invoice.html.twig',      // template Twig du PDF (celui que tu as collé)
-    'facture-' . $course->getId() . '.pdf' // nom du fichier joint
-);
+            $logger->info('Subscription updated/created', [
+                'user' => $user->getEmail(),
+                'subscriptionId' => $subscriptionId,
+            ]);
 
-
-            try {
-                $notificationService->createEntityNotification(
-                    $user,
-                    '🎉 Payment confirmed!',
-                    $enrollment,
-                    "Your enrollment in the course \"{$course->getTitle()}\" has been confirmed. : {$amount}€",
-                    Notification::TYPE_SUCCESS,
-                    '/app/course/' . $course->getId(),
-                    'payment-success',
-                    Notification::PRIORITY_HIGH
-                );
-            } catch (\Throwable $e) {
-                $logger->error('Failed to create payment notification (employee)', ['error' => $e->getMessage()]);
-            }
-
-            return new Response('Enrollment created (employee)', 200);
+            return new Response('Subscription updated', 200);
         }
 
-        // === Branche 2 : paiement company (1 place) ============================
-        if ($context === 'company_single_seat') {
-            $companyUserId = $metadata->company_user_id ?? null; // l’admin qui a payé
-            $targetEmail   = $metadata->target_email    ?? null; // l’employé à inscrire
+        /* ==============================================================
+         * 💳 2. Gestion des paiements uniques (checkout.session.completed)
+         * ============================================================== */
+        if ($event->type === 'checkout.session.completed') {
+            /** @var \Stripe\Checkout\Session $session */
+            $session = $event->data->object;
 
-            if (!$targetEmail) {
-                $logger->warning('Webhook company_single_seat: target_email missing', ['sessionId' => $session->id ?? null]);
-                return new Response('target_email missing', 200);
+            if (($session->payment_status ?? null) !== 'paid') {
+                return new Response('Ignored: not paid', 200);
             }
 
-            // On cherche l’employé par email
-            $employee = $userRepo->findOneBy(['email' => $targetEmail]);
+            $paymentIntentId = is_string($session->payment_intent)
+                ? $session->payment_intent
+                : ($session->payment_intent->id ?? null);
 
-            if ($employee) {
-                // Idempotence: pas de doublon
-                $existing = $enrollmentRepo->findOneBy(['user' => $employee, 'course' => $course]);
-                if (!$existing) {
-                    $enrollment = new Enrollment();
-                    $enrollment->setUser($employee);
-                    $enrollment->setCourse($course);
+            $metadata = $session->metadata ?? (object)[];
+            $context  = $metadata->context ?? 'employee_purchase';
 
-                    if (property_exists(Enrollment::class, 'stripePaymentIntentId') && method_exists($enrollment, 'setStripePaymentIntentId')) {
-                        $enrollment->setStripePaymentIntentId($paymentIntentId);
-                    }
-                    if (property_exists(Enrollment::class, 'stripeSessionId') && method_exists($enrollment, 'setStripeSessionId')) {
-                        $enrollment->setStripeSessionId($session->id ?? null);
-                    }
+            $courseId  = $metadata->course_id ?? null;
+            $course    = $courseId ? $courseRepo->find($courseId) : null;
 
-                    $em->persist($enrollment);
-                    $em->flush();
+            if (!$course) {
+                $logger->warning('Webhook: course not found', [
+                    'courseId' => $courseId,
+                    'sessionId' => $session->id ?? null,
+                ]);
+                return new Response('Course not found', 200);
+            }
 
-                    // Notif à l’employé (accès activé)
-                    try {
+            $amount   = isset($session->amount_total) ? $session->amount_total / 100 : null;
+            $currency = strtoupper($session->currency ?? 'EUR');
+
+            // === Branche 1 : achat employé ===
+            if ($context === 'employee_purchase') {
+                $userId = $metadata->user_id ?? null;
+                $user = $userId ? $userRepo->find($userId) : null;
+
+                if (!$user && !empty($session->customer_email)) {
+                    $user = $userRepo->findOneBy(['email' => $session->customer_email]);
+                }
+
+                if (!$user) {
+                    $logger->warning('Employee purchase: user not found', [
+                        'userId' => $userId,
+                        'email'  => $session->customer_email ?? null,
+                    ]);
+                    return new Response('User not found', 200);
+                }
+
+                // Éviter les doublons
+                if ($enrollmentRepo->findOneBy(['user' => $user, 'course' => $course])) {
+                    return new Response('Enrollment already exists', 200);
+                }
+
+                $enrollment = new Enrollment();
+                $enrollment->setUser($user);
+                $enrollment->setCourse($course);
+
+                if (method_exists($enrollment, 'setStripePaymentIntentId')) {
+                    $enrollment->setStripePaymentIntentId($paymentIntentId);
+                }
+                if (method_exists($enrollment, 'setStripeSessionId')) {
+                    $enrollment->setStripeSessionId($session->id ?? null);
+                }
+
+                $em->persist($enrollment);
+                $em->flush();
+
+                // Envoi facture
+                $mailer->send(
+                    $user->getEmail(),
+                    'Votre facture - ' . $course->getTitle(),
+                    'emails/invoice.html.twig',
+                    [
+                        'user'     => $user,
+                        'course'   => $course,
+                        'amount'   => $amount,
+                        'tva'      => null,
+                        'date'     => new \DateTime(),
+                        'currency' => $currency,
+                    ],
+                    'pdf/invoice.html.twig',
+                    'facture-' . $course->getId() . '.pdf'
+                );
+
+                // Notification
+                try {
+                    $notificationService->createEntityNotification(
+                        $user,
+                        '🎉 Payment confirmed!',
+                        $enrollment,
+                        "Your enrollment in the course \"{$course->getTitle()}\" has been confirmed. ({$amount}€)",
+                        Notification::TYPE_SUCCESS,
+                        '/app/course/' . $course->getId(),
+                        'payment-success',
+                        Notification::PRIORITY_HIGH
+                    );
+                } catch (\Throwable $e) {
+                    $logger->error('Failed to create notification', ['error' => $e->getMessage()]);
+                }
+
+                return new Response('Enrollment created', 200);
+            }
+
+            // === Branche 2 : achat entreprise (1 place) ===
+            if ($context === 'company_single_seat') {
+                $targetEmail = $metadata->target_email ?? null;
+                if (!$targetEmail) {
+                    $logger->warning('company_single_seat: target_email missing');
+                    return new Response('Missing target_email', 200);
+                }
+
+                $employee = $userRepo->findOneBy(['email' => $targetEmail]);
+
+                if ($employee) {
+                    if (!$enrollmentRepo->findOneBy(['user' => $employee, 'course' => $course])) {
+                        $enrollment = new Enrollment();
+                        $enrollment->setUser($employee);
+                        $enrollment->setCourse($course);
+                        $em->persist($enrollment);
+                        $em->flush();
+
                         $notificationService->createEntityNotification(
                             $employee,
                             '👋 You’ve been enrolled',
@@ -225,36 +227,22 @@ class StripeWebhookController extends AbstractController
                             'company-enrollment',
                             Notification::PRIORITY_NORMAL
                         );
-                    } catch (\Throwable $e) {
-                        $logger->error('Failed to notify employee (company_single_seat)', ['error' => $e->getMessage()]);
                     }
-                }
-            } else {
-                // L’employé n’existe pas encore.
-                // Ici deux options:
-                // 1) Envoyer une invitation à créer un compte, et mémoriser l’assignation en attente (table PendingAssignment)
-                // 2) Se contenter d’envoyer un email d’invitation sans persistence (risque de perte)
-                // -> On choisit 1) si tu as l’entité; sinon au moins un email d’invitation:
-                try {
+                } else {
                     $mailer->send(
                         $targetEmail,
                         'Your company bought you a course',
                         'emails/company_invite.html.twig',
                         [
                             'course' => $course,
-                            'company_email' => $session->customer_details->email ?? null,
                             'signup_url' => $this->generateUrl('show_register', [], \Symfony\Component\Routing\Generator\UrlGeneratorInterface::ABSOLUTE_URL),
                         ]
                     );
-                } catch (\Throwable $e) {
-                    $logger->error('Failed to send invite email', ['targetEmail' => $targetEmail, 'error' => $e->getMessage()]);
                 }
-            }
 
-            // Facture à l’admin/company (acheteur)
-            $buyerEmail = $session->customer_details->email ?? $session->customer_email ?? null;
-            if ($buyerEmail) {
-                try {
+                // Facture à l’acheteur
+                $buyerEmail = $session->customer_details->email ?? $session->customer_email ?? null;
+                if ($buyerEmail) {
                     $mailer->send(
                         $buyerEmail,
                         'Votre facture - ' . $course->getTitle(),
@@ -267,32 +255,26 @@ class StripeWebhookController extends AbstractController
                             'target'   => $targetEmail,
                         ]
                     );
-                } catch (\Throwable $e) {
-                    $logger->error('Failed to send company invoice', ['error' => $e->getMessage()]);
                 }
+
+                return new Response('Processed company_single_seat', 200);
             }
 
-            return new Response('Processed company_single_seat', 200);
+            // === Branche 3 : pack entreprise ===
+            if ($context === 'company_pack') {
+                $logger->info('company_pack received', [
+                    'courseId' => $courseId,
+                    'quantity' => (int)($metadata->quantity ?? 1),
+                ]);
+                return new Response('Processed company_pack', 200);
+            }
+
+            // Contexte inconnu
+            $logger->warning('Unknown context in checkout', ['context' => $context]);
+            return new Response('Unknown context', 200);
         }
 
-        // === (Optionnel) Branche 3 : paiement company (pack de sièges) ========
-        if ($context === 'company_pack') {
-            // Ici, au lieu de créer des Enrollment tout de suite,
-            // tu peux créer/mettre à jour une entité CompanyCoursePurchase
-            // avec remaining_seats = (int)($metadata->quantity ?? 1).
-            // Puis, dans ton backoffice company, l’admin assigne des emails un par un
-            // en décrémentant remaining_seats.
-            // Laisse un log pour te rappeler de l’implémenter si pas encore fait:
-            $logger->info('company_pack purchase received', [
-                'courseId' => $courseId,
-                'quantity' => (int)($metadata->quantity ?? 1),
-                'sessionId' => $session->id ?? null,
-            ]);
-            return new Response('Processed company_pack (stub)', 200);
-        }
-
-        // Si on tombe ici, contexte inconnu → on ne casse pas le flux Stripe
-        $logger->warning('Unknown context in webhook', ['context' => $context]);
-        return new Response('Unknown context', 200);
+        // Si on reçoit un autre event → on l’ignore proprement
+        return new Response('Event ignored', 200);
     }
 }
