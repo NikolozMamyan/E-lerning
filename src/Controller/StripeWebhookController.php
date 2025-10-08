@@ -55,7 +55,7 @@ class StripeWebhookController extends AbstractController
         /* ==============================================================
          * 🧾 1. Gestion des abonnements (invoice.payment_succeeded)
          * ============================================================== */
- if ($event->type === 'invoice.payment_succeeded') {
+if ($event->type === 'invoice.payment_succeeded') {
     $invoice = $event->data->object;
     $customerId = $invoice->customer ?? null;
     $subscriptionId = $invoice->subscription ?? null;
@@ -99,15 +99,6 @@ class StripeWebhookController extends AbstractController
             'email' => $user->getEmail()
         ]);
 
-        // Récupérer les détails de la subscription Stripe
-        $stripeSubscription = $stripe->subscriptions->retrieve($subscriptionId);
-        
-        $logger->info('📋 Subscription Stripe récupérée', [
-            'subscriptionId' => $subscriptionId,
-            'status' => $stripeSubscription->status,
-            'interval' => $stripeSubscription->items->data[0]->price->recurring->interval ?? 'unknown'
-        ]);
-
         $subscription = $subscriptionRepo->findOneBy(['user' => $user]);
         
         if (!$subscription) {
@@ -118,19 +109,14 @@ class StripeWebhookController extends AbstractController
             $logger->info('🔄 Mise à jour subscription existante', ['id' => $subscription->getId()]);
         }
 
-        // Déterminer le type d'abonnement
-        $interval = $stripeSubscription->items->data[0]->price->recurring->interval ?? 'month';
-        $type = ($interval === 'year') ? 'yearly' : 'monthly';
-        
-$endDate = (new \DateTime())->modify('+1 year');
-
+        // 👇 Abonnement mensuel avec engagement 1 an
         $subscription->setStartDate(new \DateTime());
-        $subscription->setEndDate($endDate);
-        $subscription->setType($type);
+        $subscription->setEndDate((new \DateTime())->modify('+1 year')); // Engagement 1 an
+        $subscription->setType('monthly');
         $subscription->setIsActive(true);
 
         $logger->info('💾 Avant persist/flush', [
-            'type' => $type,
+            'type' => 'monthly',
             'startDate' => $subscription->getStartDate()->format('Y-m-d H:i:s'),
             'endDate' => $subscription->getEndDate()->format('Y-m-d H:i:s'),
         ]);
@@ -140,8 +126,8 @@ $endDate = (new \DateTime())->modify('+1 year');
 
         $logger->info('✅✅✅ Subscription SAVED successfully', [
             'user' => $user->getEmail(),
-            'subscriptionId' => $subscriptionId,
-            'type' => $type,
+            'type' => 'monthly',
+            'engagement' => '1 year',
         ]);
 
         return new Response('Subscription updated', 200);
@@ -156,7 +142,8 @@ $endDate = (new \DateTime())->modify('+1 year');
         $logger->error('❌ Exception générale', [
             'error' => $e->getMessage(),
             'file' => $e->getFile(),
-            'line' => $e->getLine()
+            'line' => $e->getLine(),
+            'trace' => $e->getTraceAsString()
         ]);
         return new Response('Error', 500);
     }
