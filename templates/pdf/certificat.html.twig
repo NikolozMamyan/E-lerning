@@ -1,51 +1,119 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
+    <title>Facture</title>
     <style>
-        @page {
-            size: A4 landscape;
-            margin: 0;
-        }
         body {
             font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            color: #333;
+        }
+        .header {
             text-align: center;
+            border-bottom: 3px solid #2c3e50;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            color: #2c3e50;
             margin: 0;
-            padding: 0;
-        }
-        .container {
-            position: relative;
-            width: 100%;
-            height: 100%;
-        }
-        .name {
-            position: absolute;
-            top: 300px;
-            left: 0;
-            right: 0;
             font-size: 32px;
+        }
+        .section {
+            margin-bottom: 30px;
+        }
+        .section-title {
+            background-color: #ecf0f1;
+            padding: 10px;
             font-weight: bold;
-            text-decoration: underline;
+            color: #2c3e50;
+            margin-bottom: 15px;
         }
-        .date {
-            position: absolute;
-            bottom: 120px;
-            left: 120px;
+        .info-line {
+            padding: 8px 0;
+            border-bottom: 1px solid #ecf0f1;
+        }
+        .info-label {
+            display: inline-block;
+            width: 150px;
+            font-weight: bold;
+            color: #555;
+        }
+        .total-section {
+            margin-top: 30px;
+            border-top: 2px solid #2c3e50;
+            padding-top: 15px;
+        }
+        .total-line {
+            padding: 10px;
             font-size: 16px;
         }
-        .director {
-            position: absolute;
-            bottom: 120px;
-            right: 120px;
-            font-size: 16px;
+        .total-ttc {
+            background-color: #2c3e50;
+            color: white;
+            padding: 15px;
+            font-size: 20px;
+            font-weight: bold;
+            text-align: right;
+            margin-top: 10px;
+        }
+        .footer {
+            margin-top: 50px;
+            text-align: center;
+            font-size: 12px;
+            color: #7f8c8d;
+            border-top: 1px solid #ecf0f1;
+            padding-top: 20px;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="name">{{ name }}</div>
-        <div class="date">{{ date }}</div>
-        <div class="director">Director</div>
+    <div class="header">
+        <h1>FACTURE</h1>
+        <p style="margin: 10px 0 0 0; color: #7f8c8d;">{{ date|date('d/m/Y') }}</p>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Informations client</div>
+        <div class="info-line">
+            <span class="info-label">Acheteur :</span>
+            <span>{{ user.username }}</span>
+        </div>
+        <div class="info-line">
+            <span class="info-label">Email :</span>
+            <span>{{ user.email }}</span>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Détail de l'achat</div>
+        <div class="info-line">
+            <span class="info-label">Cours :</span>
+            <span>{{ course.title }}</span>
+        </div>
+    </div>
+
+    <div class="total-section">
+        <div class="total-line">
+            <span class="info-label">Montant HT :</span>
+            <span>{{ amount|number_format(2, ',', ' ') }} €</span>
+        </div>
+        {% if tva is not null %}
+        <div class="total-line">
+            <span class="info-label">TVA ({{ tva }}%) :</span>
+            <span>{{ (amount * tva / 100)|number_format(2, ',', ' ') }} €</span>
+        </div>
+        {% endif %}
+        <div class="total-ttc">
+            TOTAL TTC : {{ (amount + (tva ? (amount * tva / 100) : 0))|number_format(2, ',', ' ') }} €
+        </div>
+    </div>
+
+    <div class="footer">
+        Merci pour votre achat
     </div>
 </body>
 </html>
