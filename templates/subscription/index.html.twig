@@ -11,110 +11,251 @@
             --black: #071717;
             --mint: #E7F3F3;
             --grey: #606060;
+            --light-grey: #8F8F8F;
             --white: #FFFFFF;
             --bg: #f4f9f8;
-            --radius: 12px;
+            --radius: 16px;
+            --radius-sm: 8px;
             --shadow: 0 4px 12px rgba(7, 23, 23, .08);
+            --shadow-lg: 0 8px 24px rgba(7, 23, 23, .12);
         }
 
         body {
             background-color: var(--bg);
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            margin: 0;
+            padding: 0;
         }
 
         .subscription-container {
-            max-width: 480px;
-            margin: 60px auto;
-            padding: 20px;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
 
+        /* Back link */
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 24px;
+            color: var(--teal);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+        }
+
+        .back-link:hover {
+            color: var(--green);
+            gap: 12px;
+        }
+
+        .back-link::before {
+            content: '←';
+            font-size: 1.2rem;
+        }
+
+        /* Layout flex principal */
+        .subscription-content {
+            display: flex;
+            gap: 48px;
+            align-items: center;
+            justify-content: space-around;
+        }
+
+        /* Header à gauche */
         .subscription-header {
-            text-align: center;
-            margin-bottom: 40px;
+            flex: 1;
+            max-width: 480px;
         }
 
         .subscription-header h1 {
             color: var(--black);
-            font-size: 2rem;
-            margin-bottom: 12px;
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            letter-spacing: -1px;
+            line-height: 1.1;
         }
 
         .subscription-header p {
             color: var(--grey);
-            font-size: 1.1rem;
+            font-size: 1.15rem;
+            font-weight: 400;
+            line-height: 1.6;
+            margin-bottom: 24px;
         }
 
+        /* Liste de bénéfices additionnels */
+        .header-benefits {
+            list-style: none;
+            padding: 0;
+            margin: 32px 0 0 0;
+        }
+
+        .header-benefits li {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+            color: var(--grey);
+            font-size: 0.95rem;
+        }
+
+        .header-benefits li::before {
+            content: '✓';
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            background: var(--mint);
+            color: var(--teal);
+            border-radius: 50%;
+            flex-shrink: 0;
+            font-weight: 700;
+            font-size: 0.8rem;
+        }
+
+        /* Card à droite */
         .plan-card {
-            background: linear-gradient(135deg, var(--teal), var(--green));
+            flex: 0 0 480px;
+            background: linear-gradient(135deg, #0D8383 0%, #1A6D55 100%);
             border-radius: var(--radius);
-            padding: 40px 32px;
-            box-shadow: var(--shadow);
+            padding: 40px 36px;
+            box-shadow: var(--shadow-lg);
             color: var(--white);
             position: relative;
             overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
-        .plan-card::before,
+        .plan-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 32px rgba(7, 23, 23, .16);
+        }
+
+        /* Effets de background */
+        .plan-card::before {
+            content: '';
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
+            top: -100px;
+            right: -100px;
+            pointer-events: none;
+        }
+
         .plan-card::after {
             content: '';
             position: absolute;
-            width: 60px;
-            height: 60px;
+            width: 150px;
+            height: 150px;
             border-radius: 50%;
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .plan-card::before {
-            top: -20px;
-            left: -20px;
-        }
-
-        .plan-card::after {
-            bottom: -20px;
-            right: -20px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+            bottom: -75px;
+            left: -75px;
+            pointer-events: none;
         }
 
         .plan-header {
             text-align: center;
             margin-bottom: 32px;
             position: relative;
+            z-index: 1;
         }
 
-        .plan-title {
-            font-size: 1.5rem;
+        /* Badge Premium */
+        .premium-badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.75rem;
             font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
             margin-bottom: 16px;
         }
 
+        .plan-title {
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: 24px;
+            letter-spacing: -0.5px;
+        }
+
+        /* Toggle de facturation */
         .billing-toggle {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 20px;
+            display: inline-flex;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 30px;
+            padding: 4px;
+            gap: 4px;
+            margin-bottom: 24px;
+        }
+
+        .billing-toggle label {
+            padding: 10px 20px;
+            border-radius: 26px;
+            cursor: pointer;
+            transition: all 0.3s ease;
             font-size: 0.9rem;
+            font-weight: 500;
+            position: relative;
         }
 
         .billing-toggle input[type="radio"] {
-            margin-right: 4px;
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
         }
 
+        .billing-toggle input[type="radio"]:checked + label,
+        .billing-toggle label:has(input:checked) {
+            background: var(--white);
+            color: var(--teal);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Prix */
         .plan-price {
-            font-size: 3rem;
-            font-weight: 700;
-            margin-bottom: 4px;
+            font-size: 3.2rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+            line-height: 1;
+            letter-spacing: -2px;
         }
 
         .plan-price small {
             font-size: 1.2rem;
             font-weight: 400;
-            opacity: 0.9;
+            opacity: 0.85;
+            letter-spacing: 0;
         }
 
+        .price-description {
+            font-size: 0.9rem;
+            opacity: 0.85;
+            margin-top: 8px;
+        }
+
+        /* Features */
         .plan-features {
             list-style: none;
             padding: 0;
             margin: 32px 0;
+            position: relative;
+            z-index: 1;
         }
 
         .plan-features li {
@@ -122,7 +263,7 @@
             align-items: flex-start;
             gap: 12px;
             margin-bottom: 16px;
-            font-size: 1rem;
+            font-size: 0.95rem;
             line-height: 1.5;
         }
 
@@ -133,60 +274,154 @@
             justify-content: center;
             width: 24px;
             height: 24px;
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px);
             border-radius: 50%;
             flex-shrink: 0;
-            font-weight: bold;
+            font-weight: 700;
+            font-size: 0.85rem;
         }
 
+        /* Bouton CTA */
         .subscribe-btn {
             width: 100%;
             background: var(--white);
             color: var(--teal);
             border: none;
-            border-radius: var(--radius);
-            padding: 16px 32px;
+            border-radius: var(--radius-sm);
+            padding: 18px 32px;
             font-size: 1.1rem;
-            font-weight: 600;
+            font-weight: 700;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: all 0.3s ease;
             position: relative;
+            z-index: 1;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            letter-spacing: 0.3px;
         }
 
         .subscribe-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+            background: #f8f8f8;
         }
 
         .subscribe-btn:active {
             transform: translateY(0);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
         }
 
+        /* Note d'engagement */
         .engagement-note {
             text-align: center;
             margin-top: 16px;
             font-size: 0.85rem;
-            opacity: 0.8;
-            font-style: italic;
+            opacity: 0.75;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
         }
 
-        .back-link {
-            display: inline-block;
-            margin-bottom: 24px;
-            color: var(--teal);
-            text-decoration: none;
-            font-weight: 500;
-            transition: color 0.2s;
+        .engagement-note::before {
+            content: 'ℹ';
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 16px;
+            height: 16px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            font-size: 0.7rem;
+            font-weight: bold;
         }
 
-        .back-link:hover {
+        /* Trust indicators */
+        .trust-indicators {
+            display: flex;
+            justify-content: center;
+            gap: 32px;
+            margin-top: 48px;
+            padding-top: 32px;
+            border-top: 1px solid rgba(96, 96, 96, 0.15);
+        }
+
+        .trust-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--grey);
+            font-size: 0.9rem;
+        }
+
+        .trust-item::before {
+            content: '✓';
             color: var(--green);
+            font-weight: bold;
+            font-size: 1.1rem;
         }
 
-        @media (max-width: 480px) {
+        /* Loading state */
+        .subscribe-btn.loading {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        .subscribe-btn.loading::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--teal);
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            right: 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 968px) {
+            .subscription-content {
+                flex-direction: column;
+                gap: 40px;
+            }
+
+            .subscription-header {
+                max-width: 100%;
+                text-align: center;
+            }
+
+            .subscription-header h1 {
+                font-size: 2.5rem;
+            }
+
+            .header-benefits {
+                max-width: 500px;
+                margin: 32px auto 0;
+            }
+
+            .plan-card {
+                flex: 1;
+                width: 100%;
+                max-width: 500px;
+            }
+        }
+
+        @media (max-width: 560px) {
             .subscription-container {
-                margin: 20px auto;
-                padding: 16px;
+                padding: 24px 16px;
+            }
+
+            .subscription-header h1 {
+                font-size: 2rem;
+            }
+
+            .subscription-header p {
+                font-size: 1rem;
             }
 
             .plan-card {
@@ -194,55 +429,95 @@
             }
 
             .plan-price {
-                font-size: 2.5rem;
+                font-size: 2.8rem;
+            }
+
+            .trust-indicators {
+                flex-direction: column;
+                gap: 12px;
+                align-items: center;
+            }
+
+            .billing-toggle {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .billing-toggle label {
+                width: 100%;
+                text-align: center;
             }
         }
     </style>
 {% endblock %}
 
 {% block body %}
-    <div class="subscription-container">
 
-        <div class="subscription-header">
-            <h1>Unlock Premium Access</h1>
-            <p>Get access to all content and features</p>
-        </div>
-
-        <div class="plan-card">
-            <div class="plan-header">
-                <h2 class="plan-title">Premium Plan</h2>
+        <div class="subscription-content">
+            <div class="subscription-header">
+                <h1>Unlock Premium Access</h1>
+                <p>Get full access to all our exclusive content, early releases, and earn official certificates. Join thousands of learners advancing their skills.</p>
                 
-                <div class="billing-toggle">
-                    <label>
-                        <input type="radio" name="billing" value="monthly" checked>
-                        Monthly
-                    </label>
-                    {# <label>
-                        <input type="radio" name="billing" value="yearly">
-                        Yearly
-                    </label> #}
-                </div>
-
-                <div class="plan-price">
-                    €29,90<small>/month</small>
-                </div>
+                <ul class="header-benefits">
+                    <li>Secure payment with Stripe</li>
+                    <li>New content added monthly</li>
+                </ul>
             </div>
 
-            <ul class="plan-features">
-                <li>Exclusive access to all existing videos</li>
-                <li>Access to upcoming videos during your subscription</li>
-                <li>Monthly or yearly billing</li>
-                <li>Certificate of completion after quizzes</li>
-                <li>New videos published regularly</li>
-            </ul>
+            <div class="plan-card">
+                <div class="plan-header">
+                    <span class="premium-badge">Most popular</span>
+                    <h2 class="plan-title">Premium Plan</h2>
+                    
+                    <div class="billing-toggle">
+                        <input type="radio" name="billing" value="monthly" id="monthly" checked>
+                        <label for="monthly">Monthly</label>
+                    </div>
 
-            <form action="{{ path('app_subscription_checkout') }}" method="post">
-                <button type="submit" class="subscribe-btn">
-                    Subscribe now
-                </button>
-            </form>
+                    <div class="plan-price">
+                        €29<small>,90/mo</small>
+                    </div>
+                    <p class="price-description">Billed monthly</p>
+                </div>
 
-            <p class="engagement-note">12-month commitment</p>
+                <ul class="plan-features">
+                    <li>Unlimited access to all existing videos</li>
+                    <li>Early access to new content releases</li>
+                    <li>Flexible monthly or yearly billing</li>
+                    <li>Official certificate after quiz completion</li>
+                    <li>Regular updates with new videos</li>
+                </ul>
+
+                <form action="{{ path('app_subscription_checkout') }}" method="post" id="subscriptionForm">
+                    <button type="submit" class="subscribe-btn">
+                        Start your subscription
+                    </button>
+                </form>
+
+                <p class="engagement-note">12-month commitment required</p>
+            </div>
         </div>
-    </div>
+
+    <script>
+        document.getElementById('subscriptionForm')?.addEventListener('submit', function(e) {
+            const btn = this.querySelector('.subscribe-btn');
+            btn.classList.add('loading');
+            btn.textContent = 'Processing...';
+        });
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelector('.plan-card')?.style.setProperty('opacity', '0');
+        document.querySelector('.plan-card')?.style.setProperty('transform', 'translateY(20px)');
+        document.querySelector('.plan-card')?.style.setProperty('transition', 'all 0.6s ease');
+        
+        observer.observe(document.querySelector('.plan-card'));
+    </script>
 {% endblock %}
