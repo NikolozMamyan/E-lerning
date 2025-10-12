@@ -11,7 +11,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 final class ContactController extends AbstractController
 {
-    #[Route('/app/contact', name: 'app_contact')]
+    #[Route('/contact', name: 'app_contact')]
         public function contact(Request $request, MailerService $mailService): Response
     {
         if ($request->isMethod('POST')) {

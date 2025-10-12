@@ -93,7 +93,7 @@ public function register(
         Cookie::create('AUTH_TOKEN')
             ->withValue($token)
             ->withHttpOnly(true)
-            ->withSecure(false) // en prod : true
+            ->withSecure(true) // en prod : true
             ->withPath('/')
             ->withExpires($expiresAt->getTimestamp())
     );
@@ -139,7 +139,7 @@ public function register(
             Cookie::create('AUTH_TOKEN')
                 ->withValue($token)
                 ->withHttpOnly(true)
-                ->withSecure(false)
+                ->withSecure(true)
                 ->withPath('/')
                 ->withExpires($expiresAt->getTimestamp())
         );
@@ -233,7 +233,7 @@ public function googleCallback(ClientRegistry $clientRegistry, EntityManagerInte
         Cookie::create('AUTH_TOKEN')
             ->withValue($token)
             ->withHttpOnly(true)
-            ->withSecure(false) // mettre true en prod
+            ->withSecure(true) // mettre true en prod
             ->withPath('/')
             ->withExpires($expiresAt->getTimestamp())
     );

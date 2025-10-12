@@ -54,10 +54,20 @@ public function index(
         $enrollments = $enrollmentRepo->findByUserWithCourse($user);
     }
 
+
+
+        // récupère les employés de l’entreprise
+        $employees = $user->getCollaborationsAsCompany()
+                          ->map(fn($c) => $c->getEmployee());
+
+
+         $collaborations = $user->getCollaborationsAsCompany();
     return $this->render('company/dashboard/index.html.twig', [
         'courses' => $courses,
         'progressData' => $progressData,
         'enrollments' => $enrollments,
+        'employees' => $employees,
+        'collaborations' => $collaborations
     ]);
 }
 

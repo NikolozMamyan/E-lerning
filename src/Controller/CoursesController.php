@@ -24,6 +24,7 @@ public function index(
     $courses = $courseRepo->findAll();
 
     // Préparer tableau des accès
+    $subscription =$user->hasActiveSubscription();
     $access = [];
     if ($user) {
         foreach ($courses as $course) {
@@ -31,7 +32,7 @@ public function index(
                 'user' => $user,
                 'course' => $course,
             ]);
-            $access[$course->getId()] = (bool) $enrollment;
+            $access[$course->getId()] = $subscription || (bool) $enrollment;
         }
     }
 
