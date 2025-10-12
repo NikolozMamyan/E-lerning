@@ -454,6 +454,7 @@
 {% block body %}
 
         <div class="subscription-content">
+        {% if not subscription %}
             <div class="subscription-header">
                 <h1>Unlock Premium Access</h1>
                 <p>Get full access to all our exclusive content, early releases, and earn official certificates. Join thousands of learners advancing their skills.</p>
@@ -520,4 +521,232 @@
         
         observer.observe(document.querySelector('.plan-card'));
     </script>
+{% else %}
+    <div class="subscription-header" style="max-width: 100%; text-align: center;">
+        <div class="already-subscribed-card">
+            <div class="success-icon-wrapper">
+                <div class="success-icon-bg"></div>
+                <img src="{{ asset('images/congrats.svg') }}" alt="Premium Active" class="success-icon" />
+            </div>
+            
+            <h2 class="already-subscribed-title">You're all set! 🎉</h2>
+            <p class="already-subscribed-description">
+                You already have an active Premium subscription. Enjoy unlimited access to all our content.
+            </p>
+
+            <div class="subscription-benefits-grid">
+                <div class="benefit-card">
+                    <span class="benefit-icon">📚</span>
+                    <span class="benefit-text">All videos unlocked</span>
+                </div>
+                <div class="benefit-card">
+                    <span class="benefit-icon">⚡</span>
+                    <span class="benefit-text">Early access active</span>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <a href="{{ path('app_courses') }}" class="btn-primary">
+                    Browse Content
+                </a>
+                <a href="{{ path('app_dashboard') }}" class="btn-secondary">
+                    Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+    <style>
+    /* Already Subscribed Styles */
+.already-subscribed-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 64px 48px;
+    box-shadow: var(--shadow-lg);
+    max-width: 600px;
+    margin: 0 auto;
+    position: relative;
+    overflow: hidden;
+}
+
+.already-subscribed-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background: linear-gradient(90deg, var(--teal) 0%, var(--green) 100%);
+}
+
+.success-icon-wrapper {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 32px;
+}
+
+.success-icon-bg {
+    position: absolute;
+    width: 120px;
+    height: 120px;
+    background: linear-gradient(135deg, rgba(13, 131, 131, 0.1) 0%, rgba(26, 109, 85, 0.1) 100%);
+    border-radius: 50%;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 0.5;
+    }
+    50% {
+        transform: scale(1.1);
+        opacity: 0.3;
+    }
+}
+
+.success-icon {
+    width: 100px;
+    height: 100px;
+    position: relative;
+    z-index: 1;
+    animation: fadeInScale 0.6s ease-out;
+}
+
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.already-subscribed-title {
+    color: var(--black);
+    font-size: 2.2rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+    letter-spacing: -0.5px;
+}
+
+.already-subscribed-description {
+    color: var(--grey);
+    font-size: 1.1rem;
+    line-height: 1.6;
+    margin-bottom: 40px;
+    max-width: 480px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Benefits Grid */
+.subscription-benefits-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 16px;
+    margin-bottom: 40px;
+}
+
+.benefit-card {
+    background: var(--mint);
+    border-radius: var(--radius-sm);
+    padding: 20px 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+}
+
+.benefit-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow);
+}
+
+.benefit-icon {
+    font-size: 2rem;
+}
+
+.benefit-text {
+    color: var(--grey);
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-align: center;
+}
+
+/* Action Buttons */
+.action-buttons {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.btn-primary, .btn-secondary {
+    padding: 16px 32px;
+    border-radius: var(--radius-sm);
+    font-size: 1rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--teal) 0%, var(--green) 100%);
+    color: var(--white);
+    box-shadow: var(--shadow);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.btn-secondary {
+    background: var(--white);
+    color: var(--teal);
+    border: 2px solid var(--mint);
+}
+
+.btn-secondary:hover {
+    background: var(--mint);
+    border-color: var(--teal);
+}
+
+/* Responsive pour la partie already subscribed */
+@media (max-width: 560px) {
+    .already-subscribed-card {
+        padding: 48px 24px;
+    }
+
+    .already-subscribed-title {
+        font-size: 1.8rem;
+    }
+
+    .already-subscribed-description {
+        font-size: 1rem;
+    }
+
+    .subscription-benefits-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .action-buttons {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .btn-primary, .btn-secondary {
+        width: 100%;
+        justify-content: center;
+    }
+}
+    </style>
+{% endif %}
 {% endblock %}

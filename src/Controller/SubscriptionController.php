@@ -12,8 +12,18 @@ final class SubscriptionController extends AbstractController
     #[Route('/app/pay/subscription/plan', name: 'app_subscription')]
     public function subscription(): Response
     {
+
+        $user = $this->getUser();
+
+        if (!$user) {
+            return $this->redirectToRoute('show_login');
+        }
+
+        $user = $this->getUser();
+        $subscription = $user->hasActiveSubscription();
+      
         return $this->render('subscription/index.html.twig', [
-            'controller' => 'SubscriptionController',
+            'subscription' => $subscription,
         ]);
     }
 

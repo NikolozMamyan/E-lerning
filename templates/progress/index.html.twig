@@ -5,34 +5,6 @@
 {% block body %}
 
 <div class="courses-wrapper">
-
-  <h2>All Courses</h2>
-  <div class="courses-grid">
-    {% for item in coursesData %}
-      <div class="course-card {{ item.certified ? 'complete' : 'in-progress' }}">
-
-        {# Lien vers la page du cours #}
-        <a href="{{ path('app_course_show', {id: item.course.id}) }}" class="course-link">
-
-          {% set firstVideo = item.course.videos|first %}
-          {% if firstVideo %}
-            <div class="thumb main-video">
-              <img class="course-thumbnail bg-aml"
-                   src="{{ asset('uploads/courses/' ~ item.course.thumb) }}"
-                   alt="{{ item.course.title }}">
-            </div>
-          {% endif %}
-
-          <div class="course-info">
-            <h3>{{ item.course.title ?? 'Untitled Course' }}</h3>
-            <p>{{ item.course.description ?? '' }}</p>
-          </div>
-          <a href="{{ path('app_course_show', {id: item.course.id}) }}" class="see-course-btn">See Course</a>
-        </a>
-      </div>
-    {% endfor %}
-  </div>
-
   <h2>User Progress</h2>
   <table class="progress-table" style="margin-bottom:50px;">
     <thead>

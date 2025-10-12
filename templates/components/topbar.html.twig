@@ -282,7 +282,8 @@
       
       <!-- Menu déroulant des notifications -->
       <div class="notification-dropdown" id="notification-dropdown">
-        {% set recentNotifications = app.user.notifications|slice(0, 5) %}
+        {% set recentNotifications = app.user.notifications|reverse|slice(0, 5) %}
+
         
         {% if recentNotifications|length > 0 %}
           {% for notification in recentNotifications %}

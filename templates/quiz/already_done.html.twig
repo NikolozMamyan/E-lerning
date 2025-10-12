@@ -258,8 +258,15 @@
   </div>
   
   <h2 class="completion-title">You've Got This One Covered!</h2>
-  <p class="completion-score">You already aced this quiz with a <strong>{{ attempt.score }}%</strong> score!</p>
-  <p class="completion-message">Ready for round two? Purchase again to retake the challenge.</p>
+<p class="completion-score">
+  {% if attempt.score < 100 %}
+    You’ve already done this quiz with a <strong>{{ attempt.score }}%</strong> score!
+  {% else %}
+    You’ve already aced this quiz with a <strong>{{ attempt.score }}%</strong> score!
+  {% endif %}
+</p>
+
+
   
 
   

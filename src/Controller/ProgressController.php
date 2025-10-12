@@ -146,9 +146,12 @@ public function transactions(
 
     // récupère les enrollments de l’utilisateur avec leurs cours
     $enrollments = $enrollmentRepo->findByUserWithCourse($user);
+    $subscription = $user->hasActiveSubscription();
+
 
     return $this->render('progress/transactions.html.twig', [
         'enrollments' => $enrollments,
+        'hasSubscription' => $subscription,
     ]);
 }
 
