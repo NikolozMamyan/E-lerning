@@ -1,13 +1,68 @@
-<h2>Facture</h2>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            color: #333;
+        }
+        .header {
+            text-align: center;
+            border-bottom: 3px solid #2c3e50;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .header h2 {
+            color: #2c3e50;
+            margin: 0;
+            font-size: 32px;
+        }
+        .info-section p {
+            padding: 10px 0;
+            border-bottom: 1px solid #ecf0f1;
+            margin: 5px 0;
+        }
+        .totals {
+            margin-top: 30px;
+            border-top: 2px solid #2c3e50;
+            padding-top: 20px;
+        }
+        .totals p:last-child {
+            font-size: 18px;
+            font-weight: bold;
+            color: #27ae60;
+            border-top: 2px solid #2c3e50;
+            margin-top: 15px;
+            padding-top: 15px;
+        }
+        strong {
+            color: #2c3e50;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h2>Facture</h2>
+    </div>
 
-<p><strong>Date :</strong> {{ date|date('d/m/Y') }}</p>
-<p><strong>Acheteur :</strong> {{ user.username}} ({{ user.email }})</p>
-<p><strong>Cours :</strong> {{ course.title }}</p>
+    <div class="info-section">
+        <p><strong>Date :</strong> {{ date|date('d/m/Y') }}</p>
+        <p><strong>Acheteur :</strong> {{ user.username}} ({{ user.email }})</p>
+        <p><strong>Cours :</strong> {{ course.title }}</p>
+    </div>
 
-<p><strong>Montant HT :</strong> {{ amount|number_format(2, ',', ' ') }} €</p>
-{% if tva is not null %}
-    <p><strong>TVA ({{ tva }}%) :</strong> {{ (amount * tva / 100)|number_format(2, ',', ' ') }} €</p>
-{% endif %}
-<p><strong>Total TTC :</strong>
-    {{ (amount + (tva ? (amount * tva / 100) : 0))|number_format(2, ',', ' ') }} €
-</p>
+    <div class="totals">
+        <p><strong>Montant HT :</strong> {{ amount|number_format(2, ',', ' ') }} €</p>
+        {% if tva is not null %}
+            <p><strong>TVA ({{ tva }}%) :</strong> {{ (amount * tva / 100)|number_format(2, ',', ' ') }} €</p>
+        {% endif %}
+        <p><strong>Total TTC :</strong>
+            {{ (amount + (tva ? (amount * tva / 100) : 0))|number_format(2, ',', ' ') }} €
+        </p>
+    </div>
+</body>
+</html>

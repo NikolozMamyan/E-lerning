@@ -35,7 +35,7 @@ class MailerService
         $text = strip_tags($html);
 
         $email = (new Email())
-            ->from('contact@elearning-lesconsultants.com')
+            ->from('contact@les-consultants.com')
             ->to($to)
             ->subject($subject)
             ->text($text)
