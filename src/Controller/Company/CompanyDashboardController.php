@@ -16,7 +16,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 final class CompanyDashboardController extends AbstractController{
 
 
-    #[Route('company/dashboard', name: 'company_dashboard')]
+   #[Route('company/dashboard', name: 'company_dashboard')]
 public function index(
     CourseRepository $courseRepo,
     ProgressRepository $progressRepo,
@@ -30,46 +30,168 @@ public function index(
     $courses = $courseRepo->findAll();
     $latestCourses = $courseRepo->findBy([], ['updatedAt' => 'DESC'], 3);
 
-    // Progression par cours
+    // --- Progression de l’entreprise elle-même (optionnelle) ---
     $progressData = [];
     if ($user) {
         foreach ($courses as $course) {
             $videos = $course->getVideos();
-            $completed = 0;
-            foreach ($videos as $video) {
-                $p = $progressRepo->findOneBy(['user' => $user, 'video' => $video]);
-                if ($p && $p->isCompleted()) {
-                    $completed++;
+            $totalVideos = count($videos);
+            $percent = 0;
+
+            if ($totalVideos > 0) {
+                $completedPercent = 0;
+                foreach ($videos as $video) {
+                    $progress = $progressRepo->findOneBy(['user' => $user, 'video' => $video]);
+                    if ($progress) {
+                        $watched = $progress->getWatchedSeconds();
+                        $duration = $video->getDuration();
+                        if ($duration > 0) {
+                            $completedPercent += min(($watched / $duration) * 100, 100);
+                        }
+                    }
                 }
+                $percent = round($completedPercent / $totalVideos, 2);
             }
-            $percent = count($videos) > 0 ? round(($completed / count($videos)) * 100) : 0;
+
             $progressData[$course->getId()] = $percent;
         }
     }
 
-    
-    // Enrollments (transactions)
-    $enrollments = [];
-    if ($user) {
-        $enrollments = $enrollmentRepo->findByUserWithCourse($user);
+    // --- Enrollments (transactions) ---
+    $enrollments = $user ? $enrollmentRepo->findByUserWithCourse($user) : [];
+
+    // --- Collaborations (employés) ---
+    $collaborations = $user->getCollaborationsAsCompany();
+    $employees = $collaborations->map(fn($c) => $c->getEmployee());
+
+    // --- Progression des collaborateurs ---
+    $collaboratorsProgress = [];
+
+    foreach ($collaborations as $collab) {
+        $employee = $collab->getEmployee();
+        $employeeProgress = [];
+
+        foreach ($courses as $course) {
+            $videos = $course->getVideos();
+            $totalVideos = count($videos);
+            $percent = 0;
+
+            if ($totalVideos > 0) {
+                $completedPercent = 0;
+                foreach ($videos as $video) {
+                    $progress = $progressRepo->findOneBy([
+                        'user' => $employee,
+                        'video' => $video
+                    ]);
+
+                    if ($progress) {
+                        $watched = $progress->getWatchedSeconds();
+                        $duration = $video->getDuration();
+                        if ($duration > 0) {
+                            $completedPercent += min(($watched / $duration) * 100, 100);
+                        }
+                    }
+                }
+
+                $percent = round($completedPercent / $totalVideos, 2);
+            }
+
+            $employeeProgress[$course->getId()] = $percent;
+        }
+
+        $collaboratorsProgress[] = [
+            'employee' => $employee,
+            'progress' => $employeeProgress,
+        ];
     }
 
-
-
-        // récupère les employés de l’entreprise
-        $employees = $user->getCollaborationsAsCompany()
-                          ->map(fn($c) => $c->getEmployee());
-
-
-         $collaborations = $user->getCollaborationsAsCompany();
     return $this->render('company/dashboard/index.html.twig', [
         'courses' => $courses,
+        'latestCourses' => $latestCourses,
         'progressData' => $progressData,
         'enrollments' => $enrollments,
         'employees' => $employees,
-        'collaborations' => $collaborations
+        'collaborations' => $collaborations,
+        'collaboratorsProgress' => $collaboratorsProgress,
     ]);
 }
+#[Route('company/team-tracking', name: 'company_team_tracking')]
+public function teamTracking(
+    CourseRepository $courseRepo,
+    ProgressRepository $progressRepo,
+    EntityManagerInterface $em
+): Response {
+    $user = $this->getUser();
+
+    // Vérifie que l’utilisateur est bien une entreprise
+    if (!$user) {
+        throw $this->createAccessDeniedException('You must be logged in as a company.');
+    }
+
+    // Tous les cours
+    $courses = $courseRepo->findAll();
+
+    // Collaborations (employés)
+    $collaborations = $user->getCollaborationsAsCompany();
+    $employees = $collaborations->map(fn($c) => $c->getEmployee());
+
+    // --- Progression des collaborateurs ---
+    $collaboratorsProgress = [];
+
+    foreach ($collaborations as $collab) {
+        $employee = $collab->getEmployee();
+        $employeeProgress = [];
+
+        foreach ($courses as $course) {
+            $videos = $course->getVideos();
+            $totalVideos = count($videos);
+            $percent = 0;
+
+            if ($totalVideos > 0) {
+                $completedPercent = 0;
+                foreach ($videos as $video) {
+                    $progress = $progressRepo->findOneBy([
+                        'user' => $employee,
+                        'video' => $video
+                    ]);
+
+                    if ($progress) {
+                        $watched = $progress->getWatchedSeconds();
+                        $duration = $video->getDuration();
+                        if ($duration > 0) {
+                            $completedPercent += min(($watched / $duration) * 100, 100);
+                        }
+                    }
+                }
+
+                $percent = round($completedPercent / $totalVideos, 2);
+            }
+
+            $employeeProgress[$course->getId()] = $percent;
+        }
+
+        // Calcule une moyenne globale par collaborateur
+        $average = 0;
+        if (count($employeeProgress) > 0) {
+            $average = round(array_sum($employeeProgress) / count($employeeProgress), 2);
+        }
+
+        $collaboratorsProgress[] = [
+            'employee' => $employee,
+            'progress' => $employeeProgress,
+            'average' => $average,
+        ];
+    }
+
+    // --- Rendu du template ---
+    return $this->render('company/dashboard/team_tracking.html.twig', [
+        'courses' => $courses,
+        'employees' => $employees,
+        'collaborations' => $collaborations,
+        'collaboratorsProgress' => $collaboratorsProgress,
+    ]);
+}
+
 
 }
 

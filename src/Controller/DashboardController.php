@@ -16,7 +16,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 final class DashboardController extends AbstractController{
 
 
-    #[Route('app/dashboard', name: 'app_dashboard')]
+   #[Route('app/dashboard', name: 'app_dashboard')]
 public function index(
     CourseRepository $courseRepo,
     ProgressRepository $progressRepo,
@@ -35,14 +35,37 @@ public function index(
     if ($user) {
         foreach ($courses as $course) {
             $videos = $course->getVideos();
-            $completed = 0;
-            foreach ($videos as $video) {
-                $p = $progressRepo->findOneBy(['user' => $user, 'video' => $video]);
-                if ($p && $p->isCompleted()) {
-                    $completed++;
+            $totalVideos = count($videos);
+            $percent = 0;
+
+            if ($totalVideos > 1) {
+                // --- CAS MULTI-VIDÉOS ---
+                $completed = 0;
+                foreach ($videos as $video) {
+                    $p = $progressRepo->findOneBy(['user' => $user, 'video' => $video]);
+                    if ($p && $p->isCompleted()) {
+                        $completed++;
+                    }
+                }
+
+                $percent = ($totalVideos > 0)
+                    ? round(($completed / $totalVideos) * 100, 2)
+                    : 0;
+            } elseif ($totalVideos === 1) {
+                // --- CAS UNE SEULE VIDÉO ---
+                $video = $videos[0];
+                $progress = $progressRepo->findOneBy(['user' => $user, 'video' => $video]);
+
+                if ($progress) {
+                    $watched = $progress->getWatchedSeconds();
+                    $duration = $video->getDuration();
+
+                    if ($duration > 0) {
+                        $percent = round(min(($watched / $duration) * 100, 100), 2);
+                    }
                 }
             }
-            $percent = count($videos) > 0 ? round(($completed / count($videos)) * 100) : 0;
+
             $progressData[$course->getId()] = $percent;
         }
     }
@@ -64,13 +87,10 @@ public function index(
     }
 
     // Quiz attempts
-    $userAttempts = $quizAttemptRepo->findByUser($user);
+    $userAttempts = $user ? $quizAttemptRepo->findByUser($user) : [];
 
     // Enrollments (transactions)
-    $enrollments = [];
-    if ($user) {
-        $enrollments = $enrollmentRepo->findByUserWithCourse($user);
-    }
+    $enrollments = $user ? $enrollmentRepo->findByUserWithCourse($user) : [];
 
     return $this->render('dashboard/index.html.twig', [
         'courses' => $courses,
@@ -81,6 +101,7 @@ public function index(
         'enrollments' => $enrollments,
     ]);
 }
+
 
 }
 

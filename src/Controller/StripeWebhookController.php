@@ -263,26 +263,36 @@ if ($event->type === 'invoice.payment_succeeded') {
 
                 $employee = $userRepo->findOneBy(['email' => $targetEmail]);
 
-                if ($employee) {
-                    if (!$enrollmentRepo->findOneBy(['user' => $employee, 'course' => $course])) {
-                        $enrollment = new Enrollment();
-                        $enrollment->setUser($employee);
-                        $enrollment->setCourse($course);
-                        $em->persist($enrollment);
-                        $em->flush();
+if ($employee) {
+    if (!$enrollmentRepo->findOneBy(['user' => $employee, 'course' => $course])) {
+        // Inscription pour l'employé
+        $employeeEnrollment = new Enrollment();
+        $employeeEnrollment->setUser($employee);
+        $employeeEnrollment->setCourse($course);
+        $em->persist($employeeEnrollment);
 
-                        $notificationService->createEntityNotification(
-                            $employee,
-                            '👋 You’ve been enrolled',
-                            $enrollment,
-                            "Your company has assigned you the course \"{$course->getTitle()}\".",
-                            Notification::TYPE_INFO,
-                            '/app/course/' . $course->getId(),
-                            'company-enrollment',
-                            Notification::PRIORITY_NORMAL
-                        );
-                    }
-                } else {
+        // Inscription pour la company (acheteur)
+        $companyEnrollment = new Enrollment();
+        $companyEnrollment->setUser($user);
+        $companyEnrollment->setCourse($course);
+        $em->persist($companyEnrollment);
+
+        $em->flush();
+
+        // ✅ Notification pour l’employé
+        $notificationService->createEntityNotification(
+            $employee,
+            '👋 You’ve been enrolled',
+            $employeeEnrollment, // ✅ bonne entité
+            "Your company has assigned you the course \"{$course->getTitle()}\".",
+            Notification::TYPE_INFO,
+            '/app/course/' . $course->getId(),
+            'company-enrollment',
+            Notification::PRIORITY_NORMAL
+        );
+    }
+}
+ else {
                     $mailer->send(
                         $targetEmail,
                         'Your company bought you a course',

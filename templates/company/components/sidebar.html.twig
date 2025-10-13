@@ -45,15 +45,15 @@
         </a>
       </li>
 
-      {# <li class="nav-item">
-        <a href="#"
-           class="nav-link {{ app.request.attributes.get('_route') == 'app_certificates' ? 'active' : '' }}">
+      <li class="nav-item">
+        <a href="{{path('company_team_tracking')}}"
+           class="nav-link {{ app.request.attributes.get('_route') == 'app_progress' ? 'active' : '' }}">
           <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M20 12l-1.41-1.41L13 16.17V4h-2v12.17l-5.58-5.59L4 12l8 8 8-8z"/>
+            <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
           </svg>
-          Certificates
+          Progress Tracking
         </a>
-      </li> #}
+      </li>
 {# 
       <li class="nav-item">
         <a href=""
@@ -75,15 +75,7 @@
         </a>
       </li>
 
-      {# <li class="nav-item">
-        <a href="{{path('app_progress')}}"
-           class="nav-link {{ app.request.attributes.get('_route') == 'app_progress' ? 'active' : '' }}">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
-          </svg>
-          Progress Tracking
-        </a>
-      </li> #}
+
 
       <!-- Séparateur -->
       <div class="separator"></div>

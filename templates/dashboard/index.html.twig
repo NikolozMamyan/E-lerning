@@ -67,7 +67,7 @@
   <!-- Transactions -->
   <div class="card">
     <div class="card-header">
-      <h2 class="card-title">Transactions</h2>
+      <h2 class="card-title">Purchased Courses</h2>
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2">
         <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
         <line x1="16" y1="2" x2="16" y2="6"/>
@@ -83,13 +83,6 @@
             <div class="transaction-info">
               <h4>{{ e.course.title }}</h4>
               <p>{{ e.createdAt|date('d M, H:i') }}</p>
-            </div>
-            <div class="transaction-amount">
-              {% for price in e.course.coursePrices %}
-                {% if price.currency == 'EUR' %}
-                  {{ price.price / 100 }} €
-                {% endif %}
-              {% endfor %}
             </div>
           </div>
         {% endfor %}
@@ -210,7 +203,6 @@
           <div class="video-info">
             <h3 class="video-title">{{ course.title }}</h3>
             {% if course.videos|length > 0 %}
-              <p class="video-subtitle">{{ course.videos|first.title }}</p>
               <div class="video-duration">
                 <span>00:00</span>
                 <span>{{ (course.videos|first.duration / 60)|round(0, 'floor') }}:{{ (course.videos|first.duration % 60)|default('00') }}</span>

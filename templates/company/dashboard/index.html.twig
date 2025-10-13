@@ -31,43 +31,54 @@
     </ul>
   </div>
 
-  <!-- Progress Tracking -->
-  <div class="card">
-    <div class="card-header">
-      <h2 class="card-title">Progress Tracking</h2>
-    </div>
-
-    <div style="margin-bottom: 2rem;">
-      {% set hasProgress = false %}
-      
-      {% for course in courses|slice(0, 3) %}
-        {% set percent = progressData[course.id] ?? 0 %}
-        
-        {% if percent > 0 %}
-          {% set hasProgress = true %}
-          <div class="progress-item">
-            <div class="progress-header">
-              <span class="progress-label">{{ course.title }} :</span>
-            </div>
-            <div class="progress-bar">
-              <div class="progress-fill" style="width: {{ percent }}%;"></div>
-            </div>
-          </div>
-        {% endif %}
-      {% endfor %}
-
-      {% if not hasProgress %}
-        <p>No progress yet.</p>
-      {% endif %}
-    </div>
-
-    <a href="{{ path('app_courses') }}" class="view-courses-btn">View My Courses</a>
+<!-- Progress Tracking -->
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title">My Team Progress</h2>
   </div>
+
+  <div style="margin-bottom: 2rem;">
+    {% if collaboratorsProgress is not empty %}
+      {% for collab in collaboratorsProgress %}
+        <div class="employee-progress">
+          <h4 style="margin-top: 1rem;">👤 {{ collab.employee.username ?? collab.employee.email }}</h4>
+
+          {% set hasProgress = false %}
+
+          {% for course in courses|slice(0, 3) %}
+            {% set percent = collab.progress[course.id] ?? 0 %}
+
+            {% if percent > 0 %}
+              {% set hasProgress = true %}
+              <div class="progress-item">
+                <div class="progress-header">
+                  <span class="progress-label">{{ course.title }} :</span>
+                  <span class="progress-value">{{ percent }}%</span>
+                </div>
+                <div class="progress-bar">
+                  <div class="progress-fill" style="width: {{ percent }}%;"></div>
+                </div>
+              </div>
+            {% endif %}
+          {% endfor %}
+
+          {% if not hasProgress %}
+            <p style="color: #888;">No progress yet for this employee.</p>
+          {% endif %}
+        </div>
+      {% endfor %}
+    {% else %}
+      <p>No collaborators yet.</p>
+    {% endif %}
+  </div>
+
+  <a href="{{ path('company_team_tracking') }}" class="view-courses-btn">View All Team </a>
+</div>
 
   <!-- Transactions -->
   <div class="card">
     <div class="card-header">
-      <h2 class="card-title">Transactions</h2>
+      <h2 class="card-title">Purchased Courses</h2>
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2">
         <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
         <line x1="16" y1="2" x2="16" y2="6"/>
@@ -83,13 +94,6 @@
             <div class="transaction-info">
               <h4>{{ e.course.title }}</h4>
               <p>{{ e.createdAt|date('d M, H:i') }}</p>
-            </div>
-            <div class="transaction-amount">
-              {% for price in e.course.coursePrices %}
-                {% if price.currency == 'EUR' %}
-                  {{ price.price / 100 }} €
-                {% endif %}
-              {% endfor %}
             </div>
           </div>
         {% endfor %}

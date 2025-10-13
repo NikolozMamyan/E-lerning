@@ -86,53 +86,71 @@ public function progress(
 
     // Récupère toutes les inscriptions de l’utilisateur
     $enrollments = $enrollmentRepo->findBy(['user' => $user]);
-
     $data = [];
 
     foreach ($enrollments as $enroll) {
         $course = $enroll->getCourse();
-
-        // Progression sur les vidéos de ce cours
         $courseVideos = $course->getVideos();
         $totalVideos = count($courseVideos);
 
-        $progress = $progressRepo->findBy([
-            'user' => $user,
-        ]);
+        // Tous les progress de l'utilisateur (on pourrait optimiser avec une méthode custom du repo)
+        $progressList = $progressRepo->findBy(['user' => $user]);
 
-        // Nombre de vidéos complètes pour ce cours
-        $completedVideos = array_filter($progress, function($p) use ($course) {
-            return $p->isCompleted() && $p->getVideo()->getCourse() === $course;
-        });
+        $percent = 0;
 
-        $percent = $totalVideos > 0 ? (count($completedVideos) / $totalVideos * 100) : 0;
+        if ($totalVideos > 1) {
+            // --- CAS MULTI-VIDÉOS ---
+            $completedVideos = array_filter($progressList, function ($p) use ($course) {
+                return $p->isCompleted() && $p->getVideo()->getCourse() === $course;
+            });
+
+            $percent = ($totalVideos > 0)
+                ? (count($completedVideos) / $totalVideos * 100)
+                : 0;
+        } elseif ($totalVideos === 1) {
+            // --- CAS UNE SEULE VIDÉO ---
+            $video = $courseVideos[0];
+            $progress = $progressRepo->findOneBy([
+                'user' => $user,
+                'video' => $video,
+            ]);
+
+            if ($progress) {
+                $watched = $progress->getWatchedSeconds();
+                $duration = $video->getDuration(); // assure-toi que ton entité Video a ce champ
+
+                if ($duration > 0) {
+                    $percent = min(($watched / $duration) * 100, 100);
+                }
+            }
+        }
 
         // Dernière tentative de quiz pour cet enrollment
         $attempt = $quizAttemptRepo->findOneBy(
             ['user' => $user, 'enrollment' => $enroll],
-            ['createdAt' => 'DESC'] // on prend la dernière tentative
+            ['createdAt' => 'DESC']
         );
 
         $quizScore = $attempt ? $attempt->getScore() : null;
         $quizPassed = $attempt ? $attempt->isPassed() : false;
 
         // Certification si progression 100% et quiz réussi
-        $certified = ($percent == 100 && $quizPassed);
+        $certified = ($percent >= 100 && $quizPassed);
 
         $data[] = [
             'course' => $course,
             'enrollment' => $enroll,
-            'progressPercent' => $percent,
+            'progressPercent' => round($percent, 2),
             'quizScore' => $quizScore,
             'certified' => $certified,
         ];
     }
 
-
     return $this->render('progress/index.html.twig', [
         'coursesData' => $data,
     ]);
 }
+
 
 #[Route('/app/transactions', name: 'app_transactions')]
 public function transactions(

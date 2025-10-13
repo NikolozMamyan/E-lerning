@@ -1,0 +1,1060 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+<div class="employees-page">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Team Progress Tracking</h1>
+      <p class="page-subtitle">Monitor your team's learning progress in real-time</p>
+    </div>
+    <a href="{{ path('company_dashboard') }}" class="btn-secondary">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M10 12L6 8L10 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      Back to Dashboard
+    </a>
+  </div>
+
+  {% if collaboratorsProgress is not empty %}
+  <div class="stats-cards">
+    <div class="stat-card">
+      <div class="stat-icon">👥</div>
+      <div class="stat-content">
+        <div class="stat-value">{{ collaboratorsProgress|length }}</div>
+        <div class="stat-label">Team Members</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">📚</div>
+      <div class="stat-content">
+        <div class="stat-value">{{ courses|length }}</div>
+        <div class="stat-label">Total Courses</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">✨</div>
+      <div class="stat-content">
+        {% set totalAvg = 0 %}
+        {% for collab in collaboratorsProgress %}
+          {% set totalAvg = totalAvg + collab.average %}
+        {% endfor %}
+        <div class="stat-value">{{ (totalAvg / collaboratorsProgress|length)|round }}%</div>
+        <div class="stat-label">Team Average</div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title">Team Members</h2>
+      <div class="legend">
+        <span class="legend-item">
+          <span class="legend-dot green"></span>
+          Complete
+        </span>
+        <span class="legend-item">
+          <span class="legend-dot yellow"></span>
+          In Progress
+        </span>
+        <span class="legend-item">
+          <span class="legend-dot red"></span>
+          Not Started
+        </span>
+      </div>
+    </div>
+    <div class="table-container">
+      <table class="employee-table">
+        <thead>
+          <tr>
+            <th>Member</th>
+            <th>Contact</th>
+            <th>Overall Progress</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% if collaboratorsProgress is not empty %}
+          {% for collab in collaboratorsProgress %}
+            {% set employee = collab.employee %}
+            {# Séparer les cours complétés et incomplets #}
+            {% set incompleteCourses = [] %}
+            {% set completedCourses = [] %}
+            {% for course in courses %}
+              {% set percent = collab.progress[course.id] ?? 0 %}
+              {% if percent >= 100 %}
+                {% set completedCourses = completedCourses|merge([{ 'title': course.title, 'percent': percent }]) %}
+              {% else %}
+                {% set incompleteCourses = incompleteCourses|merge([{ 'title': course.title, 'percent': percent }]) %}
+              {% endif %}
+            {% endfor %}
+
+            <tr class="employee-row">
+              <td>
+                <div class="employee-info">
+                  <img class="user-avatar" src="{{ asset(employee.avatar ? 'uploads/avatars/' ~ employee.avatar : 'images/User.svg') }}" alt="avatar">
+                  <div class="employee-details">
+                    <strong class="employee-name">{{ employee.username ?? 'Unnamed' }}</strong>
+                    <small class="employee-id">ID: {{ employee.id }}</small>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="email">{{ employee.email }}</span>
+              </td>
+              <td>
+                <div class="progress-cell">
+                  <div class="progress-wrapper">
+                    <div class="progress-bar {% if collab.average >= 100 %}complete{% elseif collab.average >= 50 %}in-progress{% else %}low{% endif %}">
+                      <div class="progress-fill" style="width: {{ collab.average }}%;">
+                        <span class="progress-shine"></span>
+                      </div>
+                    </div>
+                    <span class="progress-value">{{ collab.average }}%</span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                {% if collab.average >= 100 %}
+                  <span class="badge success">
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                      <path d="M10 3L4.5 8.5L2 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    Complete
+                  </span>
+                {% elseif collab.average >= 50 %}
+                  <span class="badge warning">
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                      <circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="2"/>
+                      <path d="M4 6L6 8L9 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    In Progress
+                  </span>
+                {% else %}
+                  <span class="badge warning">
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                      <circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="2"/>
+                      <path d="M4 6L6 8L9 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    In Progress
+                  </span>
+                {% endif %}
+              </td>
+              <td>
+                {# Toujours afficher le bouton #}
+                <button 
+                  class="btn-view" 
+                  onclick="openModal('{{ employee.id }}')"
+                  data-employee="{{ employee.id }}">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M8 3C4.5 3 1.73 5.61 1 8c.73 2.39 3.5 5 7 5s6.27-2.61 7-5c-.73-2.39-3.5-5-7-5z" stroke="currentColor" stroke-width="1.5"/>
+                    <circle cx="8" cy="8" r="2.5" stroke="currentColor" stroke-width="1.5"/>
+                  </svg>
+                  View Details
+                  {% set totalCourses = (incompleteCourses|length + completedCourses|length) %}
+                  {% if totalCourses > 0 %}
+                    <span class="badge-count">{{ totalCourses }}</span>
+                  {% endif %}
+                </button>
+              </td>
+            </tr>
+
+            {# Modal pour cet employé #}
+            <div id="modal-{{ employee.id }}" class="modal">
+              <div class="modal-overlay" onclick="closeModal('{{ employee.id }}')"></div>
+              <div class="modal-content">
+                <div class="modal-header">
+                  <div class="modal-title-section">
+                    <img class="modal-avatar" src="{{ asset(employee.avatar ? 'uploads/avatars/' ~ employee.avatar : 'images/User.svg') }}" alt="avatar">
+                    <div>
+                      <h2>{{ employee.username ?? employee.email }}</h2>
+                      <p class="modal-subtitle">Course Progress Details</p>
+                    </div>
+                  </div>
+                  <button class="modal-close" onclick="closeModal('{{ employee.id }}')" aria-label="Close">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                      <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                  </button>
+                </div>
+                <div class="modal-body">
+                  {# Cours en cours #}
+                  {% if incompleteCourses|length > 0 %}
+                    <div class="courses-section">
+                      <div class="courses-header">
+                        <h3>
+                          <span class="section-icon">📖</span>
+                          Courses in Progress ({{ incompleteCourses|length }})
+                        </h3>
+                      </div>
+                      <ul class="course-list">
+                        {% for c in incompleteCourses %}
+                          <li class="course-item">
+                            <div class="course-header">
+                              <span class="course-title">{{ c.title }}</span>
+                            </div>
+                            <div class="course-progress">
+                              <div class="progress-bar small {% if c.percent >= 50 %}in-progress{% else %}low{% endif %}">
+                                <div class="progress-fill" style="width: {{ c.percent }}%;">
+                                  <span class="progress-shine"></span>
+                                </div>
+                              </div>
+                              <span class="percent">{{ c.percent }}%</span>
+                            </div>
+                          </li>
+                        {% endfor %}
+                      </ul>
+                    </div>
+                  {% endif %}
+
+                  {# Cours complétés #}
+                  {% if completedCourses|length > 0 %}
+                    <div class="courses-section {% if incompleteCourses|length > 0 %}mt-3{% endif %}">
+                      <div class="courses-header">
+                        <h3>
+                          <span class="section-icon">✅</span>
+                          Completed Courses ({{ completedCourses|length }})
+                        </h3>
+                      </div>
+                      <ul class="course-list">
+                        {% for c in completedCourses %}
+                          <li class="course-item completed">
+                            <div class="course-header">
+                              <span class="course-title">{{ c.title }}</span>
+                              <span class="completion-badge">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                  <circle cx="8" cy="8" r="7" fill="var(--green)"/>
+                                  <path d="M5 8L7 10L11 6" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                              </span>
+                            </div>
+                            <div class="course-progress">
+                              <div class="progress-bar small complete">
+                                <div class="progress-fill" style="width: 100%;">
+                                  <span class="progress-shine"></span>
+                                </div>
+                              </div>
+                              <span class="percent">100%</span>
+                            </div>
+                          </li>
+                        {% endfor %}
+                      </ul>
+                    </div>
+                  {% endif %}
+
+                  {# Si aucun cours #}
+                  {% if incompleteCourses|length == 0 and completedCourses|length == 0 %}
+                    <div class="empty-modal">
+                      <div class="empty-icon">📚</div>
+                      <h3>No Courses Assigned</h3>
+                      <p>This team member hasn't been assigned any courses yet.</p>
+                    </div>
+                  {% endif %}
+                </div>
+                <div class="modal-footer">
+                  <div class="modal-summary">
+                    <span class="summary-item">
+                      <strong>{{ completedCourses|length }}</strong> completed
+                    </span>
+                    <span class="summary-separator">•</span>
+                    <span class="summary-item">
+                      <strong>{{ incompleteCourses|length }}</strong> in progress
+                    </span>
+                  </div>
+                  <button class="btn-secondary" onclick="closeModal('{{ employee.id }}')">Close</button>
+                </div>
+              </div>
+            </div>
+
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="5" class="empty-state">
+              <div class="empty-illustration">
+                <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+                  <circle cx="40" cy="40" r="38" stroke="#E7F3F3" stroke-width="4"/>
+                  <path d="M30 35h20M30 45h15" stroke="#0D8383" stroke-width="3" stroke-linecap="round"/>
+                </svg>
+              </div>
+              <h3>No Team Members Yet</h3>
+              <p>Start by adding team members to track their progress</p>
+            </td>
+          </tr>
+        {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<style>
+:root {
+  --green: #1A6D55;
+  --teal: #0D8383;
+  --black: #071717;
+  --mint: #E7F3F3;
+  --grey: #606060;
+  --light-grey: #9CA3AF;
+  --white: #FFFFFF;
+  --bg: #F8FBFB;
+  --radius: 16px;
+  --radius-sm: 8px;
+  --shadow: 0 2px 8px rgba(7, 23, 23, .04);
+  --shadow-md: 0 4px 16px rgba(7, 23, 23, .08);
+  --shadow-lg: 0 20px 60px rgba(7, 23, 23, .15);
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.employees-page {
+  padding: 2.5rem;
+  background: var(--bg);
+  min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+}
+
+/* Header */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2.5rem;
+  gap: 2rem;
+}
+
+.page-title {
+  font-size: 2.25rem;
+  color: var(--black);
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
+  letter-spacing: -0.02em;
+}
+
+.page-subtitle {
+  color: var(--grey);
+  font-size: 1rem;
+  margin: 0;
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  background: var(--white);
+  color: var(--teal);
+  border: 2px solid var(--mint);
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  text-decoration: none;
+  transition: var(--transition);
+  white-space: nowrap;
+}
+
+.btn-secondary:hover {
+  background: var(--mint);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Stats Cards */
+.stats-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background: var(--white);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: var(--shadow);
+  transition: var(--transition);
+}
+
+.stat-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-4px);
+}
+
+.stat-icon {
+  font-size: 2.5rem;
+  line-height: 1;
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--black);
+  line-height: 1;
+  margin-bottom: 0.25rem;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: var(--grey);
+  font-weight: 500;
+}
+
+/* Card */
+.card {
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 2rem;
+  border-bottom: 2px solid var(--mint);
+  background: linear-gradient(135deg, var(--white) 0%, var(--mint) 100%);
+}
+
+.card-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--black);
+  margin: 0;
+}
+
+.legend {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.813rem;
+  color: var(--grey);
+  font-weight: 500;
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.legend-dot.green { background: var(--green); }
+.legend-dot.yellow { background: #F59E0B; }
+.legend-dot.red { background: #EF4444; }
+
+/* Table */
+.table-container {
+  overflow-x: auto;
+}
+
+.employee-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.employee-table th {
+  background: var(--mint);
+  color: var(--black);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  padding: 1rem 1.5rem;
+  text-align: left;
+  border-bottom: 2px solid var(--white);
+}
+
+.employee-table td {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--mint);
+  vertical-align: middle;
+}
+
+.employee-row {
+  transition: var(--transition);
+}
+
+.employee-row:hover {
+  background: var(--mint);
+}
+
+/* Employee Info */
+.employee-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.user-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--mint);
+  transition: var(--transition);
+}
+
+.employee-row:hover .user-avatar {
+  border-color: var(--teal);
+  transform: scale(1.05);
+}
+
+.employee-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.employee-name {
+  font-size: 1rem;
+  color: var(--black);
+  font-weight: 600;
+}
+
+.employee-id {
+  font-size: 0.813rem;
+  color: var(--light-grey);
+  font-weight: 500;
+}
+
+.email {
+  color: var(--grey);
+  font-size: 0.938rem;
+}
+
+/* Progress */
+.progress-cell {
+  min-width: 200px;
+}
+
+.progress-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.progress-bar {
+  flex: 1;
+  height: 12px;
+  background: var(--mint);
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: inset 0 1px 3px rgba(7, 23, 23, .1);
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--green);
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-bar.in-progress .progress-fill {
+  background: linear-gradient(90deg, #F59E0B 0%, #FBBF24 100%);
+}
+
+.progress-bar.low .progress-fill {
+  background: linear-gradient(90deg, #EF4444 0%, #F87171 100%);
+}
+
+.progress-bar.complete .progress-fill {
+  background: linear-gradient(90deg, var(--green) 0%, var(--teal) 100%);
+}
+
+.progress-shine {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.3), transparent);
+  animation: shine 2s infinite;
+}
+
+@keyframes shine {
+  to { left: 100%; }
+}
+
+.progress-value {
+  font-weight: 700;
+  color: var(--black);
+  font-size: 0.938rem;
+  min-width: 45px;
+  text-align: right;
+}
+
+/* Badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 0.875rem;
+  border-radius: 20px;
+  font-size: 0.813rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.badge.success {
+  background: rgba(26, 109, 85, 0.1);
+  color: var(--green);
+}
+
+.badge.warning {
+  background: rgba(245, 158, 11, 0.1);
+  color: #D97706;
+}
+
+.badge.danger {
+  background: rgba(239, 68, 68, 0.1);
+  color: #DC2626;
+}
+
+/* Buttons */
+.btn-view {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  background: var(--teal);
+  color: var(--white);
+  border: none;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: var(--transition);
+  position: relative;
+}
+
+.btn-view:hover {
+  background: var(--green);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-view:active {
+  transform: translateY(0);
+}
+
+.badge-count {
+  background: rgba(255, 255, 255, 0.25);
+  padding: 0.125rem 0.5rem;
+  border-radius: 10px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+/* Modal */
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+}
+
+.modal.active {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(7, 23, 23, 0.6);
+  backdrop-filter: blur(8px);
+}
+
+.modal-content {
+  position: relative;
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  max-width: 700px;
+  width: 90%;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2rem;
+  border-bottom: 2px solid var(--mint);
+  background: linear-gradient(135deg, var(--white) 0%, var(--mint) 100%);
+}
+
+.modal-title-section {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.modal-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--white);
+  box-shadow: var(--shadow-md);
+}
+
+.modal-header h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--black);
+  margin: 0 0 0.25rem 0;
+}
+
+.modal-subtitle {
+  font-size: 0.875rem;
+  color: var(--grey);
+  margin: 0;
+}
+
+.modal-close {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--grey);
+  padding: 0.5rem;
+  border-radius: var(--radius-sm);
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-close:hover {
+  background: rgba(7, 23, 23, 0.05);
+  color: var(--black);
+}
+
+.modal-body {
+  padding: 2rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* Sections de cours */
+.courses-section {
+  margin-bottom: 2rem;
+}
+
+.courses-section.mt-3 {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 2px dashed var(--mint);
+}
+
+.courses-section:last-child {
+  margin-bottom: 0;
+}
+
+.courses-header {
+  margin-bottom: 1.25rem;
+}
+
+.courses-header h3 {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--black);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.section-icon {
+  font-size: 1.25rem;
+}
+
+.course-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+.course-item {
+  background: var(--mint);
+  border-radius: var(--radius-sm);
+  padding: 1.25rem;
+  transition: var(--transition);
+}
+
+.course-item:hover {
+  background: #D9EDED;
+  transform: translateX(4px);
+}
+
+.course-item.completed {
+  background: rgba(26, 109, 85, 0.08);
+  border: 2px solid rgba(26, 109, 85, 0.15);
+}
+
+.course-item.completed:hover {
+  background: rgba(26, 109, 85, 0.12);
+}
+
+.course-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.course-title {
+  font-weight: 600;
+  color: var(--black);
+  font-size: 1rem;
+  flex: 1;
+}
+
+.completion-badge {
+  flex-shrink: 0;
+}
+
+.course-progress {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.progress-bar.small {
+  width: 180px;
+  height: 10px;
+}
+
+.percent {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--black);
+  min-width: 45px;
+  text-align: right;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 2rem;
+  border-top: 2px solid var(--mint);
+  background: var(--mint);
+}
+
+.modal-summary {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.875rem;
+  color: var(--grey);
+}
+
+.summary-item strong {
+  color: var(--black);
+  font-weight: 700;
+}
+
+.summary-separator {
+  color: var(--light-grey);
+}
+
+/* Empty States */
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem !important;
+}
+
+.empty-illustration {
+  margin-bottom: 1.5rem;
+  opacity: 0.5;
+}
+
+.empty-state h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--black);
+  margin: 0 0 0.5rem 0;
+}
+
+.empty-state p {
+  color: var(--grey);
+  margin: 0;
+}
+
+.empty-modal {
+  text-align: center;
+  padding: 3rem 2rem;
+}
+
+.empty-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.empty-modal h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--black);
+  margin: 0 0 0.5rem 0;
+}
+
+.empty-modal p {
+  color: var(--grey);
+  font-size: 1rem;
+  margin: 0;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { 
+    opacity: 0; 
+    transform: translateY(40px) scale(0.95);
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0) scale(1);}
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .employees-page {
+    padding: 1.5rem;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .page-title {
+    font-size: 1.75rem;
+  }
+
+  .stats-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .legend {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .employee-table th,
+  .employee-table td {
+    padding: 0.875rem;
+    font-size: 0.875rem;
+  }
+
+  .progress-cell {
+    min-width: 150px;
+  }
+
+  .modal-content {
+    width: 95%;
+    max-height: 90vh;
+  }
+
+  .modal-header,
+  .modal-body,
+  .modal-footer {
+    padding: 1.5rem;
+  }
+
+  .modal-avatar {
+    width: 50px;
+    height: 50px;
+  }
+
+  .modal-header h2 {
+    font-size: 1.25rem;
+  }
+
+  .modal-footer {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+
+  .modal-summary {
+    justify-content: center;
+  }
+
+  .btn-secondary {
+    width: 100%;
+    justify-content: center;
+  }
+}
+</style>
+
+<script>
+function openModal(id) {
+  const modal = document.getElementById('modal-' + id);
+  if (modal) {
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+}
+
+function closeModal(id) {
+  const modal = document.getElementById('modal-' + id);
+  if (modal) {
+    modal.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+}
+
+// Fermer avec ESC
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.modal.active').forEach(modal => {
+      modal.classList.remove('active');
+      document.body.style.overflow = '';
+    });
+  }
+});
+
+// Fermer en cliquant à l'extérieur
+document.addEventListener('click', e => {
+  if (e.target.classList.contains('modal-overlay')) {
+    const modal = e.target.closest('.modal');
+    if (modal) {
+      modal.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+  }
+});
+</script>
+{% endblock %}
