@@ -254,71 +254,106 @@ if ($event->type === 'invoice.payment_succeeded') {
             }
 
             // === Branche 2 : achat entreprise (1 place) ===
-            if ($context === 'company_single_seat') {
-                $targetEmail = $metadata->target_email ?? null;
-                if (!$targetEmail) {
-                    $logger->warning('company_single_seat: target_email missing');
-                    return new Response('Missing target_email', 200);
-                }
+          // === Branche 2 : achat entreprise (1 place) ===
+if ($context === 'company_single_seat') {
+    $targetEmail = $metadata->target_email ?? null;
+    if (!$targetEmail) {
+        $logger->warning('company_single_seat: target_email missing');
+        return new Response('Missing target_email', 200);
+    }
 
-                $employee = $userRepo->findOneBy(['email' => $targetEmail]);
+    $employee = $userRepo->findOneBy(['email' => $targetEmail]);
+    $buyerEmail = $session->customer_details->email ?? $session->customer_email ?? null;
+    $user = $buyerEmail ? $userRepo->findOneBy(['email' => $buyerEmail]) : null;
 
-if ($employee) {
+    // Log pour diagnostic
+    $logger->info('🏢 Company single seat purchase', [
+        'employee' => $targetEmail,
+        'buyerEmail' => $buyerEmail,
+        'courseId' => $course->getId(),
+        'buyerUserId' => $user?->getId(),
+    ]);
 
- if (!$enrollmentRepo->findOneBy(['user' => $employee, 'course' => $course])) {
-        // Inscription pour l'employé
-        $employeeEnrollment = new Enrollment();
-        $employeeEnrollment->setUser($employee);
-        $employeeEnrollment->setCourse($course);
-        $em->persist($employeeEnrollment);
+    // 1️⃣ Si l’employé existe déjà dans la plateforme
+    if ($employee) {
+        // Éviter les doublons
+        if (!$enrollmentRepo->findOneBy(['user' => $employee, 'course' => $course])) {
+            // Inscription employé
+            $employeeEnrollment = new Enrollment();
+            $employeeEnrollment->setUser($employee);
+            $employeeEnrollment->setCourse($course);
+            $em->persist($employeeEnrollment);
 
-        // 👉 Récupération de l’acheteur
-        $buyerEmail = $session->customer_details->email ?? $session->customer_email ?? null;
-        $user = $buyerEmail ? $userRepo->findOneBy(['email' => $buyerEmail]) : null;
-
-        if ($user) {
-            // Inscription pour la company (acheteur)
-            $companyEnrollment = new Enrollment();
-            $companyEnrollment->setUser($user);
-            $companyEnrollment->setCourse($course);
-            $em->persist($companyEnrollment);
-        }
-
-        $em->flush();
-
-}
-}
- else {
-                    $mailer->send(
-                        $targetEmail,
-                        'Your company bought you a course',
-                        'emails/company_invite.html.twig',
-                        [
-                            'course' => $course,
-                            'signup_url' => $this->generateUrl('show_register', [], \Symfony\Component\Routing\Generator\UrlGeneratorInterface::ABSOLUTE_URL),
-                        ]
-                    );
-                }
-
-                // Facture à l’acheteur
-                $buyerEmail = $session->customer_details->email ?? $session->customer_email ?? null;
-                if ($buyerEmail) {
-                    $mailer->send(
-                        $buyerEmail,
-                        'Votre facture - ' . $course->getTitle(),
-                        'emails/invoice_company.html.twig',
-                        [
-                            'amount'   => $amount,
-                            'currency' => $currency,
-                            'date'     => new \DateTime(),
-                            'course'   => $course,
-                            'target'   => $targetEmail,
-                        ]
-                    );
-                }
-
-                return new Response('Processed company_single_seat', 200);
+            // Inscription company (acheteur)
+            if ($user) {
+                $companyEnrollment = new Enrollment();
+                $companyEnrollment->setUser($user);
+                $companyEnrollment->setCourse($course);
+                $em->persist($companyEnrollment);
             }
+
+            $em->flush();
+
+            // ✅ Notification pour l’employé
+            try {
+                $notificationService->createEntityNotification(
+                    $employee,
+                    '👋 You’ve been enrolled',
+                    $employeeEnrollment,
+                    "Your company has assigned you the course \"{$course->getTitle()}\".",
+                    Notification::TYPE_INFO,
+                    '/app/course/' . $course->getId(),
+                    'company-enrollment',
+                    Notification::PRIORITY_NORMAL
+                );
+            } catch (\Throwable $e) {
+                $logger->error('Notification employee failed', ['error' => $e->getMessage()]);
+            }
+        }
+    } else {
+        // 2️⃣ Si l’employé n’existe pas encore → invitation
+        $mailer->send(
+            $targetEmail,
+            'Your company bought you a course',
+            'emails/company_invite.html.twig',
+            [
+                'course' => $course,
+                'signup_url' => $this->generateUrl(
+                    'show_register',
+                    [],
+                    \Symfony\Component\Routing\Generator\UrlGeneratorInterface::ABSOLUTE_URL
+                ),
+            ]
+        );
+    }
+
+    // 3️⃣ Envoi facture à l’acheteur (toujours)
+    if ($buyerEmail) {
+        $mailer->send(
+            $buyerEmail,
+            'Votre facture - ' . $course->getTitle(),
+            'emails/invoice_company.html.twig',
+            [
+                'amount'   => $amount,
+                'currency' => $currency,
+                'date'     => new \DateTime(),
+                'course'   => $course,
+                'target'   => $targetEmail,
+            ]
+        );
+
+        $logger->info('📧 Invoice email sent to company', [
+            'buyerEmail' => $buyerEmail,
+            'courseId' => $course->getId(),
+        ]);
+    } else {
+        $logger->warning('⚠️ No buyer email found to send invoice', [
+            'sessionId' => $session->id ?? null,
+        ]);
+    }
+
+    return new Response('Processed company_single_seat', 200);
+}
 
             // === Branche 3 : pack entreprise ===
             if ($context === 'company_pack') {
