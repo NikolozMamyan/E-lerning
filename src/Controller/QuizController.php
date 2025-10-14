@@ -2,12 +2,13 @@
 namespace App\Controller;
 
 use App\Entity\Course;
+use App\Entity\Enrollment;
 use App\Entity\QuizAttempt;
 use App\Service\QuizService;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class QuizController extends AbstractController
 {
