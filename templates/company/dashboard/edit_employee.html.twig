@@ -1,0 +1,153 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit Employee{% endblock %}
+
+{% block body %}
+
+  <div class="edit-card">
+    <div class="card-header">
+      <h2>Edit Profile</h2>
+      <p class="subtitle">Update employee information</p>
+    </div>
+
+    {{ form_start(form, {'attr': {'id': 'employee-edit-form', 'class': 'edit-form'}}) }}
+      {{ form_row(form.username) }}
+      {{ form_row(form.phone) }}
+      {{ form_row(form.bio) }}
+      
+      <div class="form-actions">
+        <button type="submit" class="btn-save">Save Changes</button>
+      </div>
+    {{ form_end(form) }}
+  </div>
+
+
+<style>
+
+
+  .edit-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    width: 100%;
+    margin:50px auto;
+    max-width: 480px;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .card-header {
+    background: linear-gradient(135deg, var(--green) 0%, var(--teal) 100%);
+    padding: 2rem;
+    text-align: center;
+  }
+
+  .card-header h2 {
+    color: var(--white);
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0 0 0.5rem 0;
+    letter-spacing: -0.5px;
+  }
+
+  .subtitle {
+    color: var(--mint);
+    font-size: 0.9rem;
+    margin: 0;
+    opacity: 0.95;
+  }
+
+  .edit-form {
+    padding: 2rem;
+  }
+
+  .edit-form > div {
+    margin-bottom: 1.5rem;
+  }
+
+  .edit-form label {
+    display: block;
+    color: var(--grey);
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .edit-form input[type="text"],
+  .edit-form input[type="tel"],
+  .edit-form textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    color: var(--black);
+    background: var(--white);
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+  }
+
+  .edit-form input:focus,
+  .edit-form textarea:focus {
+    outline: none;
+    border-color: var(--teal);
+    background: var(--mint);
+  }
+
+  .edit-form textarea {
+    min-height: 100px;
+    resize: vertical;
+    font-family: inherit;
+  }
+
+  .form-actions {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #f0f0f0;
+  }
+
+  .btn-save {
+    width: 100%;
+    background: var(--green);
+    color: var(--white);
+    padding: 0.875rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    letter-spacing: 0.3px;
+  }
+
+  .btn-save:hover {
+    background: var(--teal);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(13, 131, 131, 0.2);
+  }
+
+  .btn-save:active {
+    transform: translateY(0);
+  }
+
+  @media (max-width: 640px) {
+    .edit-container {
+      padding: 1rem;
+    }
+
+    .card-header {
+      padding: 1.5rem;
+    }
+
+    .edit-form {
+      padding: 1.5rem;
+    }
+
+    .card-header h2 {
+      font-size: 1.25rem;
+    }
+  }
+</style>
+{% endblock %}

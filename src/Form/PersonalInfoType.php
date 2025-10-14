@@ -15,7 +15,9 @@ class PersonalInfoType extends AbstractType
         $builder
             ->add('username', TextType::class)
             ->add('phone', TextType::class, ['required' => false])
-            ->add('bio', TextareaType::class, ['required' => false]);
+            ->add('bio', TextareaType::class, [
+                 'label' => 'Role',
+                 'required' => false]);
     }
 
     public function configureOptions(OptionsResolver $resolver): void

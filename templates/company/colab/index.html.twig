@@ -56,9 +56,10 @@
            onclick="return confirm('Are you sure you want to delete this collaborator?');">
           <img src="{{ asset('images/Delete.svg') }}" alt="delete icon">
         </a>
-        <a class="action-btn edit-btn" title="Modifier">
-          <img src="{{ asset('images/edit.svg') }}" alt="edit icon">
-        </a>
+<a href="{{ path('company_employee_edit', {id: employee.id}) }}" 
+   class="action-btn edit-employee-btn">
+  <img src="{{ asset('images/edit.svg') }}" alt="edit icon">
+</a>
       </td>
     </tr>
   {% else %}

@@ -6,6 +6,11 @@ namespace App\Controller\Company;
 use App\Service\MailerService;
 use App\Repository\CourseRepository;
 use App\Repository\ProgressRepository;
+
+use App\Entity\User;
+use App\Form\PersonalInfoType;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use App\Repository\EnrollmentRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\QuizAttemptRepository;
@@ -193,8 +198,55 @@ public function teamTracking(
 }
 
 
+#[Route('company/employee/{id}/edit', name: 'company_employee_edit', methods: ['GET','POST'])]
+public function editEmployee(
+    User $employee,
+    Request $request,
+    EntityManagerInterface $em
+): Response {
+    $company = $this->getUser();
+
+    // Vérifie que l'utilisateur connecté est bien l'entreprise propriétaire
+    $isLinked = false;
+    foreach ($company->getCollaborationsAsCompany() as $collab) {
+        if ($collab->getEmployee()->getId() === $employee->getId()) {
+            $isLinked = true;
+            break;
+        }
+    }
+
+    if (!$isLinked) {
+        throw $this->createAccessDeniedException('Cet employé ne vous appartient pas.');
+    }
+
+    // Crée un formulaire simple basé sur ton type existant
+    $form = $this->createForm(PersonalInfoType::class, $employee);
+    $form->handleRequest($request);
+
+    if ($form->isSubmitted() && $form->isValid()) {
+        $em->flush();
+
+        // Si la requête vient d’un appel AJAX (modal ou inline)
+        if ($request->isXmlHttpRequest()) {
+            return new JsonResponse([
+                'success' => true,
+                'message' => 'Employé mis à jour avec succès ✅',
+                'html' => $this->renderView('company/dashboard/_employee_row.html.twig', [
+                    'employee' => $employee,
+                ])
+            ]);
+        }
+
+        $this->addFlash('success', 'Employé mis à jour avec succès ✅');
+        return $this->redirectToRoute('company_dashboard');
+    }
+
+    // Affichage dans une page ou modal
+    return $this->render('company/dashboard/edit_employee.html.twig', [
+        'form' => $form->createView(),
+        'employee' => $employee,
+    ]);
 }
 
 
-
-
+}
