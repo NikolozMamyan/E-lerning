@@ -11,11 +11,11 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class QuizController extends AbstractController
 {
-   #[Route('app/course/{id}/quiz', name: 'course_quiz')]
+  #[Route('app/course/{id}/quiz', name: 'course_quiz')]
 public function quiz(
-    Course $course, 
-    QuizService $quizService, 
-    EntityManagerInterface $em, 
+    Course $course,
+    QuizService $quizService,
+    EntityManagerInterface $em,
     Request $request
 ) {
     $user = $this->getUser();
@@ -25,11 +25,29 @@ public function quiz(
         return $this->redirectToRoute('app_login');
     }
 
-    // Vérifier si l'utilisateur a un droit de passage
-    $enrollment = $quizService->canAttempt($user, $course);
+    // ✅ Vérification abonnement et inscription
+    $hasSubscription = $user->hasActiveSubscription();
 
-    if (!$enrollment) {
-        // Vérifier s'il a déjà passé le quiz
+    $enrollmentRepo = $em->getRepository(Enrollment::class);
+    $enrollment = $enrollmentRepo->findOneBy([
+        'user' => $user,
+        'course' => $course,
+    ]);
+    $hasEnrollment = (bool) $enrollment;
+
+    // ✅ L’utilisateur a accès s’il a un abonnement ou une inscription
+    $hasAccess = $hasSubscription || $hasEnrollment;
+
+    if (!$hasAccess) {
+        $this->addFlash('error', 'Vous devez être abonné ou inscrit à ce cours pour accéder au quiz.');
+        return $this->redirectToRoute('app_course_show', ['id' => $course->getId()]);
+    }
+
+    // ✅ Vérifier s’il peut tenter le quiz
+    $canAttempt = $quizService->canAttempt($user, $course);
+
+    if (!$canAttempt) {
+        // Vérifier s’il a déjà passé le quiz
         $lastAttempt = $em->getRepository(QuizAttempt::class)
             ->findOneBy(['user' => $user, 'course' => $course], ['id' => 'DESC']);
 
@@ -67,6 +85,7 @@ public function quiz(
         'hasFrench' => $hasFrench
     ]);
 }
+
 
 
     #[Route('app/course/{id}/quiz/submit', name: 'course_quiz_submit', methods: ['POST'])]
