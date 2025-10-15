@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Course;
 use App\Entity\Progress;
 use App\Repository\VideoRepository;
 use App\Repository\ProgressRepository;
