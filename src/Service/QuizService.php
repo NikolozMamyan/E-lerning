@@ -24,99 +24,84 @@ class QuizService
      * @param array $userAnswers tableau [questionId => answerId]
      * @throws \Exception si pas d'enrollment ou si quiz déjà passé
      */
-    public function evaluate(User $user, Course $course, array $userAnswers): QuizAttempt
-    {
-        // Vérifier l'enrollment actif (dernier enregistrement de paiement)
-        $enrollment = $this->em->getRepository(Enrollment::class)
-            ->findOneBy(['user' => $user, 'course' => $course], ['createdAt' => 'DESC']);
+   public function evaluate(User $user, Course $course, array $userAnswers): QuizAttempt
+{
+    // ✅ Si abonnement, pas besoin d'enrollment
+    $enrollment = $this->em->getRepository(Enrollment::class)
+        ->findOneBy(['user' => $user, 'course' => $course], ['createdAt' => 'DESC']);
 
-        if (!$enrollment) {
-            throw new \Exception("Vous devez acheter ce cours pour passer le quiz.");
-        }
+    if (!$enrollment && !$user->hasActiveSubscription()) {
+        throw new \Exception("Vous devez être abonné ou avoir acheté ce cours pour passer le quiz.");
+    }
 
-        // Vérifier s'il y a déjà une tentative pour cet enrollment
-        $existing = $this->em->getRepository(QuizAttempt::class)
-            ->findOneBy(['enrollment' => $enrollment]);
+    // ✅ Empêcher plusieurs tentatives
+    $criteria = ['user' => $user, 'course' => $course];
+    if ($enrollment) {
+        $criteria['enrollment'] = $enrollment;
+    }
 
-        if ($existing) {
-            throw new \Exception("Vous avez déjà passé le quiz avec cet achat. Rachetez le cours pour retenter.");
-        }
+    $existing = $this->em->getRepository(QuizAttempt::class)->findOneBy($criteria);
 
-        // Évaluation des réponses
-        $questions = $course->getQuizQuestions();
-        $correctCount = 0;
+    if ($existing) {
+        throw new \Exception("Vous avez déjà passé ce quiz.");
+    }
 
-        foreach ($questions as $question) {
-            $givenAnswerId = $userAnswers[$question->getId()] ?? null;
-            foreach ($question->getAnswers() as $answer) {
-                if ($answer->isCorrect() && $givenAnswerId == $answer->getId()) {
-                    $correctCount++;
-                }
+    // ✅ Évaluation des réponses
+    $questions = $course->getQuizQuestions();
+    $correctCount = 0;
+
+    foreach ($questions as $question) {
+        $givenAnswerId = $userAnswers[$question->getId()] ?? null;
+        foreach ($question->getAnswers() as $answer) {
+            if ($answer->isCorrect() && $givenAnswerId == $answer->getId()) {
+                $correctCount++;
             }
         }
-
-        $score = (count($questions) > 0) ? ($correctCount / count($questions)) * 100 : 0;
-        $passed = $score >= 80;
-
-        // Enregistrement de la tentative
-        $attempt = new QuizAttempt();
-        $attempt->setUser($user);
-        $attempt->setCourse($course);
-        $attempt->setEnrollment($enrollment);
-        $attempt->setScore((int)$score);
-        $attempt->setPassed($passed);
-
-        $this->em->persist($attempt);
-        $this->em->flush();
-        if ($passed) {
-    try {
-        $this->notificationService->createEntityNotification(
-            $user,
-            '🎉 Congratulations!',
-            $enrollment,
-            "You passed the quiz for the course \"{$course->getTitle()}\" with a score of {$score}%. Well done!",
-            Notification::TYPE_SUCCESS,
-            '/app/course/' . $course->getId(),
-            'quiz-success',
-            Notification::PRIORITY_HIGH
-        );
-
-        $this->logger->info('Quiz success notification created', [
-            'userId' => $user->getId(),
-            'courseId' => $course->getId(),
-            'score' => $score
-        ]);
-    } catch (\Exception $e) {
-        $this->logger->error('Failed to create quiz success notification', [
-            'userId' => $user->getId(),
-            'courseId' => $course->getId(),
-            'error' => $e->getMessage()
-        ]);
     }
+
+    $score = (count($questions) > 0) ? ($correctCount / count($questions)) * 100 : 0;
+    $passed = $score >= 80;
+
+    // ✅ Enregistrer la tentative
+    $attempt = new QuizAttempt();
+    $attempt->setUser($user);
+    $attempt->setCourse($course);
+    if ($enrollment) {
+        $attempt->setEnrollment($enrollment);
+    }
+    $attempt->setScore((int)$score);
+    $attempt->setPassed($passed);
+
+    $this->em->persist($attempt);
+    $this->em->flush();
+
+    return $attempt;
 }
 
-        return $attempt;
-    }
 
     /**
      * Vérifie si un utilisateur peut passer le quiz (et retourne l'enrollment).
      */
-    public function canAttempt(User $user, Course $course): ?Enrollment
-    {
-        $enrollment = $this->em->getRepository(Enrollment::class)
-            ->findOneBy(['user' => $user, 'course' => $course], ['createdAt' => 'DESC']);
-
-        if (!$enrollment) {
-            return null; // pas d'achat
-        }
-
-        $existing = $this->em->getRepository(QuizAttempt::class)
-            ->findOneBy(['enrollment' => $enrollment]);
-
-        if ($existing) {
-            return null; // déjà utilisé
-        }
-
-        return $enrollment;
+public function canAttempt(User $user, Course $course): bool
+{
+    // ✅ Si abonnement actif → accès direct
+    if ($user->hasActiveSubscription()) {
+        return true;
     }
+
+    // ✅ Sinon, on cherche une inscription au cours
+    $enrollment = $this->em->getRepository(Enrollment::class)
+        ->findOneBy(['user' => $user, 'course' => $course], ['createdAt' => 'DESC']);
+
+    if (!$enrollment) {
+        return false; // ni abonnement, ni achat
+    }
+
+    // ✅ Vérifie s'il a déjà tenté le quiz
+    $existing = $this->em->getRepository(QuizAttempt::class)
+        ->findOneBy(['enrollment' => $enrollment]);
+
+    return !$existing;
+}
+
 }
