@@ -131,26 +131,30 @@ if ($event->type === 'invoice.payment_succeeded') {
 try {
     $invoiceNumber = '2025-' . str_pad((string) $subscription->getId(), 4, '0', STR_PAD_LEFT);
     $invoiceDate = new \DateTime();
-    $amount = '29,90'; // montant TTC de l'abonnement (à ajuster si besoin)
     $currency = 'EUR';
 
-   $mailer->send(
-    $user->getEmail(),
-    'Votre facture – Abonnement E-Learning Les Consultants (12 mois)',
-    'emails/subscription_invoice.html.twig',
-    [
-        'user' => $user,
-        'subscription' => $subscription,
-        'invoice_number' => $invoiceNumber,
-        'tva'            => 17, // ✅ TVA à 17%
-        'amount'         => $amount,
-        'invoice_date' => $invoiceDate,
-        'dashboard_url' => $this->generateUrl('app_dashboard', [], UrlGeneratorInterface::ABSOLUTE_URL),
-    ],
-    'pdf/subscription_invoice.html.twig', // modèle PDF séparé
-    'facture-abonnement-' . $invoiceNumber . '.pdf'
-);
+    // ✅ Récupère le vrai montant depuis Stripe si possible
+    $amount = isset($invoice->amount_paid)
+        ? $invoice->amount_paid / 100
+        : 29.90; // valeur de secours par défaut
 
+    $mailer->send(
+        $user->getEmail(),
+        'Votre facture – Abonnement E-Learning Les Consultants (12 mois)',
+        'emails/subscription_invoice.html.twig',
+        [
+            'user'           => $user,
+            'subscription'   => $subscription,
+            'invoice_number' => $invoiceNumber,
+            'tva'            => 17,
+            'amount'         => $amount, // ✅ ajouté
+            'currency'       => $currency,
+            'invoice_date'   => $invoiceDate,
+            'dashboard_url'  => $this->generateUrl('app_dashboard', [], UrlGeneratorInterface::ABSOLUTE_URL),
+        ],
+        'pdf/subscription_invoice.html.twig',
+        'facture-abonnement-' . $invoiceNumber . '.pdf'
+    );
 
     $logger->info('📧 Email de facture abonnement envoyé', [
         'email' => $user->getEmail(),
