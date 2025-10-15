@@ -359,14 +359,26 @@
       </a>
     {% endif %}
   </div>
+
   <div>
-    {% if hasNext %}
+    {# --- CAS SPÉCIAL POUR LE COURS 12 --- #}
+    {% if course.id == 12 %}
+      <a class="primary" href="{{ path('app_course_show', { id: 13 }) }}">
+        Part 2
+        <svg viewBox="0 0 24 24" width="18" height="18">
+          <path fill="currentColor" d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/>
+        </svg>
+      </a>
+
+    {# --- SINON CAS NORMAL --- #}
+    {% elseif hasNext %}
       <a class="primary" href="{{ path('app_course_show', { id: course.id, videoId: nextVideo.id }) }}">
         Next lesson
         <svg viewBox="0 0 24 24" width="18" height="18">
           <path fill="currentColor" d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/>
         </svg>
       </a>
+
     {% elseif progressPercent == 100 %}
       <a class="primary" href="{{ path('course_quiz', { id: course.id }) }}">
         Take Quiz
@@ -377,6 +389,7 @@
     {% endif %}
   </div>
 </div>
+
 
 
     <!-- Lesson Info -->
