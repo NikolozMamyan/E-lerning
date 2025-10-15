@@ -142,6 +142,7 @@ try {
         'user' => $user,
         'subscription' => $subscription,
         'invoice_number' => $invoiceNumber,
+        'tva'            => 17, // ✅ TVA à 17%
         'invoice_date' => $invoiceDate,
         'dashboard_url' => $this->generateUrl('app_dashboard', [], UrlGeneratorInterface::ABSOLUTE_URL),
     ],
@@ -257,21 +258,37 @@ try {
                 $em->flush();
 
                 // Envoi facture
-                $mailer->send(
-                    $user->getEmail(),
-                    'Votre facture - ' . $course->getTitle(),
-                    'emails/invoice.html.twig',
-                    [
-                        'user'     => $user,
-                        'course'   => $course,
-                        'amount'   => $amount,
-                        'tva'      => null,
-                        'date'     => new \DateTime(),
-                        'currency' => $currency,
-                    ],
-                    'pdf/invoice.html.twig',
-                    'facture-' . $course->getId() . '.pdf'
-                );
+$invoiceNumber = date('Y') . '-' . str_pad((string)$enrollment->getId(), 4, '0', STR_PAD_LEFT);
+$invoiceDate = new \DateTime();
+
+try {
+    $mailer->send(
+        $user->getEmail(),
+        'Votre facture - ' . $course->getTitle(),
+        'emails/invoice.html.twig',
+        [
+            'user'           => $user,
+            'course'         => $course,
+            'amount'         => $amount,
+            'tva'            => 17, // ✅
+            'date'           => $invoiceDate,
+            'currency'       => $currency,
+            'invoice_number' => $invoiceNumber, // ✅ nouveau
+        ],
+        'pdf/invoice.html.twig',
+        'facture-' . $invoiceNumber . '.pdf' // ✅ renommé avec le numéro de facture
+    );
+
+    $logger->info('📧 Email facture enrollment envoyé', [
+        'email' => $user->getEmail(),
+        'invoice' => $invoiceNumber,
+    ]);
+} catch (\Throwable $e) {
+    $logger->error('❌ Erreur envoi email facture enrollment', [
+        'error' => $e->getMessage(),
+        'user' => $user->getEmail(),
+    ]);
+}
 
                 // Notification
                 try {
@@ -292,7 +309,6 @@ try {
                 return new Response('Enrollment created', 200);
             }
 
-            // === Branche 2 : achat entreprise (1 place) ===
           // === Branche 2 : achat entreprise (1 place) ===
 if ($context === 'company_single_seat') {
     $targetEmail = $metadata->target_email ?? null;

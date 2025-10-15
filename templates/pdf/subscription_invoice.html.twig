@@ -1,33 +1,38 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Facture {{ invoice_number }}</title>
+    <title>Invoice {{ invoice_number }}</title>
     <style>
-        body { font-family: Arial, sans-serif; font-size: 12px; color: #333; }
-        h1 { text-align: center; margin-bottom: 20px; }
+        body { font-family: Arial, sans-serif; font-size: 12px; color: #333; margin: 40px; }
+        h1 { text-align: center; margin-bottom: 25px; color: #2c3e50; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
         th { background: #f5f5f5; }
         .right { text-align: right; }
+        .totals { margin-top: 20px; width: 100%; }
+        .totals td { padding: 6px 10px; }
+        .totals td.label { text-align: right; font-weight: bold; }
+        .totals td.amount { text-align: right; width: 100px; }
+        .highlight { color: #27ae60; font-weight: bold; }
         .footer { margin-top: 40px; font-size: 11px; text-align: center; color: #777; }
     </style>
 </head>
 <body>
-    <h1>FACTURE SOUSCRIPTION</h1>
+    <h1>SUBSCRIPTION INVOICE</h1>
 
     <p><strong>LES CONSULTANTS</strong><br>
-    10 Rue du Commerce, L-1234 Luxembourg<br>
-    TVA : LU12345678<br>
+    1 Simmerfarm, L-8363 Simmerfarm, Luxembourg<br>
+    VAT: LU33807452<br>
     contact@les-consultants.com | www.les-consultants.com</p>
 
     <p>
-        <strong>Facture n° :</strong> {{ invoice_number }}<br>
-        <strong>Date :</strong> {{ invoice_date|date('d/m/Y') }}
+        <strong>Invoice No.:</strong> {{ invoice_number }}<br>
+        <strong>Date:</strong> {{ invoice_date|date('d/m/Y') }}
     </p>
 
     <p>
-        <strong>Client :</strong><br>
+        <strong>Client:</strong><br>
         {{ user.username ?? user.email }}<br>
         {{ user.email }}<br>
         {{ user.country ?? '—' }}
@@ -37,32 +42,46 @@
         <thead>
             <tr>
                 <th>Description</th>
-                <th>Quantité</th>
-                <th>Prix unitaire</th>
-                <th>Total</th>
+                <th>Quantity</th>
+                <th>Unit Price (excl. VAT)</th>
+                <th>Total (excl. VAT)</th>
             </tr>
         </thead>
         <tbody>
             <tr>
-                <td>Abonnement annuel E-Learning (accès illimité 12 mois)</td>
+                <td>Annual E-Learning Subscription (unlimited access for 12 months)</td>
                 <td>1</td>
-                <td>29,90 €</td>
-                <td>29,90 €</td>
+                <td>{{ amount|number_format(2, ',', ' ') }} €</td>
+                <td>{{ amount|number_format(2, ',', ' ') }} €</td>
             </tr>
         </tbody>
     </table>
 
-    <p class="right">
-        <strong>Total TTC : 29,90 €</strong><br><br>
-        Mode de paiement : Carte bancaire (Stripe)<br>
-        Date de règlement : {{ invoice_date|date('d/m/Y') }}
+    <table class="totals">
+        <tr>
+            <td class="label">Subtotal (excl. VAT):</td>
+            <td class="amount">{{ amount|number_format(2, ',', ' ') }} €</td>
+        </tr>
+        <tr>
+            <td class="label">VAT (17%):</td>
+            <td class="amount">{{ (amount * 0.17)|number_format(2, ',', ' ') }} €</td>
+        </tr>
+        <tr>
+            <td class="label">Total (incl. VAT):</td>
+            <td class="amount highlight">{{ (amount * 1.17)|number_format(2, ',', ' ') }} €</td>
+        </tr>
+    </table>
+
+    <p class="right" style="margin-top: 30px;">
+        <strong>Payment method:</strong> Credit card (Stripe)<br>
+        <strong>Payment date:</strong> {{ invoice_date|date('d/m/Y') }}
     </p>
 
-    <p>✅ Accès illimité à toutes les formations pendant 12 mois.<br>
-    Renouvellement non automatique.</p>
+    <p>✅ Unlimited access to all courses for 12 months.<br>
+    Non-recurring renewal.</p>
 
     <div class="footer">
-        © {{ "now"|date("Y") }} Les Consultants — Tous droits réservés
+        © {{ "now"|date("Y") }} Les Consultants — All rights reserved
     </div>
 </body>
 </html>

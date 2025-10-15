@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <style>
@@ -83,35 +83,35 @@
 <body>
 
     <div class="header">
-        <h2>FACTURE</h2>
+        <h2>INVOICE</h2>
     </div>
 
     <div class="company-info">
         <strong>LES CONSULTANTS</strong>
-        10 Rue du Commerce, L-1234 Luxembourg<br>
-        TVA : LU12345678<br>
+        1 Simmerfarm, L-8363 Simmerfarm, Luxembourg<br>
+        VAT: LU33807452<br>
         contact@les-consultants.com | www.les-consultants.com
     </div>
 
     <div class="client-info">
-        <p><strong>Facture n° :</strong> {{ date|date('Y') }}-{{ '%04d'|format(invoiceNumber) }}</p>
-        <p><strong>Date :</strong> {{ date|date('d/m/Y') }}</p>
-        <p><strong>Client :</strong> {{ user.username }}</p>
-        <p><strong>Email :</strong> {{ user.email }}</p>
+        <p><strong>Invoice No.:</strong> {{ date|date('Y') }}-{{ '%04d'|format(invoiceNumber) }}</p>
+        <p><strong>Date:</strong> {{ date|date('d/m/Y') }}</p>
+        <p><strong>Client:</strong> {{ user.username }}</p>
+        <p><strong>Email:</strong> {{ user.email }}</p>
     </div>
 
     <table>
         <thead>
             <tr>
                 <th>Description</th>
-                <th>Quantité</th>
-                <th>Prix unitaire</th>
+                <th>Quantity</th>
+                <th>Unit Price</th>
                 <th>Total</th>
             </tr>
         </thead>
         <tbody>
             <tr>
-                <td>Accès au cours : {{ course.title }}</td>
+                <td>Course access: {{ course.title }}</td>
                 <td>1</td>
                 <td>{{ amount|number_format(2, ',', ' ') }} €</td>
                 <td>{{ amount|number_format(2, ',', ' ') }} €</td>
@@ -121,17 +121,17 @@
 
     <table class="totals">
         <tr>
-            <td class="label">Sous-total :</td>
+            <td class="label">Subtotal:</td>
             <td class="amount">{{ amount|number_format(2, ',', ' ') }} €</td>
         </tr>
         {% if tva is not null %}
             <tr>
-                <td class="label">TVA ({{ tva }}%) :</td>
+                <td class="label">VAT ({{ tva }}%):</td>
                 <td class="amount">{{ (amount * tva / 100)|number_format(2, ',', ' ') }} €</td>
             </tr>
         {% endif %}
         <tr>
-            <td class="label">Total TTC :</td>
+            <td class="label">Total (incl. VAT):</td>
             <td class="amount highlight">
                 {{ (amount + (tva ? (amount * tva / 100) : 0))|number_format(2, ',', ' ') }} €
             </td>
@@ -139,13 +139,13 @@
     </table>
 
     <div class="payment-info">
-        <p><strong>Mode de paiement :</strong> Carte bancaire (Stripe)</p>
-        <p><strong>Date de règlement :</strong> {{ date|date('d/m/Y') }}</p>
-        <p>✅ Accès immédiat à la formation en ligne. Aucune livraison physique.</p>
+        <p><strong>Payment method:</strong> Credit card (Stripe)</p>
+        <p><strong>Payment date:</strong> {{ date|date('d/m/Y') }}</p>
+        <p>✅ Immediate access to the online course. No physical delivery.</p>
     </div>
 
     <div class="footer">
-        Merci pour votre confiance.<br>
+        Thank you for your trust.<br>
         <em>Les Consultants – E-Learning</em>
     </div>
 

@@ -16,19 +16,14 @@
         Votre accès au cours <strong>{{ course.title }}</strong> est désormais disponible sur votre espace :
     </p>
 
-    <p style="margin: 20px 0;">
-        👉 <a href="{{ path('show_login') }}" 
-              style="background-color: #0066cc; color: #fff; padding: 10px 15px; text-decoration: none; border-radius: 4px;">
-            Accéder à mon espace
-        </a>
-    </p>
+👉 <a href="{{ path('app_dashboard')}}">Accéder à mon tableau de bord</a>
 
     <p>Merci pour votre confiance,</p>
     <p><strong>L’équipe Les Consultants</strong></p>
 
     <hr style="margin: 30px 0; border: none; border-top: 1px solid #ddd;">
     <p style="font-size: 12px; color: #777;">
-        <strong>Facture n° :</strong> {{ invoiceNumber }}<br>
+        <strong>Facture n° :</strong> {{ invoice_number }}<br>
         <strong>Date :</strong> {{ date|date('d/m/Y') }}<br>
         <strong>Montant TTC :</strong> 
         {{ (amount + (tva ? (amount * tva / 100) : 0))|number_format(2, ',', ' ') }} €
