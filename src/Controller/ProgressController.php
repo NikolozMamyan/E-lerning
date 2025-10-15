@@ -76,7 +76,8 @@ public function progress(
     Request $request,
     EnrollmentRepository $enrollmentRepo,
     ProgressRepository $progressRepo,
-    QuizAttemptRepository $quizAttemptRepo
+    QuizAttemptRepository $quizAttemptRepo,
+    EntityManagerInterface $em
 ): Response {
     $user = $this->getUser();
 
@@ -84,22 +85,31 @@ public function progress(
         return new JsonResponse(['error' => 'Not logged in'], 401);
     }
 
-    // Récupère toutes les inscriptions de l’utilisateur
-    $enrollments = $enrollmentRepo->findBy(['user' => $user]);
+    $hasSubscription = $user->hasActiveSubscription();
+
+    // 🔹 Récupération des cours accessibles
+    if ($hasSubscription) {
+        // Si abonnement → accès à tous les cours
+        $courses = $em->getRepository(Course::class)->findAll();
+        $enrollments = []; // pas nécessaire dans ce cas
+    } else {
+        // Sinon → seulement les cours achetés
+        $enrollments = $enrollmentRepo->findBy(['user' => $user]);
+        $courses = array_map(fn($en) => $en->getCourse(), $enrollments);
+    }
+
     $data = [];
 
-    foreach ($enrollments as $enroll) {
-        $course = $enroll->getCourse();
+    foreach ($courses as $course) {
         $courseVideos = $course->getVideos();
         $totalVideos = count($courseVideos);
 
-        // Tous les progress de l'utilisateur (on pourrait optimiser avec une méthode custom du repo)
+        // Tous les progress de l'utilisateur
         $progressList = $progressRepo->findBy(['user' => $user]);
 
         $percent = 0;
 
         if ($totalVideos > 1) {
-            // --- CAS MULTI-VIDÉOS ---
             $completedVideos = array_filter($progressList, function ($p) use ($course) {
                 return $p->isCompleted() && $p->getVideo()->getCourse() === $course;
             });
@@ -108,7 +118,6 @@ public function progress(
                 ? (count($completedVideos) / $totalVideos * 100)
                 : 0;
         } elseif ($totalVideos === 1) {
-            // --- CAS UNE SEULE VIDÉO ---
             $video = $courseVideos[0];
             $progress = $progressRepo->findOneBy([
                 'user' => $user,
@@ -117,7 +126,7 @@ public function progress(
 
             if ($progress) {
                 $watched = $progress->getWatchedSeconds();
-                $duration = $video->getDuration(); // assure-toi que ton entité Video a ce champ
+                $duration = $video->getDuration();
 
                 if ($duration > 0) {
                     $percent = min(($watched / $duration) * 100, 100);
@@ -125,11 +134,22 @@ public function progress(
             }
         }
 
-        // Dernière tentative de quiz pour cet enrollment
-        $attempt = $quizAttemptRepo->findOneBy(
-            ['user' => $user, 'enrollment' => $enroll],
-            ['createdAt' => 'DESC']
-        );
+        // 🔹 Récupération du quiz attempt
+        if ($hasSubscription) {
+            // Les abonnés n'ont pas d'enrollment, donc on cherche par user+course
+            $attempt = $quizAttemptRepo->findOneBy(
+                ['user' => $user, 'course' => $course],
+                ['createdAt' => 'DESC']
+            );
+            $enrollment = null;
+        } else {
+            $enroll = array_values(array_filter($enrollments, fn($e) => $e->getCourse() === $course))[0] ?? null;
+            $enrollment = $enroll;
+            $attempt = $quizAttemptRepo->findOneBy(
+                ['user' => $user, 'enrollment' => $enroll],
+                ['createdAt' => 'DESC']
+            );
+        }
 
         $quizScore = $attempt ? $attempt->getScore() : null;
         $quizPassed = $attempt ? $attempt->isPassed() : false;
@@ -139,7 +159,7 @@ public function progress(
 
         $data[] = [
             'course' => $course,
-            'enrollment' => $enroll,
+            'enrollment' => $enrollment,
             'progressPercent' => round($percent, 2),
             'quizScore' => $quizScore,
             'certified' => $certified,
@@ -150,6 +170,7 @@ public function progress(
         'coursesData' => $data,
     ]);
 }
+
 
 
 #[Route('/app/transactions', name: 'app_transactions')]
