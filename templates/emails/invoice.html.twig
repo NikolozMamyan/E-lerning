@@ -1,13 +1,37 @@
-<h2>Facture</h2>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Votre facture – {{ course.title }}</title>
+</head>
+<body style="font-family: Arial, sans-serif; color: #333;">
+    <p>Bonjour {{ user.firstName }} {{ user.lastName }},</p>
 
-<p><strong>Date :</strong> {{ date|date('d/m/Y') }}</p>
-<p><strong>Acheteur :</strong> {{ user.username }} ({{ user.email }})</p>
-<p><strong>Cours :</strong> {{ course.title }}</p>
+    <p>
+        Merci pour votre achat sur la plateforme <strong>Les Consultants – E-Learning</strong>.
+        Vous trouverez ci-joint votre facture au format PDF.
+    </p>
 
-<p><strong>Montant HT :</strong> {{ amount|number_format(2, ',', ' ') }} €</p>
-{% if tva is not null %}
-    <p><strong>TVA ({{ tva }}%) :</strong> {{ (amount * tva / 100)|number_format(2, ',', ' ') }} €</p>
-{% endif %}
-<p><strong>Total TTC :</strong>
-    {{ (amount + (tva ? (amount * tva / 100) : 0))|number_format(2, ',', ' ') }} €
-</p>
+    <p>
+        Votre accès au cours <strong>{{ course.title }}</strong> est désormais disponible sur votre espace :
+    </p>
+
+    <p style="margin: 20px 0;">
+        👉 <a href="{{ show_login }}" 
+              style="background-color: #0066cc; color: #fff; padding: 10px 15px; text-decoration: none; border-radius: 4px;">
+            Accéder à mon espace
+        </a>
+    </p>
+
+    <p>Merci pour votre confiance,</p>
+    <p><strong>L’équipe Les Consultants</strong></p>
+
+    <hr style="margin: 30px 0; border: none; border-top: 1px solid #ddd;">
+    <p style="font-size: 12px; color: #777;">
+        <strong>Facture n° :</strong> {{ invoiceNumber }}<br>
+        <strong>Date :</strong> {{ date|date('d/m/Y') }}<br>
+        <strong>Montant TTC :</strong> 
+        {{ (amount + (tva ? (amount * tva / 100) : 0))|number_format(2, ',', ' ') }} €
+    </p>
+</body>
+</html>
