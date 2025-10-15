@@ -124,12 +124,7 @@ if ($event->type === 'invoice.payment_succeeded') {
         $em->persist($subscription);
         $em->flush();
 
-        $logger->info('✅✅✅ Subscription SAVED successfully', [
-            'user' => $user->getEmail(),
-            'type' => 'monthly',
-            'engagement' => '1 year',
-        ]);
-       /* ============================================================
+          /* ============================================================
  * 💌 Envoi de la facture PDF par email
  * ============================================================ */
 try {
@@ -171,6 +166,13 @@ try {
         'email' => $user->getEmail(),
     ]);
 }
+
+        $logger->info('✅✅✅ Subscription SAVED successfully', [
+            'user' => $user->getEmail(),
+            'type' => 'monthly',
+            'engagement' => '1 year',
+        ]);
+     
 
         return new Response('Subscription updated', 200);
         
