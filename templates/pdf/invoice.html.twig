@@ -100,41 +100,41 @@
         <p><strong>Email:</strong> {{ user.email }}</p>
     </div>
 
+    {% set amount_ttc = amount %}
+    {% set amount_ht = (amount_ttc / (1 + (tva / 100))) %}
+    {% set vat_value = amount_ttc - amount_ht %}
+
     <table>
         <thead>
             <tr>
                 <th>Description</th>
                 <th>Quantity</th>
-                <th>Unit Price</th>
-                <th>Total</th>
+                <th>Unit Price (excl. VAT)</th>
+                <th>Total (excl. VAT)</th>
             </tr>
         </thead>
         <tbody>
             <tr>
                 <td>Course access: {{ course.title }}</td>
                 <td>1</td>
-                <td>{{ amount|number_format(2, ',', ' ') }} €</td>
-                <td>{{ amount|number_format(2, ',', ' ') }} €</td>
+                <td>{{ amount_ht|number_format(2, ',', ' ') }} €</td>
+                <td>{{ amount_ht|number_format(2, ',', ' ') }} €</td>
             </tr>
         </tbody>
     </table>
 
     <table class="totals">
         <tr>
-            <td class="label">Subtotal:</td>
-            <td class="amount">{{ amount|number_format(2, ',', ' ') }} €</td>
+            <td class="label">Subtotal (excl. VAT):</td>
+            <td class="amount">{{ amount_ht|number_format(2, ',', ' ') }} €</td>
         </tr>
-        {% if tva is not null %}
-            <tr>
-                <td class="label">VAT ({{ tva }}%):</td>
-                <td class="amount">{{ (amount * tva / 100)|number_format(2, ',', ' ') }} €</td>
-            </tr>
-        {% endif %}
+        <tr>
+            <td class="label">VAT ({{ tva }}%):</td>
+            <td class="amount">{{ vat_value|number_format(2, ',', ' ') }} €</td>
+        </tr>
         <tr>
             <td class="label">Total (incl. VAT):</td>
-            <td class="amount highlight">
-                {{ (amount + (tva ? (amount * tva / 100) : 0))|number_format(2, ',', ' ') }} €
-            </td>
+            <td class="amount highlight">{{ amount_ttc|number_format(2, ',', ' ') }} €</td>
         </tr>
     </table>
 
