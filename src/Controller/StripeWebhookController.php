@@ -124,19 +124,15 @@ if ($event->type === 'invoice.payment_succeeded') {
         $em->persist($subscription);
         $em->flush();
 
-          /* ============================================================
- * 💌 Envoi de la facture PDF par email
+         /* ============================================================
+ * 💌 Envoi de la facture PDF par email (comme les autres branches)
  * ============================================================ */
 try {
-    // Variables pour la facture
     $invoiceNumber = '2025-' . str_pad((string) $subscription->getId(), 4, '0', STR_PAD_LEFT);
-    $amountHT = 300; // Exemple : prix hors taxe (à adapter)
-    $tvaRate = 0.17;
-    $tvaAmount = $amountHT * $tvaRate;
-    $totalTTC = $amountHT + $tvaAmount;
     $invoiceDate = new \DateTime();
+    $amount = '29,90'; // montant TTC de l'abonnement (à ajuster si besoin)
+    $currency = 'EUR';
 
-    // ✉️ Envoi de l'email avec pièce jointe PDF
     $mailer->send(
         $user->getEmail(),
         'Votre facture – Abonnement E-Learning Les Consultants (12 mois)',
@@ -146,13 +142,11 @@ try {
             'subscription' => $subscription,
             'invoice_number' => $invoiceNumber,
             'invoice_date' => $invoiceDate,
-            'dashboard_url' => $this->generateUrl(
-                'app_dashboard',
-                [],
-                \Symfony\Component\Routing\Generator\UrlGeneratorInterface::ABSOLUTE_URL
-            ),
+            'amount' => $amount,
+            'currency' => $currency,
+            'date' => $invoiceDate,
         ],
-        'pdf/subscription_invoice.html.twig', // modèle PDF
+        'pdf/subscription_invoice.html.twig',
         'facture-abonnement-' . $invoiceNumber . '.pdf'
     );
 
@@ -166,6 +160,7 @@ try {
         'email' => $user->getEmail(),
     ]);
 }
+
 
         $logger->info('✅✅✅ Subscription SAVED successfully', [
             'user' => $user->getEmail(),
