@@ -133,22 +133,21 @@ try {
     $amount = '29,90'; // montant TTC de l'abonnement (à ajuster si besoin)
     $currency = 'EUR';
 
-    $mailer->send(
-        $user->getEmail(),
-        'Votre facture – Abonnement E-Learning Les Consultants (12 mois)',
-        'emails/subscription_invoice.html.twig',
-        [
-            'user' => $user,
-            'subscription' => $subscription,
-            'invoice_number' => $invoiceNumber,
-            'invoice_date' => $invoiceDate,
-            'amount' => $amount,
-            'currency' => $currency,
-            'date' => $invoiceDate,
-        ],
-        'pdf/subscription_invoice.html.twig',
-        'facture-abonnement-' . $invoiceNumber . '.pdf'
-    );
+   $mailer->send(
+    $user->getEmail(),
+    'Votre facture – Abonnement E-Learning Les Consultants (12 mois)',
+    'emails/subscription_invoice.html.twig',
+    [
+        'user' => $user,
+        'subscription' => $subscription,
+        'invoice_number' => $invoiceNumber,
+        'invoice_date' => $invoiceDate,
+        'dashboard_url' => $this->generateUrl('app_dashboard', [], UrlGeneratorInterface::ABSOLUTE_URL),
+    ],
+    'pdf/subscription_invoice.html.twig', // modèle PDF séparé
+    'facture-abonnement-' . $invoiceNumber . '.pdf'
+);
+
 
     $logger->info('📧 Email de facture abonnement envoyé', [
         'email' => $user->getEmail(),

@@ -3,7 +3,7 @@ Votre facture – Abonnement E-Learning Les Consultants (12 mois)
 {% endblock %}
 
 {% block body %}
-<p>Bonjour {{ user.username }},</p>
+<p>Bonjour {{ user.username ?? user.email }},</p>
 
 <p>
 Merci pour votre abonnement à la plateforme <strong>Les Consultants E-Learning</strong>.<br>
@@ -13,7 +13,7 @@ Votre abonnement annuel vous donne accès à l’ensemble des formations disponi
 <p>
 Vous trouverez ci-joint votre facture au format PDF.<br>
 L’accès à votre espace est disponible ici :<br>
-👉 <a href="{{ path('app_dashboard') }}">Accéder à mon tableau de bord</a>
+👉 <a href="{{ dashboard_url }}">Accéder à mon tableau de bord</a>
 </p>
 
 <p>Merci pour votre confiance,<br>
