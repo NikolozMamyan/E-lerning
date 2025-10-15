@@ -143,6 +143,7 @@ try {
         'subscription' => $subscription,
         'invoice_number' => $invoiceNumber,
         'tva'            => 17, // ✅ TVA à 17%
+        'amount'         => $amount,
         'invoice_date' => $invoiceDate,
         'dashboard_url' => $this->generateUrl('app_dashboard', [], UrlGeneratorInterface::ABSOLUTE_URL),
     ],
