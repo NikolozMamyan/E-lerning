@@ -92,6 +92,21 @@ $titleY = 130; // ajuste cette valeur pour le descendre
 $pdf->SetXY(0, $titleY);
 $pdf->Cell($pageWidth, 10, utf8_decode($course->getTitle()), 0, 0, 'C');
 
+// --- Calcul de la durée totale du cours ---
+$totalDurationSeconds = 0;
+
+foreach ($course->getVideos() as $video) {
+    $totalDurationSeconds += $video->getDuration(); // la durée est en secondes
+}
+
+// Conversion en minutes (arrondie)
+$totalDurationMinutes = round($totalDurationSeconds / 60);
+
+// --- Affichage dans le certificat ---
+$pdf->SetFont('Arial', '', 14);
+$pdf->SetXY(0, 150); // Ajuste la position selon ton template
+$pdf->Cell($pageWidth, 10, utf8_decode("Course Duration : " . $totalDurationMinutes . " min"), 0, 0, 'C');
+
         // Date
         $pdf->SetFont('Arial', '', 14);
         $pdf->SetXY(100, 178);
