@@ -28,7 +28,7 @@
 
     <p>
         <strong>Client :</strong><br>
-        {{ user.username }}<br>
+        {{ user.username ?? user.email }}<br>
         {{ user.email }}<br>
         {{ user.country ?? '—' }}
     </p>
@@ -46,17 +46,14 @@
             <tr>
                 <td>Abonnement annuel E-Learning (accès illimité 12 mois)</td>
                 <td>1</td>
-                <td>{{ (amountHT ?? 300)|number_format(2, ',', ' ') }} €</td>
-                <td>{{ (amountHT ?? 300)|number_format(2, ',', ' ') }} €</td>
+                <td>29,90 €</td>
+                <td>29,90 €</td>
             </tr>
         </tbody>
     </table>
 
     <p class="right">
-        Sous-total : {{ (amountHT ?? 300)|number_format(2, ',', ' ') }} €<br>
-        TVA (17%) : {{ (tvaAmount ?? (amountHT * 0.17))|number_format(2, ',', ' ') }} €<br>
-        <strong>Total TTC : {{ (totalTTC ?? amountHT * 1.17)|number_format(2, ',', ' ') }} €</strong><br>
-        <br>
+        <strong>Total TTC : 29,90 €</strong><br><br>
         Mode de paiement : Carte bancaire (Stripe)<br>
         Date de règlement : {{ invoice_date|date('d/m/Y') }}
     </p>
