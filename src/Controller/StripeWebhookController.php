@@ -147,7 +147,7 @@ try {
             'invoice_number' => $invoiceNumber,
             'invoice_date' => $invoiceDate,
             'dashboard_url' => $this->generateUrl(
-                'user_dashboard',
+                'app_dashboard',
                 [],
                 \Symfony\Component\Routing\Generator\UrlGeneratorInterface::ABSOLUTE_URL
             ),
