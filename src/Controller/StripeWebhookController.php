@@ -129,6 +129,48 @@ if ($event->type === 'invoice.payment_succeeded') {
             'type' => 'monthly',
             'engagement' => '1 year',
         ]);
+       /* ============================================================
+ * 💌 Envoi de la facture PDF par email
+ * ============================================================ */
+try {
+    // Variables pour la facture
+    $invoiceNumber = '2025-' . str_pad((string) $subscription->getId(), 4, '0', STR_PAD_LEFT);
+    $amountHT = 300; // Exemple : prix hors taxe (à adapter)
+    $tvaRate = 0.17;
+    $tvaAmount = $amountHT * $tvaRate;
+    $totalTTC = $amountHT + $tvaAmount;
+    $invoiceDate = new \DateTime();
+
+    // ✉️ Envoi de l'email avec pièce jointe PDF
+    $mailer->send(
+        $user->getEmail(),
+        'Votre facture – Abonnement E-Learning Les Consultants (12 mois)',
+        'emails/subscription_invoice.html.twig',
+        [
+            'user' => $user,
+            'subscription' => $subscription,
+            'invoice_number' => $invoiceNumber,
+            'invoice_date' => $invoiceDate,
+            'dashboard_url' => $this->generateUrl(
+                'user_dashboard',
+                [],
+                \Symfony\Component\Routing\Generator\UrlGeneratorInterface::ABSOLUTE_URL
+            ),
+        ],
+        'pdf/subscription_invoice.html.twig', // modèle PDF
+        'facture-abonnement-' . $invoiceNumber . '.pdf'
+    );
+
+    $logger->info('📧 Email de facture abonnement envoyé', [
+        'email' => $user->getEmail(),
+        'invoice' => $invoiceNumber
+    ]);
+} catch (\Throwable $e) {
+    $logger->error('❌ Erreur lors de l’envoi de l’email de facture abonnement', [
+        'error' => $e->getMessage(),
+        'email' => $user->getEmail(),
+    ]);
+}
 
         return new Response('Subscription updated', 200);
         
