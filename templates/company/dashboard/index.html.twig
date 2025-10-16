@@ -39,13 +39,13 @@
 
   <div style="margin-bottom: 2rem;">
     {% if collaboratorsProgress is not empty %}
-      {% for collab in collaboratorsProgress %}
+      {% for collab in collaboratorsProgress|slice(0, 2) %}
         <div class="employee-progress">
           <h4 style="margin-top: 1rem;">👤 {{ collab.employee.username ?? collab.employee.email }}</h4>
 
           {% set hasProgress = false %}
 
-          {% for course in courses|slice(0, 3) %}
+          {% for course in courses|slice(0, 2) %}
             {% set percent = collab.progress[course.id] ?? 0 %}
 
             {% if percent > 0 %}
