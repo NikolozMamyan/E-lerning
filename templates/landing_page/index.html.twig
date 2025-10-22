@@ -1433,6 +1433,429 @@
             transform: translateY(-5px);
             box-shadow: 0 12px 40px rgba(13, 131, 131, 0.5);
         }
+
+        /*modal*/
+/* Course Modal - VERSION MODERNE */
+.course-modal {
+    display: none;
+    position: fixed;
+    z-index: 2000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(7, 23, 23, 0.85);
+    backdrop-filter: blur(12px);
+    justify-content: center;
+    align-items: center;
+    overflow-y: auto;
+    padding: 2rem;
+    animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.course-modal-content {
+    background: var(--white);
+    border-radius: 20px;
+    max-width: 1100px;
+    width: 100%;
+    box-shadow: 0 25px 80px rgba(13, 131, 131, 0.3);
+    position: relative;
+    animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    overflow: hidden;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(50px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.close-modal {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    transition: all 0.3s;
+    font-size: 1.5rem;
+    color: var(--grey);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.close-modal:hover {
+    background: var(--teal);
+    color: var(--white);
+    transform: rotate(90deg);
+}
+
+#courseModalBody {
+    overflow-y: auto;
+    max-height: calc(90vh - 40px);
+}
+
+/* Course Presentation */
+.course-presentation {
+    display: flex;
+    flex-direction: column;
+}
+
+.course-hero {
+    background: linear-gradient(135deg, var(--teal), var(--green));
+    padding: 3rem;
+    color: var(--white);
+    position: relative;
+    overflow: hidden;
+}
+
+.course-hero::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    animation: float 20s infinite ease-in-out;
+}
+
+.course-thumbnail {
+    position: relative;
+    width: 100%;
+    height: 350px;
+    border-radius: 15px;
+    overflow: hidden;
+    margin-bottom: 2rem;
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    transition: transform 0.3s;
+}
+
+.course-thumbnail:hover {
+    transform: scale(1.02);
+}
+
+.course-thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.play-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80px;
+    height: 80px;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+}
+
+.play-overlay i {
+    font-size: 2rem;
+    color: var(--teal);
+    margin-left: 5px;
+}
+
+.course-thumbnail:hover .play-overlay {
+    background: var(--white);
+    transform: translate(-50%, -50%) scale(1.1);
+}
+
+.course-details h1 {
+    font-size: 2.5rem;
+    margin-bottom: 1.5rem;
+    font-weight: 800;
+    line-height: 1.2;
+}
+
+.course-meta {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.course-meta span {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1rem;
+    opacity: 0.95;
+}
+
+.course-meta i {
+    font-size: 1.1rem;
+}
+
+.course-price {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 2rem;
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 0.5rem 1.5rem;
+    border-radius: 10px;
+    backdrop-filter: blur(10px);
+}
+
+.course-features {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.course-feature {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 0.6rem 1.2rem;
+    border-radius: 25px;
+    font-size: 0.9rem;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    transition: all 0.3s;
+}
+
+.course-feature:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+}
+
+/* Course Description Section */
+.course-description {
+    padding: 3rem;
+    background: var(--white);
+}
+
+.course-description h3 {
+    font-size: 1.8rem;
+    margin-bottom: 1.5rem;
+    color: var(--black);
+    font-weight: 700;
+    position: relative;
+    padding-bottom: 0.8rem;
+}
+
+.course-description h3::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 60px;
+    height: 4px;
+    background: linear-gradient(90deg, var(--teal), var(--green));
+    border-radius: 2px;
+}
+
+.course-description > p {
+    font-size: 1.1rem;
+    line-height: 1.9;
+    color: var(--grey);
+    margin-bottom: 2.5rem;
+}
+
+.course-description ul {
+    list-style: none;
+    margin-bottom: 2.5rem;
+}
+
+.course-description ul li {
+    padding: 1rem 0;
+    padding-left: 2.5rem;
+    border-bottom: 1px solid var(--mint);
+    color: var(--grey);
+    font-size: 1.05rem;
+    position: relative;
+    transition: all 0.3s;
+}
+
+.course-description ul li:last-child {
+    border-bottom: none;
+}
+
+.course-description ul li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    width: 28px;
+    height: 28px;
+    background: linear-gradient(135deg, var(--teal), var(--green));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--white);
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.course-description ul li:hover {
+    padding-left: 3rem;
+    color: var(--teal);
+}
+
+/* CTA Buttons dans la modal */
+.course-cta-buttons {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: 2.5rem;
+    padding-top: 2.5rem;
+    border-top: 2px solid var(--mint);
+}
+
+.course-cta-button {
+    flex: 1;
+    background: linear-gradient(135deg, var(--green), var(--teal));
+    color: var(--white);
+    padding: 1.2rem 2rem;
+    border: none;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 8px 25px rgba(13, 131, 131, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.8rem;
+}
+
+.course-cta-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 35px rgba(13, 131, 131, 0.4);
+}
+
+.course-cta-button.secondary {
+    background: var(--white);
+    color: var(--teal);
+    border: 2px solid var(--teal);
+}
+
+.course-cta-button.secondary:hover {
+    background: var(--mint);
+}
+
+.course-cta-button i {
+    font-size: 1.2rem;
+}
+
+/* Stats Grid dans la modal */
+.course-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+    margin: 2.5rem 0;
+    padding: 2rem;
+    background: var(--bg);
+    border-radius: 12px;
+}
+
+.course-stat {
+    text-align: center;
+}
+
+.course-stat-number {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--teal);
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.course-stat-label {
+    font-size: 0.9rem;
+    color: var(--grey);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Responsive */
+@media (max-width: 968px) {
+    .course-modal {
+        padding: 1rem;
+    }
+
+    .course-hero {
+        padding: 2rem;
+    }
+
+    .course-details h1 {
+        font-size: 1.8rem;
+    }
+
+    .course-thumbnail {
+        height: 250px;
+    }
+
+    .course-description {
+        padding: 2rem;
+    }
+
+    .course-cta-buttons {
+        flex-direction: column;
+    }
+
+    .course-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .course-meta {
+        gap: 1rem;
+    }
+}
+
+@media (max-width: 640px) {
+    .course-modal-content {
+        border-radius: 15px;
+        max-height: 95vh;
+    }
+
+    .course-details h1 {
+        font-size: 1.5rem;
+    }
+
+    .course-price {
+        font-size: 2rem;
+    }
+
+    .course-description h3 {
+        font-size: 1.4rem;
+    }
+
+    .course-stats {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+}
+
     </style>
 </head>
 
@@ -1516,9 +1939,9 @@
         </div>
 
 <div class="modules-preview" id="courses">
-   {% for course in courses|slice(4, 4) %}
-        <div class="module-card">
-           <img src="{{ asset('uploads/courses/' ~ course.thumb) }}" alt="{{ course.title }}">
+    {% for course in courses|slice(4, 4) %}
+        <div class="module-card" onclick="openCourseModal({{ course.id }})" data-course-id="{{ course.id }}">
+            <img src="{{ asset(course.thumb ? 'uploads/courses/' ~ course.thumb : 'card.png') }}" alt="{{ course.title }}">
             <div class="module-card-content">
                 <h3>{{ course.title }}</h3>
                 <div class="module-meta">
@@ -1534,6 +1957,7 @@
         <p>Aucun cours disponible pour le moment.</p>
     {% endfor %}
 </div>
+
 
     </section>
 
@@ -1698,6 +2122,17 @@
             </a>
 
     </section>
+
+    <!-- Course Modal -->
+<div id="courseModal" class="course-modal">
+    <div class="course-modal-content">
+        <span class="close-modal" onclick="closeCourseModal()">&times;</span>
+        <div id="courseModalBody">
+            <!-- Le contenu dynamique du cours sera injecté ici via JS -->
+        </div>
+    </div>
+</div>
+
 
     <script>
         // Scroll Progress Bar
@@ -1920,5 +2355,108 @@
             const loadTime = performance.now();
             console.log(`%cPage loaded in ${Math.round(loadTime)}ms`, 'color: #0D8383; font-weight: bold;');
         });
+
+          {# Transformer chaque cours en données simples avant encodage JSON #}
+{% set coursesArray = [] %}
+{% for c in courses %}
+    {% set courseData = {
+        id: c.id,
+        title: c.title,
+        description: c.description,
+
+        thumb: c.thumb,
+        instructor: c.instructor ?? 'Expert',
+
+        videos: c.videos ? c.videos|map(v => {'title': v.title}) : []
+    } %}
+    {% set coursesArray = coursesArray|merge([courseData]) %}
+{% endfor %}
+
+
+ const coursesData = {{ coursesArray|json_encode|raw }};
+  function openCourseModal(courseId) {
+    const course = coursesData.find(c => Number(c.id) === Number(courseId));
+    if (!course) return;
+
+    const modalBody = document.getElementById('courseModalBody');
+    modalBody.innerHTML = `
+        <div class="course-presentation">
+            <div class="course-hero">
+                <div class="course-thumbnail" onclick="alert('Video preview coming soon!')">
+                    <img src="${course.thumb ? '/uploads/courses/' + course.thumb : '/card.png'}" alt="${course.title}">
+                    <div class="play-overlay"><i class="fas fa-play"></i></div>
+                </div>
+                <div class="course-details">
+                    <h1>${course.title}</h1>
+                    <div class="course-meta">
+                        <span><i class="fas fa-clock"></i> 08:00 min</span>
+                        <span><i class="fas fa-user"></i> ${course.instructor ?? 'Expert'}</span>
+                        <span><i class="fas fa-star"></i> 4.8/5</span>
+                        <span><i class="fas fa-users"></i> 124 students</span>
+                    </div>
+                    <div class="course-price">€${course.price ?? '—'}</div>
+                    <div class="course-features">
+                        <span class="course-feature"><i class="fas fa-infinity"></i> Full lifetime access</span>
+                        <span class="course-feature"><i class="fas fa-certificate"></i> Certificate</span>
+                        <span class="course-feature"><i class="fas fa-headset"></i> 24/7 Support</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="course-description">
+                <h3>📚 Course Description</h3>
+                <p>${course.description || 'Comprehensive training designed by industry experts to help you master essential skills in compliance, risk management, and regulatory frameworks.'}</p>
+
+                <div class="course-stats">
+                    <div class="course-stat">
+                        <span class="course-stat-number">${course.videos?.length || 8}</span>
+                        <span class="course-stat-label">Modules</span>
+                    </div>
+
+                    <div class="course-stat">
+                        <span class="course-stat-number">FR/EN</span>
+                        <span class="course-stat-label">Languages</span>
+                    </div>
+                    <div class="course-stat">
+                        <span class="course-stat-number">98%</span>
+                        <span class="course-stat-label">Success Rate</span>
+                    </div>
+                </div>
+
+                <h3>🎯 What you will learn</h3>
+                <ul>
+                    ${(course.videos && course.videos.length)
+                        ? course.videos.map(v => `<li>${v.title}</li>`).join('')
+                        : `
+                            <li>Understand key compliance regulations and frameworks</li>
+                            <li>Apply best practices in risk management</li>
+                            <li>Navigate Luxembourg-specific requirements</li>
+                            <li>Implement effective compliance strategies</li>
+                        `}
+                </ul>
+
+                
+            </div>
+        </div>
+    `;
+
+    document.getElementById('courseModal').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+    function closeCourseModal() {
+        document.getElementById('courseModal').style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+
+    // Fermer la modal au clic sur le fond
+    document.getElementById('courseModal').addEventListener('click', (e) => {
+        if (e.target.id === 'courseModal') closeCourseModal();
+    });
+
+    // Fermer avec la touche Échap
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeCourseModal();
+    });
     </script>
 {% endblock %}
