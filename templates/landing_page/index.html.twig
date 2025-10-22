@@ -1550,13 +1550,10 @@
     overflow: hidden;
     margin-bottom: 2rem;
     box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3);
-    cursor: pointer;
     transition: transform 0.3s;
 }
 
-.course-thumbnail:hover {
-    transform: scale(1.02);
-}
+
 
 .course-thumbnail img {
     width: 100%;
@@ -2382,9 +2379,8 @@
     modalBody.innerHTML = `
         <div class="course-presentation">
             <div class="course-hero">
-                <div class="course-thumbnail" onclick="alert('Video preview coming soon!')">
+                <div class="course-thumbnail" >
                     <img src="${course.thumb ? '/uploads/courses/' + course.thumb : '/card.png'}" alt="${course.title}">
-                    <div class="play-overlay"><i class="fas fa-play"></i></div>
                 </div>
                 <div class="course-details">
                     <h1>${course.title}</h1>
@@ -2394,7 +2390,7 @@
                         <span><i class="fas fa-star"></i> 4.8/5</span>
                         <span><i class="fas fa-users"></i> 124 students</span>
                     </div>
-                    <div class="course-price">€${course.price ?? '—'}</div>
+                 
                     <div class="course-features">
                         <span class="course-feature"><i class="fas fa-infinity"></i> Full lifetime access</span>
                         <span class="course-feature"><i class="fas fa-certificate"></i> Certificate</span>
