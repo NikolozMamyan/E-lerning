@@ -154,7 +154,7 @@ private function processSendingPasswordResetEmail(
     // utilisation du MailService
     $mailService->send(
         $user->getEmail(),
-        'Réinitialisation de votre mot de passe',
+        'Password Reset',
         'reset_password/email.html.twig',
         ['resetToken' => $resetToken]
     );
