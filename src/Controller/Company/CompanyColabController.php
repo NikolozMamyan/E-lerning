@@ -5,6 +5,7 @@ namespace App\Controller\Company;
 use App\Entity\User;
 use App\Entity\Notification;
 use App\Entity\Collaboration;
+use App\Service\MailerService;
 use App\Repository\UserRepository;
 use App\Service\NotificationService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -76,6 +77,7 @@ public function delete(
         Request $request, 
         UserRepository $userRepo,
         NotificationService $notificationService,
+        MailerService $mailer,
         EntityManagerInterface $em
     ): JsonResponse {
         $company = $this->getUser();
@@ -87,9 +89,22 @@ public function delete(
         $email = $request->request->get('email');
         $employee = $userRepo->findOneBy(['email' => $email]);
 
-        if (!$employee) {
-            return new JsonResponse(['error' => 'Utilisateur non trouvé.'], 404);
-        }
+if (!$employee) {
+    $mailer->send(
+        $to = $email, // adresse email de la personne invitée
+        $subject = 'Invitation to create your account',
+        $template = 'emails/invitation_en.html.twig',
+        $context = [
+    'companyName' => $company->getUsername(),
+]
+    );
+
+    return new JsonResponse([
+        'success' => true,
+        'message' => "The invitation has been sent."
+    ]);
+}
+
 
         if (!in_array('ROLE_EMPLOYEE', $employee->getRoles())) {
             return new JsonResponse(['error' => 'Cet utilisateur ne peut pas être collaborateur.'], 400);
