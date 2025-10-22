@@ -156,7 +156,7 @@ public function progress(
         $quizPassed = $attempt ? $attempt->isPassed() : false;
 
         // Certification si progression 100% et quiz réussi
-        $certified = ($percent >= 100 && $quizPassed);
+        $certified = $quizPassed;
 
         $data[] = [
             'course' => $course,
