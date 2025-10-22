@@ -1,0 +1,1927 @@
+{% extends 'base_auth.html.twig' %}
+
+{% block title %}Hello LandingPageController!{% endblock %}
+
+{% block body %}
+ <style>
+
+        /* Header */
+        header {
+            background-color: var(--white);
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            transition: all 0.3s;
+            backdrop-filter: blur(10px);
+            background-color: rgba(255, 255, 255, 0.95);
+        }
+
+        header.scrolled {
+            padding: 0.5rem 0;
+            box-shadow: var(--shadow-hover);
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.3rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .logo:hover {
+            transform: scale(1.05);
+        }
+
+        .logo-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .logo-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        nav {
+            display: flex;
+            align-items: center;
+            gap: 2.5rem;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: var(--grey);
+            font-weight: 500;
+            transition: all 0.3s;
+            position: relative;
+            font-size: 1.05rem;
+        }
+
+        nav a:not(.btn-login)::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background-color: var(--teal);
+            transition: width 0.3s;
+        }
+
+        nav a:not(.btn-login):hover::after {
+            width: 100%;
+        }
+
+        nav a:hover {
+            color: var(--teal);
+        }
+
+        .btn-login {
+            background: linear-gradient(135deg, var(--green), var(--teal));
+            color: var(--white);
+            padding: 0.7rem 1.8rem;
+            border-radius: var(--radius);
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(13, 131, 131, 0.4);
+        }
+
+        /* Hero Section - AMÉLIORÉ */
+        .hero {
+            max-width: 1400px;
+            margin: 5rem auto;
+            padding: 0 2rem;
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            gap: 5rem;
+            align-items: center;
+        }
+
+        .hero-content h1 {
+            font-size: 4rem;
+            line-height: 1.15;
+            margin-bottom: 1.5rem;
+            color: var(--black);
+            font-weight: 800;
+        }
+
+        .hero-content h1 .highlight {
+            color: var(--teal);
+            display: block;
+            position: relative;
+        }
+
+        .hero-content h1 .highlight::after {
+            content: '';
+            position: absolute;
+            bottom: 8px;
+            left: 0;
+            width: 100%;
+            height: 18px;
+            background-color: var(--mint);
+            z-index: -1;
+            opacity: 0.8;
+        }
+
+        .hero-subtitle {
+            font-size: 1.25rem;
+            color: var(--grey);
+            margin-bottom: 2rem;
+            line-height: 1.8;
+        }
+
+        .hero-content .info-box {
+            background: linear-gradient(135deg, var(--mint), var(--white));
+            padding: 1.8rem;
+            border-radius: var(--radius);
+            margin-bottom: 2.5rem;
+            border-left: 5px solid var(--teal);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-content .info-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
+            transition: left 0.6s;
+        }
+
+        .hero-content .info-box:hover::before {
+            left: 100%;
+        }
+
+        .info-box p {
+            font-size: 1.05rem;
+            color: var(--black);
+            margin-bottom: 0.5rem;
+        }
+
+        .info-box strong {
+            color: var(--teal);
+        }
+
+        /* Trust Badges */
+        .trust-badges {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .trust-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--grey);
+            font-size: 0.95rem;
+        }
+
+        .trust-badge svg {
+            width: 20px;
+            height: 20px;
+            fill: var(--teal);
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .cta-button {
+            background: linear-gradient(135deg, var(--green), var(--teal));
+            color: var(--white);
+            padding: 1.1rem 2.8rem;
+            font-size: 1.15rem;
+            border: none;
+            border-radius: var(--radius);
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta-button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .cta-button:hover::before {
+            width: 400px;
+            height: 400px;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(13, 131, 131, 0.5);
+        }
+
+        .cta-button-secondary {
+            background: var(--white);
+            color: var(--teal);
+            border: 2px solid var(--teal);
+        }
+
+        .cta-button-secondary:hover {
+            background: var(--mint);
+        }
+
+        /* Modules Grid - AMÉLIORÉ */
+        .modules-preview {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+        }
+
+        .module-card {
+            background-color: var(--white);
+            border-radius: var(--radius);
+            padding: 0;
+            box-shadow: var(--shadow);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .module-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--teal), var(--green));
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 0;
+        }
+
+        .module-card:hover::before {
+            opacity: 0.08;
+        }
+
+        .module-card:hover {
+            transform: translateY(-10px) scale(1.03);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .module-card img {
+            width: 100%;
+            height: 140px;
+            object-fit: cover;
+            border-radius: var(--radius) var(--radius) 0 0;
+            background: linear-gradient(135deg, var(--teal), var(--green));
+        }
+
+        .module-card-content {
+            padding: 1.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .module-card h3 {
+            font-size: 1.05rem;
+            color: var(--black);
+            margin-bottom: 0.8rem;
+            transition: color 0.3s;
+            line-height: 1.4;
+        }
+
+        .module-card:hover h3 {
+            color: var(--teal);
+        }
+
+        .module-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1rem;
+        }
+
+        .module-tag {
+            display: inline-block;
+            background-color: var(--mint);
+            color: var(--teal);
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .module-card:hover .module-tag {
+            background-color: var(--teal);
+            color: var(--white);
+        }
+
+        .module-duration {
+            color: var(--grey);
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        /* Social Proof Section - NOUVEAU */
+        .social-proof {
+            max-width: 1400px;
+            margin: 6rem auto 4rem;
+            padding: 0 2rem;
+        }
+
+        .social-proof-content {
+            background: var(--white);
+            border-radius: var(--radius);
+            padding: 3rem;
+            box-shadow: var(--shadow);
+            text-align: center;
+        }
+
+        .social-proof h3 {
+            font-size: 1.8rem;
+            margin-bottom: 2rem;
+            color: var(--black);
+        }
+
+        .companies-logos {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 3rem;
+            flex-wrap: wrap;
+            opacity: 0.6;
+        }
+
+        .company-logo {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--grey);
+            padding: 1rem 2rem;
+            background: var(--mint);
+            border-radius: 8px;
+        }
+
+        /* Why Choose Section - AMÉLIORÉ */
+        .why-choose {
+            background: linear-gradient(180deg, var(--white) 0%, var(--bg) 100%);
+            padding: 7rem 2rem;
+            margin-top: 6rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .why-choose::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, var(--mint) 0%, transparent 70%);
+            opacity: 0.4;
+            animation: float 20s infinite ease-in-out;
+        }
+
+        .why-choose::after {
+            content: '';
+            position: absolute;
+            bottom: -30%;
+            left: -15%;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, var(--mint) 0%, transparent 70%);
+            opacity: 0.4;
+            animation: float 25s infinite ease-in-out reverse;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(30px, -30px) rotate(120deg); }
+            66% { transform: translate(-20px, 20px) rotate(240deg); }
+        }
+
+        .why-choose-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .section-title {
+            font-size: 3rem;
+            text-align: center;
+            margin-bottom: 1rem;
+            position: relative;
+            font-weight: 800;
+        }
+
+        .section-subtitle {
+            text-align: center;
+            font-size: 1.2rem;
+            color: var(--grey);
+            margin-bottom: 4rem;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .section-title .highlight {
+            color: var(--teal);
+            position: relative;
+            display: inline-block;
+        }
+
+        .section-title .highlight::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, var(--teal), var(--green));
+            border-radius: 2px;
+        }
+
+        /* Features Grid - AMÉLIORÉ */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2.5rem;
+            margin-bottom: 4rem;
+        }
+
+        .feature-box {
+            background: var(--white);
+            border-radius: var(--radius);
+            padding: 3rem;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s;
+        }
+
+        .feature-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 6px;
+            height: 100%;
+            background: linear-gradient(180deg, var(--teal), var(--green));
+            transform: scaleY(0);
+            transition: transform 0.4s;
+            transform-origin: bottom;
+        }
+
+        .feature-box:hover::before {
+            transform: scaleY(1);
+            transform-origin: top;
+        }
+
+        .feature-box:hover {
+            transform: translateX(15px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .feature-icon {
+            width: 75px;
+            height: 75px;
+            background: linear-gradient(135deg, var(--mint), var(--white));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.8rem;
+            position: relative;
+            transition: all 0.4s;
+        }
+
+        .feature-box:hover .feature-icon {
+            background: linear-gradient(135deg, var(--teal), var(--green));
+            transform: rotate(360deg) scale(1.1);
+        }
+
+        .feature-icon svg {
+            width: 38px;
+            height: 38px;
+            fill: var(--teal);
+            transition: fill 0.4s;
+        }
+
+        .feature-box:hover .feature-icon svg {
+            fill: var(--white);
+        }
+
+        .feature-box h3 {
+            font-size: 1.6rem;
+            color: var(--black);
+            margin-bottom: 1.2rem;
+            font-weight: 700;
+        }
+
+        .feature-box p {
+            color: var(--grey);
+            font-size: 1.05rem;
+            line-height: 1.8;
+        }
+
+        .feature-number {
+            position: absolute;
+            top: 25px;
+            right: 25px;
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: var(--mint);
+            opacity: 0.5;
+            transition: all 0.4s;
+        }
+
+        .feature-box:hover .feature-number {
+            color: var(--teal);
+            opacity: 0.2;
+            transform: scale(1.3);
+        }
+
+        /* Stats Section - AMÉLIORÉ */
+        .stats-container {
+            background: linear-gradient(135deg, var(--green), var(--teal));
+            border-radius: var(--radius);
+            padding: 4rem 3rem;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 3rem;
+            box-shadow: 0 15px 50px rgba(7, 23, 23, .25);
+            margin-top: 4rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stats-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="1" fill="white" opacity="0.1"/></svg>');
+            opacity: 0.3;
+        }
+
+        .stat-item {
+            text-align: center;
+            color: var(--white);
+            position: relative;
+            z-index: 1;
+        }
+
+        .stat-item::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 2px;
+            height: 60%;
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .stat-item:last-child::after {
+            display: none;
+        }
+
+        .stat-number {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 0.8rem;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 1.05rem;
+            opacity: 0.95;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: 500;
+        }
+
+        /* Testimonials Section - NOUVEAU */
+        .testimonials {
+            max-width: 1400px;
+            margin: 7rem auto;
+            padding: 0 2rem;
+        }
+
+        .testimonials-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .testimonials-header h2 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            font-weight: 800;
+        }
+
+        .testimonials-header p {
+            font-size: 1.2rem;
+            color: var(--grey);
+        }
+
+        .testimonials-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2.5rem;
+        }
+
+        .testimonial-card {
+            background: var(--white);
+            padding: 2.5rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .testimonial-card::before {
+            content: '"';
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 5rem;
+            color: var(--mint);
+            font-family: Georgia, serif;
+            line-height: 1;
+        }
+
+        .testimonial-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .testimonial-text {
+            font-size: 1.05rem;
+            color: var(--grey);
+            line-height: 1.8;
+            margin-bottom: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .testimonial-author {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .author-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--teal), var(--green));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        .author-info h4 {
+            font-size: 1.05rem;
+            color: var(--black);
+            margin-bottom: 0.2rem;
+        }
+
+        .author-info p {
+            font-size: 0.9rem;
+            color: var(--grey);
+        }
+
+        /* Benefits Section - AMÉLIORÉ */
+        .benefits {
+            max-width: 1400px;
+            margin: 7rem auto;
+            padding: 0 2rem;
+        }
+
+        .benefits-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .benefits-header h2 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            font-weight: 800;
+        }
+
+        .benefits-header p {
+            font-size: 1.2rem;
+            color: var(--grey);
+        }
+
+        .benefits-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 2rem;
+        }
+
+        .benefit-card {
+            text-align: center;
+            padding: 3rem 1.8rem;
+            background-color: var(--white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            transition: all 0.4s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .benefit-card::before {
+            content: '';
+            position: absolute;
+            top: -100%;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, var(--mint), transparent);
+            transition: top 0.4s;
+        }
+
+        .benefit-card:hover::before {
+            top: 0;
+        }
+
+        .benefit-card:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .benefit-icon {
+            width: 75px;
+            height: 75px;
+            margin: 0 auto 1.5rem;
+            background: linear-gradient(135deg, var(--mint), var(--white));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.4s;
+            position: relative;
+            z-index: 1;
+        }
+
+        .benefit-card:hover .benefit-icon {
+            background: linear-gradient(135deg, var(--teal), var(--green));
+            transform: scale(1.15) rotate(360deg);
+        }
+
+        .benefit-icon svg {
+            width: 38px;
+            height: 38px;
+            fill: var(--teal);
+            transition: fill 0.4s;
+        }
+
+        .benefit-card:hover .benefit-icon svg {
+            fill: var(--white);
+        }
+
+        .benefit-card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 0.7rem;
+            color: var(--black);
+            position: relative;
+            z-index: 1;
+            font-weight: 700;
+        }
+
+        .benefit-card p {
+            font-size: 1rem;
+            color: var(--grey);
+            position: relative;
+            z-index: 1;
+        }
+
+        /* FAQ Section - NOUVEAU */
+        .faq {
+            max-width: 1000px;
+            margin: 7rem auto;
+            padding: 0 2rem;
+        }
+
+        .faq-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .faq-header h2 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            font-weight: 800;
+        }
+
+        .faq-header p {
+            font-size: 1.2rem;
+            color: var(--grey);
+        }
+
+        .faq-item {
+            background: var(--white);
+            border-radius: var(--radius);
+            margin-bottom: 1.5rem;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+
+        .faq-item:hover {
+            box-shadow: var(--shadow-hover);
+        }
+
+        .faq-question {
+            padding: 1.8rem 2rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            font-size: 1.15rem;
+            color: var(--black);
+            transition: all 0.3s;
+        }
+
+        .faq-question:hover {
+            color: var(--teal);
+        }
+
+        .faq-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--mint);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .faq-item.active .faq-icon {
+            background: var(--teal);
+            transform: rotate(180deg);
+        }
+
+        .faq-icon svg {
+            width: 14px;
+            height: 14px;
+            fill: var(--teal);
+            transition: fill 0.3s;
+        }
+
+        .faq-item.active .faq-icon svg {
+            fill: var(--white);
+        }
+
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease, padding 0.4s ease;
+            padding: 0 2rem;
+        }
+
+        .faq-item.active .faq-answer {
+            max-height: 500px;
+            padding: 0 2rem 1.8rem 2rem;
+        }
+
+        .faq-answer p {
+            color: var(--grey);
+            line-height: 1.8;
+            font-size: 1.05rem;
+        }
+
+        /* CTA Section - AMÉLIORÉ */
+        .cta-section {
+            background: linear-gradient(135deg, var(--green), var(--teal));
+            padding: 6rem 2rem;
+            text-align: center;
+            color: var(--white);
+            position: relative;
+            overflow: hidden;
+            margin-top: 7rem;
+        }
+
+        .cta-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+            animation: rotate 30s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .cta-section h2 {
+            font-size: 3.2rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+            z-index: 1;
+            font-weight: 800;
+            line-height: 1.3;
+        }
+
+        .cta-section p {
+            font-size: 1.3rem;
+            margin-bottom: 2.5rem;
+            position: relative;
+            z-index: 1;
+            opacity: 0.95;
+        }
+
+        .cta-section .cta-button {
+            background-color: var(--white);
+
+            font-size: 1.25rem;
+            position: relative;
+            z-index: 1;
+            padding: 1.2rem 3rem;
+        }
+
+        .cta-section .cta-button:hover {
+            background-color: var(--mint);
+            color: var(--teal);
+        }
+
+        /* Footer - NOUVEAU */
+        footer {
+            background: var(--black);
+            color: var(--white);
+            padding: 4rem 2rem 2rem;
+        }
+
+        .footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 4rem;
+            margin-bottom: 3rem;
+        }
+        .footer-section h3 {
+            font-size: 1.3rem;
+            margin-bottom: 1.5rem;
+            color: var(--white);
+            font-weight: 700;
+        }
+
+        .footer-section p {
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.8;
+            margin-bottom: 1.5rem;
+        }
+
+        .footer-section ul {
+            list-style: none;
+        }
+
+        .footer-section ul li {
+            margin-bottom: 0.8rem;
+        }
+
+        .footer-section ul li a {
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            transition: all 0.3s;
+            display: inline-block;
+        }
+
+        .footer-section ul li a:hover {
+            color: var(--teal);
+            transform: translateX(5px);
+        }
+
+        .social-links {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .social-link {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .social-link:hover {
+            background: var(--teal);
+            transform: translateY(-3px);
+        }
+
+        .social-link svg {
+            width: 18px;
+            height: 18px;
+            fill: var(--white);
+        }
+
+        .footer-bottom {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.95rem;
+        }
+
+        /* Scroll Progress Bar */
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--teal), var(--green));
+            z-index: 9999;
+            transition: width 0.1s;
+        }
+
+        /* Mobile Menu Toggle */
+        .mobile-menu-toggle {
+            display: none;
+            flex-direction: column;
+            gap: 5px;
+            cursor: pointer;
+            padding: 0.5rem;
+        }
+
+        .mobile-menu-toggle span {
+            width: 25px;
+            height: 3px;
+            background: var(--teal);
+            border-radius: 2px;
+            transition: all 0.3s;
+        }
+
+        .mobile-menu-toggle.active span:nth-child(1) {
+            transform: rotate(45deg) translate(8px, 8px);
+        }
+
+        .mobile-menu-toggle.active span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .mobile-menu-toggle.active span:nth-child(3) {
+            transform: rotate(-45deg) translate(8px, -8px);
+        }
+
+        /* Process Section - NOUVEAU */
+        .process {
+            max-width: 1400px;
+            margin: 7rem auto;
+            padding: 0 2rem;
+        }
+
+        .process-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .process-header h2 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            font-weight: 800;
+        }
+
+        .process-header p {
+            font-size: 1.2rem;
+            color: var(--grey);
+        }
+
+        .process-steps {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2rem;
+            position: relative;
+        }
+
+        .process-steps::before {
+            content: '';
+            position: absolute;
+            top: 50px;
+            left: 10%;
+            right: 10%;
+            height: 2px;
+            background: linear-gradient(90deg, var(--mint), var(--teal), var(--green), var(--mint));
+            z-index: 0;
+        }
+
+        .process-step {
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .process-step-number {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 1.5rem;
+            background: linear-gradient(135deg, var(--teal), var(--green));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            font-size: 2.5rem;
+            font-weight: 800;
+            box-shadow: 0 8px 25px rgba(13, 131, 131, 0.3);
+            position: relative;
+        }
+
+        .process-step-number::before {
+            content: '';
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: var(--mint);
+            z-index: -1;
+            opacity: 0.3;
+        }
+
+        .process-step h3 {
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+            color: var(--black);
+            font-weight: 700;
+        }
+
+        .process-step p {
+            color: var(--grey);
+            font-size: 1rem;
+            line-height: 1.7;
+        }
+
+        /* Certifications Section - NOUVEAU */
+        .certifications {
+            background: linear-gradient(135deg, var(--mint), var(--white));
+            padding: 5rem 2rem;
+            margin: 7rem 0;
+        }
+
+        .certifications-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .certifications h2 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            font-weight: 800;
+        }
+
+        .certifications p {
+            font-size: 1.2rem;
+            color: var(--grey);
+            margin-bottom: 3rem;
+        }
+
+        .certifications-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2rem;
+        }
+
+        .certification-badge {
+            background: var(--white);
+            padding: 2.5rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            transition: all 0.3s;
+        }
+
+        .certification-badge:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .certification-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 1.5rem;
+            background: linear-gradient(135deg, var(--teal), var(--green));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .certification-icon svg {
+            width: 40px;
+            height: 40px;
+            fill: var(--white);
+        }
+
+        .certification-badge h4 {
+            font-size: 1.1rem;
+            color: var(--black);
+            font-weight: 700;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .hero {
+                grid-template-columns: 1fr;
+                gap: 3rem;
+            }
+
+            .hero-content h1 {
+                font-size: 3rem;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .testimonials-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 968px) {
+            nav {
+                display: none;
+            }
+
+            .mobile-menu-toggle {
+                display: flex;
+            }
+
+            .hero-content h1 {
+                font-size: 2.5rem;
+            }
+
+            .modules-preview {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-container {
+                grid-template-columns: repeat(2, 1fr);
+                padding: 2.5rem 2rem;
+            }
+
+            .benefits-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .process-steps {
+                grid-template-columns: 1fr;
+            }
+
+            .process-steps::before {
+                display: none;
+            }
+
+            .certifications-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .section-title {
+                font-size: 2.2rem;
+            }
+
+            .cta-section h2 {
+                font-size: 2rem;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .hero-content h1 {
+                font-size: 2rem;
+            }
+
+            .benefits-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-container {
+                grid-template-columns: 1fr;
+            }
+
+            .cta-section h2 {
+                font-size: 1.8rem;
+            }
+
+            .certifications-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .cta-buttons {
+                flex-direction: column;
+            }
+
+            .cta-button {
+                width: 100%;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in {
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        /* Floating CTA Button */
+        .floating-cta {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 999;
+            opacity: 0;
+            transform: translateY(100px);
+            transition: all 0.4s;
+        }
+
+        .floating-cta.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .floating-cta-button {
+            background: linear-gradient(135deg, var(--green), var(--teal));
+            color: var(--white);
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            box-shadow: 0 8px 30px rgba(13, 131, 131, 0.4);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .floating-cta-button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(13, 131, 131, 0.5);
+        }
+    </style>
+</head>
+
+    <!-- Progress Bar -->
+    <div class="progress-bar" id="progressBar"></div>
+
+    <!-- Floating CTA -->
+    <div class="floating-cta" id="floatingCta">
+
+            <a style="text-decoration: none;" href="mailto:contact@les-consultants.com?subject=Request%20a%20Demo%20-%20LES%20CONSULTANTS%20e-learning&body=Hello%20LES%20CONSULTANTS%20Team,%0D%0A%0D%0AI%20would%20like%20to%20request%20a%20demo%20of%20your%20e-learning%20platform.%0D%0A%0D%0ACompany%20Name:%0D%0AContact%20Person:%0D%0AEmail:%0D%0APhone:%0D%0A%0D%0AThank%20you!%0D%0A%0D%0ABest%20regards," class="floating-cta-button">
+            <span>📞 Request a Free Demo</span>
+            </a>
+
+  
+
+    </div>
+
+    <!-- Header -->
+    <header id="header">
+        <div class="header-content">
+            <div class="" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+                <div class="logo-icon">
+                    <img src="https://elearning-lesconsultants.com/assets/images/logo-l9RC7aF.png" alt="LES CONSULTANTS e-learning Logo">
+                </div>
+
+            </div>
+            <nav>
+                <a href="#courses">Courses</a>
+                <a href="#why">Why Us</a>
+                <a href="#process">Process</a>
+                <a href="#faq">FAQ</a>
+                <a href="https://elearning-lesconsultants.com/login" class="btn-login">Login</a>
+            </nav>
+            <div class="mobile-menu-toggle" id="mobileMenuToggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero fade-in">
+        <div class="hero-content">
+            <h1>
+                Train your teams
+                <span class="highlight">Anytime, Anywhere.</span>
+            </h1>
+            <p class="hero-subtitle">
+                The leading e-learning platform in Luxembourg for professional training in Compliance, Risk, GDPR, and Cybersecurity.
+            </p>
+            <div class="info-box">
+                <p><strong>🇱🇺 100% Made in Luxembourg</strong> – Compliant with Luxembourg regulations</p>
+                <p><strong>📚 10+ training modules</strong> – Aligned with the latest AML & CSSF standards (30 incoming within 6 months)</p>
+                <p><strong>⏰ Accessible 24/7</strong> – Train your teams at their own pace</p>
+            </div>
+
+            <div class="cta-buttons">
+                <button class="cta-button" onclick="scrollToCTA()">
+                    <span>Request a Free Demo</span>
+                </button>
+                <button class="cta-button cta-button-secondary" onclick="document.getElementById('courses').scrollIntoView({behavior: 'smooth'})">
+                    <span>Explore Our Courses</span>
+                </button>
+            </div>
+
+            <div class="trust-badges">
+                <div class="trust-badge">
+                    <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+                    <span>Made in Luxembourg</span>
+                </div>
+                <div class="trust-badge">
+                    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                    <span>30+ client companies</span>
+                </div>
+                <div class="trust-badge">
+                    <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                    <span>98% satisfaction</span>
+                </div>
+            </div>
+        </div>
+
+<div class="modules-preview" id="courses">
+   {% for course in courses|slice(4, 4) %}
+        <div class="module-card">
+            <img 
+                src="{{ asset(course.thumb ? 'uploads/thumbnails/' ~ course.thumb : 'card.png') }}" 
+                alt="{{ course.title }} course Luxembourg"
+            >
+            <div class="module-card-content">
+                <h3>{{ course.title }}</h3>
+                <div class="module-meta">
+                    {% if course.category is defined and course.category %}
+                        <span class="module-tag">{{ course.category.name }}</span>
+                    {% else %}
+                        <span class="module-tag">General</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <p>Aucun cours disponible pour le moment.</p>
+    {% endfor %}
+</div>
+
+    </section>
+
+    <!-- Social Proof -->
+    <section class="social-proof">
+        <div class="social-proof-content">
+            <h3>30+ client companies</h3>
+            <div class="companies-logos">
+                <div class="company-logo">Bank</div>
+                <div class="company-logo">Insurance</div>
+                <div class="company-logo">Manco & AIFM</div>
+                <div class="company-logo">Fintech</div>
+                <div class="company-logo">Audit / Accounting firm</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Why Choose Section -->
+    <!-- Why Choose Section -->
+    <section class="why-choose" id="why">
+        <div class="why-choose-content">
+            <h2 class="section-title">
+                Why choose <span class="highlight">LES CONSULTANTS e-learning</span>
+            </h2>
+            <p class="section-subtitle">
+                The most comprehensive professional training solution tailored to the Luxembourg context
+            </p>
+
+            <div class="features-grid">
+                <div class="feature-box">
+                    <span class="feature-number">01</span>
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"/>
+                        </svg>
+                    </div>
+                    <h3>Flexible Subscription à la Carte</h3>
+                    <p>Select only the modules you need. Add training courses as your needs evolve. Transparent and predictable pricing to help you manage your training budget effectively.</p>
+                </div>
+
+                <div class="feature-box">
+                    <span class="feature-number">02</span>
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                        </svg>
+                    </div>
+                    <h3>12-Month Flexible Subscription</h3>
+                    <p>Enjoy unlimited access to all our e-learning modules for 12 months, with a fixed price guaranteed. Select the courses that match your needs and expand your training plan as your priorities evolve — all with clear and predictable pricing.</p>
+                </div>
+
+                <div class="feature-box">
+                    <span class="feature-number">03</span>
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                        </svg>
+                    </div>
+                    <h3>Experts with 15+ Years of Experience</h3>
+                    <p>Certified trainers recognized in Luxembourg in the fields of Compliance, Risk, GDPR, and Cybersecurity. Expertise acknowledged by Luxembourg professional bodies (CSSF, etc.).</p>
+                </div>
+
+                <div class="feature-box">
+                    <span class="feature-number">04</span>
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                        </svg>
+                    </div>
+                    <h3>Made in Luxembourg</h3>
+                    <p>Platform developed in Luxembourg/France, fully compliant with local regulations (CSSF, CAA, CNPD, IRE, OEC). Content tailored to the Luxembourg legal and cultural context. Support available in French, English and other languages upon request (minimum 25 users).</p>
+                </div>
+
+                <div class="feature-box">
+                    <span class="feature-number">05</span>
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+                        </svg>
+                    </div>
+                    <h3>Simplified Team Management</h3>
+                    <p>Free Manager accounts for training supervisors. Centralized dashboard, real-time progress tracking, automatic generation of certificates and compliance reports.</p>
+                </div>
+            </div>
+
+            <div class="stats-container">
+                <div class="stat-item">
+                    <span class="stat-number" data-target="30">0</span>
+                    <span class="stat-label">Client Companies</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" data-target="15">0</span>
+                    <span class="stat-label">Years of Expertise</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" data-target="10">0</span>
+                    <span class="stat-label">Available Modules</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" data-target="98">0</span>
+                    <span class="stat-label">% Satisfaction</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- Process Section -->
+    <section class="process" id="process">
+        <div class="process-header">
+            <h2>How does it work?</h2>
+            <p>A simple 4-step process to start your training</p>
+        </div>
+        <div class="process-steps">
+            <div class="process-step">
+                <div class="process-step-number">1</div>
+                <h3>Free Consultation</h3>
+                <p>We assess your training needs and recommend the most relevant modules.</p>
+            </div>
+            <div class="process-step">
+                <div class="process-step-number">2</div>
+                <h3>Custom Configuration</h3>
+                <p>We set up your platform and create accounts for your employees.</p>
+            </div>
+            <div class="process-step">
+                <div class="process-step-number">3</div>
+                <h3>Training & Support</h3>
+                <p>Your teams access the training 24/7 with dedicated support.</p>
+            </div>
+            <div class="process-step">
+                <div class="process-step-number">4</div>
+                <h3>Tracking & Certification</h3>
+                <p>Monitor progress and generate compliance certificates automatically.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="faq" id="faq">
+        <div class="faq-header">
+            <h2>Frequently Asked Questions</h2>
+            <p>All the answers about our e-learning platform</p>
+        </div>
+        <div class="faq-list">
+            <div class="faq-item"><div class="faq-question"><span>What types of training do you offer?</span></div><div class="faq-answer"><p>We offer professional e-learning courses in AML, Risk, and Compliance.</p></div></div>
+            <div class="faq-item"><div class="faq-question"><span>How does the “À la carte” option work?</span></div><div class="faq-answer"><p>Select and pay only for the modules you need — full flexibility, no commitment.</p></div></div>
+            <div class="faq-item"><div class="faq-question"><span>How does the subscription work?</span></div><div class="faq-answer"><p>Enjoy 12-month access to all e-learning modules at a fixed price.</p></div></div>
+            <div class="faq-item"><div class="faq-question"><span>Are the trainings certified?</span></div><div class="faq-answer"><p>Yes, all our courses include completion certificates recognized in Luxembourg and across the EU.</p></div></div>
+            <div class="faq-item"><div class="faq-question"><span>Can I track my team’s progress?</span></div><div class="faq-answer"><p>Yes, managers have access to a centralized dashboard with real-time progress tracking and automated reports.</p></div></div>
+            <div class="faq-item"><div class="faq-question"><span>How long do the courses last?</span></div><div class="faq-answer"><p>Each course lasts between 20 minutes and 2 hours, depending on the module.</p></div></div>
+            <div class="faq-item"><div class="faq-question"><span>Do you offer technical support?</span></div><div class="faq-answer"><p>Yes, our team provides technical support.</p></div></div>
+            <div class="faq-item"><div class="faq-question"><span>Is the content updated regularly?</span></div><div class="faq-answer"><p>Yes, all courses are reviewed and updated regularly to reflect the latest regulations and best practices.</p></div></div>
+            <div class="faq-item"><div class="faq-question"><span>Can I try the platform before subscribing?</span></div><div class="faq-answer"><p>Yes, you can request a free demo to explore the platform before making a decision.</p></div></div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section" id="contact">
+        <h2>Ready to transform your team’s training?</h2>
+                    <a style="text-decoration: none;" href="mailto:contact@les-consultants.com?subject=Request%20a%20Demo%20-%20LES%20CONSULTANTS%20e-learning&body=Hello%20LES%20CONSULTANTS%20Team,%0D%0A%0D%0AI%20would%20like%20to%20request%20a%20demo%20of%20your%20e-learning%20platform.%0D%0A%0D%0ACompany%20Name:%0D%0AContact%20Person:%0D%0AEmail:%0D%0APhone:%0D%0A%0D%0AThank%20you!%0D%0A%0D%0ABest%20regards," class="cta-button">
+            <span>📅 Request a Free Demo</span>
+            </a>
+
+    </section>
+
+    <script>
+        // Scroll Progress Bar
+        window.addEventListener('scroll', () => {
+            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (winScroll / height) * 100;
+            document.getElementById('progressBar').style.width = scrolled + '%';
+        });
+
+        // Header Scroll Effect
+        const header = document.getElementById('header');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        });
+
+        // Floating CTA
+        const floatingCta = document.getElementById('floatingCta');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 800) {
+                floatingCta.classList.add('visible');
+            } else {
+                floatingCta.classList.remove('visible');
+            }
+        });
+
+        // Smooth scroll to CTA
+        function scrollToCTA() {
+            document.getElementById('contact').scrollIntoView({ 
+                behavior: 'smooth' 
+            });
+        }
+
+        // Mobile Menu Toggle
+        const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+        mobileMenuToggle.addEventListener('click', function() {
+            this.classList.toggle('active');
+        });
+
+        // Intersection Observer for fade-in animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // Observe all cards
+        document.querySelectorAll('.module-card, .benefit-card, .feature-box, .testimonial-card, .process-step').forEach(card => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            card.style.transition = 'all 0.6s ease-out';
+            observer.observe(card);
+        });
+
+        // FAQ Accordion
+        document.querySelectorAll('.faq-question').forEach(question => {
+            question.addEventListener('click', function() {
+                const faqItem = this.parentElement;
+                const isActive = faqItem.classList.contains('active');
+                
+                // Close all other FAQ items
+                document.querySelectorAll('.faq-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+                
+                // Toggle current item
+                if (!isActive) {
+                    faqItem.classList.add('active');
+                }
+            });
+        });
+
+        // Counter Animation for Stats
+        const animateCounter = (element, target, duration = 2000) => {
+            let start = 0;
+            const increment = target / (duration / 16);
+            
+            const timer = setInterval(() => {
+                start += increment;
+                if (start >= target) {
+                    element.textContent = target + (target === 98 ? '%' : '+');
+                    clearInterval(timer);
+                } else {
+                    element.textContent = Math.floor(start) + (target === 98 ? '%' : '+');
+                }
+            }, 16);
+        };
+
+        // Stats Counter Observer
+        const statsObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const statNumbers = document.querySelectorAll('.stat-number');
+                    statNumbers.forEach(stat => {
+                        const target = parseInt(stat.getAttribute('data-target'));
+                        animateCounter(stat, target);
+                    });
+                    statsObserver.disconnect();
+                }
+            });
+        }, { threshold: 0.5 });
+
+        const statsContainer = document.querySelector('.stats-container');
+        if (statsContainer) {
+            statsObserver.observe(statsContainer);
+        }
+
+        // Smooth scroll for navigation links
+        document.querySelectorAll('nav a:not(.btn-login)').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                const targetSection = document.querySelector(targetId);
+                
+                if (targetSection) {
+                    targetSection.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Add loading state to buttons
+        document.querySelectorAll('.cta-button').forEach(button => {
+            button.addEventListener('click', function(e) {
+                if (!this.classList.contains('loading') && !this.classList.contains('cta-button-secondary')) {
+                    const originalText = this.querySelector('span').textContent;
+                    this.querySelector('span').textContent = '⏳ Chargement...';
+                    this.classList.add('loading');
+                    this.style.opacity = '0.7';
+                    this.style.pointerEvents = 'none';
+                    
+                    setTimeout(() => {
+                        // Simulate form or redirect
+                        window.location.href = '#contact';
+                        this.querySelector('span').textContent = originalText;
+                        this.classList.remove('loading');
+                        this.style.opacity = '1';
+                        this.style.pointerEvents = 'auto';
+                    }, 1500);
+                }
+            });
+        });
+
+        // Scroll reveal for sections
+        const revealSections = () => {
+            const sections = document.querySelectorAll('.why-choose, .benefits, .cta-section, .testimonials, .process, .certifications');
+            
+            sections.forEach(section => {
+                const sectionTop = section.getBoundingClientRect().top;
+                const windowHeight = window.innerHeight;
+                
+                if (sectionTop < windowHeight * 0.75) {
+                    section.style.opacity = '1';
+                    section.style.transform = 'translateY(0)';
+                }
+            });
+        };
+
+        window.addEventListener('scroll', revealSections);
+        
+        // Initialize sections as hidden
+        document.querySelectorAll('.why-choose, .benefits, .cta-section, .testimonials, .process, .certifications').forEach(section => {
+            section.style.opacity = '0';
+            section.style.transform = 'translateY(30px)';
+            section.style.transition = 'all 0.8s ease-out';
+        });
+
+        // Console Easter Egg
+        console.log('%c🎓 LES CONSULTANTS e-learning', 'color: #0D8383; font-size: 24px; font-weight: bold;');
+        console.log('%c🇱🇺 Made with ❤️ in Luxembourg', 'color: #1A6D55; font-size: 16px;');
+        console.log('%c💼 Vous recrutez ? Contactez-nous !', 'color: #606060; font-size: 14px;');
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            // Ctrl/Cmd + K to focus search (if you add search later)
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                // Add search functionality here
+            }
+            
+            // Escape to close mobile menu if open
+            if (e.key === 'Escape') {
+                mobileMenuToggle.classList.remove('active');
+            }
+        });
+
+        // Track scroll depth for analytics (Google Analytics integration example)
+        let scrollDepths = [25, 50, 75, 100];
+        let scrollDepthTriggered = [];
+
+        window.addEventListener('scroll', () => {
+            const scrollPercentage = (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100;
+            
+            scrollDepths.forEach(depth => {
+                if (scrollPercentage >= depth && !scrollDepthTriggered.includes(depth)) {
+                    scrollDepthTriggered.push(depth);
+                    // Send to analytics
+                    console.log(`User scrolled ${depth}% of the page`);
+                    // gtag('event', 'scroll_depth', { depth: depth });
+                }
+            });
+        });
+
+        // Page load performance
+        window.addEventListener('load', () => {
+            const loadTime = performance.now();
+            console.log(`%cPage loaded in ${Math.round(loadTime)}ms`, 'color: #0D8383; font-weight: bold;');
+        });
+    </script>
+{% endblock %}

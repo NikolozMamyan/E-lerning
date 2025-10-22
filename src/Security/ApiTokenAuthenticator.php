@@ -30,6 +30,7 @@ public function supports(Request $request): ?bool
     // Routes publiques sans authentification
     if (
         in_array($path, [
+            '/welcome',
             '/api/register',
             '/api/login',
             '/api/logout',
