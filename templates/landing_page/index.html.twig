@@ -1862,7 +1862,7 @@
     <!-- Floating CTA -->
     <div class="floating-cta" id="floatingCta">
 
-            <a style="text-decoration: none;" href="mailto:contact@les-consultants.com?subject=Request%20a%20Demo%20-%20LES%20CONSULTANTS%20e-learning&body=Hello%20LES%20CONSULTANTS%20Team,%0D%0A%0D%0AI%20would%20like%20to%20request%20a%20demo%20of%20your%20e-learning%20platform.%0D%0A%0D%0ACompany%20Name:%0D%0AContact%20Person:%0D%0AEmail:%0D%0APhone:%0D%0A%0D%0AThank%20you!%0D%0A%0D%0ABest%20regards," class="floating-cta-button">
+            <a style="text-decoration: none;" href="mailto:pruffin@les-consultants.com?subject=Request%20a%20Demo%20-%20LES%20CONSULTANTS%20e-learning&body=Hello%20LES%20CONSULTANTS%20Team,%0D%0A%0D%0AI%20would%20like%20to%20request%20a%20demo%20of%20your%20e-learning%20platform.%0D%0A%0D%0ACompany%20Name:%0D%0AContact%20Person:%0D%0AEmail:%0D%0APhone:%0D%0A%0D%0AThank%20you!%0D%0A%0D%0ABest%20regards," class="floating-cta-button">
             <span>📞 Request a Free Demo</span>
             </a>
 
@@ -1905,7 +1905,7 @@
                 The leading e-learning platform in Luxembourg for professional training in Compliance, Risk, GDPR, and Cybersecurity.
             </p>
             <div class="info-box">
-                <p><strong>🇱🇺 100% Made in Luxembourg</strong> – Compliant with Luxembourg regulations</p>
+                <p><strong><img style="width:15px;" src="https://www.svgrepo.com/show/365925/luxembourg.svg"/> 100% Made in Luxembourg</strong> – Compliant with Luxembourg regulations</p>
                 <p><strong>📚 10+ training modules</strong> – Aligned with the latest AML & CSSF standards (30 incoming within 6 months)</p>
                 <p><strong>⏰ Accessible 24/7</strong> – Train your teams at their own pace</p>
             </div>
@@ -1936,7 +1936,7 @@
         </div>
 
 <div class="modules-preview" id="courses">
-    {% for course in courses|slice(4, 4) %}
+    {% for course in courses %}
         <div class="module-card" onclick="openCourseModal({{ course.id }})" data-course-id="{{ course.id }}">
             <img src="{{ asset(course.thumb ? 'uploads/courses/' ~ course.thumb : 'card.png') }}" alt="{{ course.title }}">
             <div class="module-card-content">
@@ -2114,7 +2114,7 @@
     <!-- CTA Section -->
     <section class="cta-section" id="contact">
         <h2>Ready to transform your team’s training?</h2>
-                    <a style="text-decoration: none;" href="mailto:contact@les-consultants.com?subject=Request%20a%20Demo%20-%20LES%20CONSULTANTS%20e-learning&body=Hello%20LES%20CONSULTANTS%20Team,%0D%0A%0D%0AI%20would%20like%20to%20request%20a%20demo%20of%20your%20e-learning%20platform.%0D%0A%0D%0ACompany%20Name:%0D%0AContact%20Person:%0D%0AEmail:%0D%0APhone:%0D%0A%0D%0AThank%20you!%0D%0A%0D%0ABest%20regards," class="cta-button">
+                    <a style="text-decoration: none;" href="mailto:pruffin@les-consultants.com?subject=Request%20a%20Demo%20-%20LES%20CONSULTANTS%20e-learning&body=Hello%20LES%20CONSULTANTS%20Team,%0D%0A%0D%0AI%20would%20like%20to%20request%20a%20demo%20of%20your%20e-learning%20platform.%0D%0A%0D%0ACompany%20Name:%0D%0AContact%20Person:%0D%0AEmail:%0D%0APhone:%0D%0A%0D%0AThank%20you!%0D%0A%0D%0ABest%20regards," class="cta-button">
             <span>📅 Request a Free Demo</span>
             </a>
 
