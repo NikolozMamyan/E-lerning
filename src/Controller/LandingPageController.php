@@ -16,7 +16,7 @@ public function index(CourseRepository $courseRepo): Response
     $coursesAll = $courseRepo->findAll();
 
     // IDs spécifiques que tu veux récupérer
-    $specificIds = [15, 10, 12, 9];
+    $specificIds = [9, 10, 12, 15];
 
     // On récupère les cours correspondant à ces IDs
     $courses = $courseRepo->findBy(['id' => $specificIds]);
