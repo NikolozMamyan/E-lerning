@@ -16,10 +16,21 @@ public function index(CourseRepository $courseRepo): Response
     $coursesAll = $courseRepo->findAll();
 
     // IDs spécifiques que tu veux récupérer
-    $specificIds = [9, 10, 12, 15];
+    $specificIds = [15, 10, 12, 9];
 
     // On récupère les cours correspondant à ces IDs
-    $courses = $courseRepo->findBy(['id' => $specificIds]);
+    $coursesUnordered = $courseRepo->findBy(['id' => $specificIds]);
+
+$courses = [];
+foreach ($specificIds as $id) {
+    foreach ($coursesUnordered as $course) {
+        if ($course->getId() === $id) {
+            $courses[] = $course;
+            break;
+        }
+    }
+}
+
 
     // Si au moins un des cours n'existe pas → on affiche tous les cours
     if (count($courses) < count($specificIds)) {
