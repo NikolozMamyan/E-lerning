@@ -9,7 +9,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 final class LandingPageController extends AbstractController{
-#[Route('/welcome', name: 'app_landing_page')]
+#[Route('/', name: 'app_landing_page')]
 public function index(CourseRepository $courseRepo): Response
 {
     // Tous les cours

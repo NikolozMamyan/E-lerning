@@ -52,16 +52,6 @@ class AuthPageController extends AbstractController
         );
     
         return $response;
-    }
-
-
-        #[Route('/', name: 'app_welcome', methods: ['GET'])]
-    public function welcome(Request $request, TokenCleaner $cleaner): Response
-    {
-
-    
-       return new RedirectResponse('/login');
-    }
-    
+    }    
     
 }
