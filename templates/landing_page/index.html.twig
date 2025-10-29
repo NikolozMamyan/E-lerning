@@ -1863,7 +1863,7 @@
     <div class="floating-cta" id="floatingCta">
 
             <a style="text-decoration: none;" href="mailto:pruffin@les-consultants.lu?subject=Request%20a%20Demo%20-%20LES%20CONSULTANTS%20e-learning&body=Hello%20LES%20CONSULTANTS%20Team,%0D%0A%0D%0AI%20would%20like%20to%20request%20a%20demo%20of%20your%20e-learning%20platform.%0D%0A%0D%0ACompany%20Name:%0D%0AContact%20Person:%0D%0AEmail:%0D%0APhone:%0D%0A%0D%0AThank%20you!%0D%0A%0D%0ABest%20regards," class="floating-cta-button">
-            <span>📞 Request a Free Demo</span>
+            <span>✉️ Request a Free Demo</span>
             </a>
 
   
@@ -1884,9 +1884,10 @@
                 <a href="#why">Why Us</a>
                 <a href="#process">Process</a>
                 <a href="#faq">FAQ</a>
-                <a href="https://elearning-lesconsultants.com/login" class="btn-login">Login</a>
+
             </nav>
-            <div class="mobile-menu-toggle" id="mobileMenuToggle">
+                            <a href="https://elearning-lesconsultants.com/login" class="btn-login">Login</a>
+            <div class="mobile-menu-toggle" id="mobileMenuToggle" style="display:none;">
                 <span></span>
                 <span></span>
                 <span></span>
@@ -1914,9 +1915,9 @@
                 <button class="cta-button" onclick="scrollToCTA()">
                     <span>Request a Free Demo</span>
                 </button>
-                <button class="cta-button cta-button-secondary" onclick="document.getElementById('courses').scrollIntoView({behavior: 'smooth'})">
-                    <span>Explore Our Courses</span>
-                </button>
+                <a class="cta-button cta-button-secondary" href="https://elearning-lesconsultants.com/register">
+                    Explore Our Courses
+                </a>
             </div>
 
             <div class="trust-badges">
@@ -2385,7 +2386,6 @@
                 <div class="course-details">
                     <h1>${course.title}</h1>
                     <div class="course-meta">
-                        <span><i class="fas fa-clock"></i> 08:00 min</span>
                         <span><i class="fas fa-user"></i> ${course.instructor ?? 'Expert'}</span>
                         <span><i class="fas fa-star"></i> 4.8/5</span>
                         <span><i class="fas fa-users"></i> 124 students</span>
