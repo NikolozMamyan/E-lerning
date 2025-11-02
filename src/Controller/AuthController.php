@@ -195,49 +195,49 @@ public function register(
     // -------------------
     // GOOGLE OAuth
     // -------------------
-    #[Route('/google', name: 'api_google_start')]
-    public function googleConnect(ClientRegistry $clientRegistry)
-    {
-        return $clientRegistry->getClient('google')->redirect(['email', 'profile']);
-    }
+//     #[Route('/google', name: 'api_google_start')]
+//     public function googleConnect(ClientRegistry $clientRegistry)
+//     {
+//         return $clientRegistry->getClient('google')->redirect(['email', 'profile']);
+//     }
 
-    #[Route('/google/callback', name: 'api_google_callback')]
-public function googleCallback(ClientRegistry $clientRegistry, EntityManagerInterface $em, UserRepository $userRepository): RedirectResponse
-{
-    $client = $clientRegistry->getClient('google');
-    $googleUser = $client->fetchUser();
+//     #[Route('/google/callback', name: 'api_google_callback')]
+// public function googleCallback(ClientRegistry $clientRegistry, EntityManagerInterface $em, UserRepository $userRepository): RedirectResponse
+// {
+//     $client = $clientRegistry->getClient('google');
+//     $googleUser = $client->fetchUser();
 
-    $email = $googleUser->getEmail();
-    $name = $googleUser->getName();
+//     $email = $googleUser->getEmail();
+//     $name = $googleUser->getName();
 
-    $user = $userRepository->findOneBy(['email' => $email]);
+//     $user = $userRepository->findOneBy(['email' => $email]);
 
-    if (!$user) {
-        $user = new User();
-        $user->setEmail($email);
-        $user->setUsername($name);
-        $user->setRoles(['ROLE_EMPLOYEE']); // par défaut
-        $em->persist($user);
-        $em->flush();
-    }
+//     if (!$user) {
+//         $user = new User();
+//         $user->setEmail($email);
+//         $user->setUsername($name);
+//         $user->setRoles(['ROLE_EMPLOYEE']); // par défaut
+//         $em->persist($user);
+//         $em->flush();
+//     }
 
-    // même logique token
-    $token = bin2hex(random_bytes(32));
-    $expiresAt = (new \DateTime())->modify('+4 hour');
-    $user->setApiToken($token);
-    $user->setTokenExpiresAt($expiresAt);
-    $em->flush();
+//     // même logique token
+//     $token = bin2hex(random_bytes(32));
+//     $expiresAt = (new \DateTime())->modify('+4 hour');
+//     $user->setApiToken($token);
+//     $user->setTokenExpiresAt($expiresAt);
+//     $em->flush();
 
-    $response = new RedirectResponse('/app/dashboard'); // ← change la route ici (front ou twig)
-    $response->headers->setCookie(
-        Cookie::create('AUTH_TOKEN')
-            ->withValue($token)
-            ->withHttpOnly(true)
-            ->withSecure(true) // mettre true en prod
-            ->withPath('/')
-            ->withExpires($expiresAt->getTimestamp())
-    );
+//     $response = new RedirectResponse('/app/dashboard'); // ← change la route ici (front ou twig)
+//     $response->headers->setCookie(
+//         Cookie::create('AUTH_TOKEN')
+//             ->withValue($token)
+//             ->withHttpOnly(true)
+//             ->withSecure(true) // mettre true en prod
+//             ->withPath('/')
+//             ->withExpires($expiresAt->getTimestamp())
+//     );
 
-    return $response;
-}
+//     return $response;
+// }
 }
