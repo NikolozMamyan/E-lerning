@@ -367,20 +367,13 @@ if ($context === 'company_single_seat') {
                     Notification::PRIORITY_NORMAL
                 );
                  $mailer->send(
-        $user->getEmail(),
-        'Votre facture - ' . $course->getTitle(),
-        'emails/invoice.html.twig',
+        $employee->getEmail(),
+        $course->getTitle(),
+        'emails/enrolled.html.twig',
         [
             'user'           => $user,
             'course'         => $course,
-            'amount'         => $amount,
-            'tva'            => 17, // ✅
-            'date'           => $invoiceDate,
-            'currency'       => $currency,
-            'invoice_number' => $invoiceNumber, 
-        ],
-        'pdf/invoice.html.twig',
-        'facture-' . $invoiceNumber . '.pdf' 
+        ]
     );
             } catch (\Throwable $e) {
                 $logger->error('Notification employee failed', ['error' => $e->getMessage()]);
