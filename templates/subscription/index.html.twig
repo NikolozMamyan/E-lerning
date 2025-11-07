@@ -63,16 +63,13 @@
         /* Layout flex principal */
         .subscription-content {
             display: flex;
-            gap: 48px;
-            align-items: center;
-            justify-content: space-around;
+            gap:30px;
+            justify-content: start;
+            margin-bottom: 50px;
         }
 
         /* Header à gauche */
-        .subscription-header {
-            flex: 1;
-            max-width: 480px;
-        }
+
 
         .subscription-header h1 {
             color: var(--black);
@@ -448,22 +445,160 @@
                 text-align: center;
             }
         }
+        /* --- A la Carte Access Card --- */
+.a-la-carte-card {
+    flex: 0 0 460px;
+    background: linear-gradient(135deg, #ffffff 0%, #f8fdfc 100%);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    padding: 48px 36px;
+    text-align: center;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.a-la-carte-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(7, 23, 23, .12);
+}
+
+/* Effets lumineux doux */
+.a-la-carte-card::before {
+    content: '';
+    position: absolute;
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(13, 131, 131, 0.08) 0%, transparent 70%);
+    top: -100px;
+    right: -100px;
+    pointer-events: none;
+}
+.a-la-carte-card::after {
+    content: '';
+    position: absolute;
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(26, 109, 85, 0.05) 0%, transparent 70%);
+    bottom: -75px;
+    left: -75px;
+    pointer-events: none;
+}
+
+/* En-tête */
+.a-la-carte-header {
+    position: relative;
+    z-index: 1;
+    margin-bottom: 32px;
+}
+
+.a-la-carte-badge {
+    display: inline-block;
+    background: var(--mint);
+    color: var(--teal);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+}
+
+.a-la-carte-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--black);
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
+}
+
+.a-la-carte-subtitle {
+    color: var(--grey);
+    font-size: 1rem;
+    opacity: 0.85;
+}
+
+/* Liste */
+.a-la-carte-features {
+    list-style: none;
+    padding: 0;
+    margin: 32px 0 120px 0;
+    text-align: left;
+    position: relative;
+    z-index: 1;
+}
+
+.a-la-carte-features li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 18px;
+    color: var(--grey);
+    font-size: 1rem;
+}
+
+.a-la-carte-features li::before {
+    content: '✓';
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    background: var(--mint);
+    color: var(--teal);
+    border-radius: 50%;
+    font-weight: 700;
+    font-size: 0.85rem;
+}
+
+/* Bouton CTA */
+.a-la-carte-btn {
+    display: inline-block;
+    background: linear-gradient(135deg, var(--teal) 0%, var(--green) 100%);
+    color: var(--white);
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 16px 40px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    text-decoration: none;
+    box-shadow: var(--shadow);
+    transition: all 0.3s ease;
+    position: relative;
+    z-index: 1;
+}
+
+.a-la-carte-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    background: linear-gradient(135deg, var(--green) 0%, var(--teal) 100%);
+}
+
+/* Responsive */
+@media (max-width: 968px) {
+    .a-la-carte-card {
+        width: 100%;
+        max-width: 500px;
+    }
+}
+
+
     </style>
 {% endblock %}
 
 {% block body %}
-
-        <div class="subscription-content">
-        {% if not subscription %}
             <div class="subscription-header">
                 <h1>Unlock Premium Access</h1>
                 <p>Get full access to all our exclusive content, early releases, and earn official certificates. Join thousands of learners advancing their skills.</p>
                 
-                <ul class="header-benefits">
-                    <li>Secure payment</li>
-                    <li>New content added monthly</li>
-                </ul>
+
             </div>
+        <div class="subscription-content">
+        {% if not subscription %}
+
 
             <div class="plan-card">
                 <div class="plan-header">
@@ -496,6 +631,24 @@
 
                 <p class="engagement-note">12-month commitment required</p>
             </div>
+            {# Nouvelle carte #}
+<div class="a-la-carte-card">
+    <div class="a-la-carte-header">
+        <span class="a-la-carte-badge">Access</span>
+        <h3 class="a-la-carte-title">A la Carte Access</h3>
+        <p class="a-la-carte-subtitle">Perfect for those who prefer one-time purchases</p>
+    </div>
+
+    <ul class="a-la-carte-features">
+        <li>Buy individual courses</li>
+        <li>One-time payment</li>
+        <li>Certificate included after quiz</li>
+        <li>Option to pay for multiple users</li>
+    </ul>
+
+    <a href="{{ path('app_courses') }}" class="a-la-carte-btn">Browse Courses</a>
+</div>
+
         </div>
 
     <script>
@@ -554,6 +707,16 @@
             </div>
         </div>
     </div>
+            <div class="a-la-carte-card">
+            <h3 class="a-la-carte-title">A la Carte Access</h3>
+            <ul class="a-la-carte-features">
+                <li>Buy individual courses</li>
+                <li>One-time payment</li>
+                <li>Certificate included after quiz</li>
+                <li>Option to pay for multiple users</li>
+            </ul>
+            <a href="{{ path('app_courses') }}" class="a-la-carte-btn">Browse Courses</a>
+        </div>
     <style>
     /* Already Subscribed Styles */
 .already-subscribed-card {

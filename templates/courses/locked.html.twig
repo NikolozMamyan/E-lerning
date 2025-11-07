@@ -161,12 +161,6 @@
                 <div class="course-details">
                     <h1>{{ course.title }}</h1>
                     
-                    <div class="course-meta">
-                        <span><i class="fas fa-clock"></i> 08:00 min</span>
-                        <span><i class="fas fa-user"></i> {{ course.instructor|default('Expert') }}</span>
-                        <span><i class="fas fa-star"></i> 4.8 (124 reviews)</span>
-                    </div>
-                    
                     <div class="course-price">
                         €{{ euroPrice|default('null') }}
                     </div>
