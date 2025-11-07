@@ -83,7 +83,7 @@
 <body>
 
     <div class="header">
-        <h2>INVOICE</h2>
+        <h2>INVOICE</h2>s
     </div>
 
     <div class="company-info">
@@ -94,7 +94,7 @@
     </div>
 
     <div class="client-info">
-        <p><strong>Invoice No.:</strong> {{ date|date('Y') }}-{{ '%04d'|format(invoice_number) }}</p>
+        <p><strong>Invoice No.:</strong> {{ invoice_number }}</p>
         <p><strong>Date:</strong> {{ date|date('d/m/Y') }}</p>
         <p><strong>Client:</strong> {{ user.username }}</p>
         <p><strong>Email:</strong> {{ user.email }}</p>

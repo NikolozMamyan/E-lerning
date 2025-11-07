@@ -263,7 +263,12 @@ try {
                 $em->flush();
 
                 // Envoi facture
-$invoiceNumber = date('Y') . '-' . str_pad((string)$enrollment->getId(), 4, '0', STR_PAD_LEFT);
+$invoiceNumber = date('Y') 
+    . '-' 
+    . str_pad((string)$enrollment->getId(), 4, '0', STR_PAD_LEFT) 
+    . '-' 
+    . str_pad((string)random_int(0, 9999), 4, '0', STR_PAD_LEFT);
+
 $invoiceDate = new \DateTime();
 
 try {
@@ -275,25 +280,26 @@ try {
             'user'           => $user,
             'course'         => $course,
             'amount'         => $amount,
-            'tva'            => 17, // ✅
+            'tva'            => 17,
             'date'           => $invoiceDate,
             'currency'       => $currency,
-            'invoice_number' => $invoiceNumber, // ✅ nouveau
+            'invoice_number' => $invoiceNumber,
         ],
         'pdf/invoice.html.twig',
-        'facture-' . $invoiceNumber . '.pdf' // ✅ renommé avec le numéro de facture
+        'facture-' . $invoiceNumber . '.pdf'
     );
 
     $logger->info('📧 Email facture enrollment envoyé', [
-        'email' => $user->getEmail(),
+        'email'   => $user->getEmail(),
         'invoice' => $invoiceNumber,
     ]);
 } catch (\Throwable $e) {
     $logger->error('❌ Erreur envoi email facture enrollment', [
         'error' => $e->getMessage(),
-        'user' => $user->getEmail(),
+        'user'  => $user->getEmail(),
     ]);
 }
+
 
                 // Notification
                 try {
