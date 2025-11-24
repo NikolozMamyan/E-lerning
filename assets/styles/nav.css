@@ -9,7 +9,7 @@
   left: 0;
   height: 100vh;         /* prend toute la hauteur */
   overflow-y: auto;      /* permet de scroller si trop de contenu */
-  width: 250px;          /* largeur fixe pour éviter que ça bouge */
+  width: 280px;          /* largeur fixe pour éviter que ça bouge */
 }
 
 /* Séparateur après Send An Invitation */

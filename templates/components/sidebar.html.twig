@@ -1,6 +1,40 @@
 <!-- Sidebar -->
 <style>
+.nav-link-featured {
+  background: rgba(26, 109, 85, 0.1);
+  border: 2px solid var(--green);
+  border-radius: var(--radius);
+  position: relative;
+  color: black !important;
+  margin: 8px 12px;
+  transition: all 0.3s ease;
+}
 
+.nav-link-featured::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  background: linear-gradient(135deg, var(--green) 0%, var(--teal) 100%);
+  border-radius: var(--radius);
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.nav-link-featured:hover::before {
+  opacity: 1;
+}
+
+.nav-link-featured:hover {
+  transform: translateX(5px);
+  box-shadow: 0 6px 20px rgba(26, 109, 85, 0.4);
+  border-color: var(--teal);
+  color:white !important;
+}
+
+.nav-link-featured .nav-icon {
+  filter: drop-shadow(0 2px 4px rgba(7, 23, 23, 0.2));
+}
 
 
 
@@ -55,15 +89,6 @@
         </a>
       </li>
 
-      <li class="nav-item">
-        <a href="https://form.jotform.com/253131874206453"
-           class="nav-link">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
-          </svg>
-          Knowledge Quiz
-        </a>
-      </li> 
 
       <li class="nav-item">
         <a href="{{path('app_transactions')}}"
@@ -84,7 +109,19 @@
           Progress Tracking
         </a>
       </li>
-
+<li class="nav-item">
+  <a href="https://form.jotform.com/253131874206453"
+     class="nav-link nav-link-featured"
+      target="_blank"
+     rel="noopener noreferrer">
+     
+    Knowledge Quiz 
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M14 3h7v7h-2V6.41l-9.29 9.3-1.42-1.42 9.3-9.29H14V3z"/>
+      <path d="M5 5h5V3H5c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-5h-2v5H5V5z"/>
+    </svg>
+  </a>
+</li>
       <!-- Séparateur -->
       <div class="separator"></div>
 
