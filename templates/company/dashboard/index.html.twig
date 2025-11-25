@@ -17,7 +17,7 @@
     <ul class="course-list {{ courses|length > 3 ? 'scrollable' : '' }}">
       {% for course in courses %}
         <li class="course-item">
-          <a href="{{ path('app_course_show', { id: course.id }) }}" 
+          <a href="{{ path('company_course_show', { id: course.id }) }}" 
              style="text-decoration:none; color:inherit; display:flex; justify-content:space-between; align-items:center;">
             <span class="course-name">{{ course.title }}</span>
             <svg class="course-arrow" viewBox="0 0 24 24" fill="currentColor">

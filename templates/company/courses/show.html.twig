@@ -1,308 +1,293 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Project Management - Course{% endblock %}
+{% block title %}Course - {{ course.title }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .payment-layout {
+            background: var(--bg);
+            min-height: 100vh;
+            padding: 2rem 1rem;
+        }
+
+        .main-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* COURSE PRESENTATION */
+        .course-presentation {
+            background: var(--white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        .course-hero {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            padding: 2rem;
+        }
+
+        .course-thumbnail {
+            position: relative;
+            border-radius: var(--radius);
+            overflow: hidden;
+            aspect-ratio: 16/9;
+        }
+
+        .course-thumbnail img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .play-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 70px;
+            height: 70px;
+            background: var(--green);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .play-overlay:hover {
+            background: var(--teal);
+            transform: translate(-50%, -50%) scale(1.1);
+        }
+
+        .play-overlay i {
+            color: var(--white);
+            font-size: 1.5rem;
+            margin-left: 5px;
+        }
+
+        .course-details h1 {
+            color: var(--black);
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            font-weight: 700;
+        }
+
+        .course-features {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+        }
+
+        .course-feature {
+            background: var(--mint);
+            color: var(--green);
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        /* COURSE DESCRIPTION */
+        .course-description {
+            padding: 2rem;
+            border-top: 1px solid var(--mint);
+        }
+
+        .course-description h3 {
+            color: var(--black);
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            margin-top: 2rem;
+        }
+
+        .course-description h3:first-child {
+            margin-top: 0;
+        }
+
+        .course-description p {
+            color: var(--grey);
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .course-description ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .course-description ul li {
+            color: var(--grey);
+            padding: 0.75rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+            border-bottom: 1px solid var(--mint);
+        }
+
+        .course-description ul li:last-child {
+            border-bottom: none;
+        }
+
+        .course-description ul li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: var(--green);
+            font-weight: bold;
+        }
+
+        /* CUSTOMER SECTION */
+        .customer-section {
+            background: var(--white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 2rem;
+        }
+
+        .customer-section h3 {
+            color: var(--black);
+            font-size: 1.3rem;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: var(--bg);
+            border-radius: var(--radius);
+            border: 1px solid var(--mint);
+        }
+
+        .info-item .icon {
+            width: 40px;
+            height: 40px;
+            background: var(--mint);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .info-item .icon img {
+            width: 20px;
+            height: 20px;
+            object-fit: contain;
+        }
+
+        .info-value {
+            color: var(--black);
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .course-hero {
+                grid-template-columns: 1fr;
+            }
+
+            .course-details h1 {
+                font-size: 1.5rem;
+            }
+
+            .payment-layout {
+                padding: 1rem 0.5rem;
+            }
+
+            .course-presentation,
+            .customer-section {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+{% endblock %}
 
 {% block body %}
-<style>
-/* ------- Video Player ------- */
-.video-container {
-  position: relative;
-  background: var(--black);
-  border-radius: var(--radius);
-  overflow: hidden;
-  margin-bottom: 1.25rem;
-  aspect-ratio: 16/9;
-  box-shadow: var(--shadow);
-}
-.video-background { position:absolute; inset:0; background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%); background-size:cover; background-position:center; filter: blur(1px); }
-.video-overlay { position:absolute; inset:0; background:rgba(0,0,0,.6); display:flex; align-items:center; justify-content:center; }
-.lock-icon-large { width:80px; height:80px; background:white; border-radius:50%; display:flex; align-items:center; justify-content:center; }
-.lock-icon-large svg { width:40px; height:40px; fill: var(--green); }
-
-/* ------- Lesson Info ------- */
-.lesson-info { margin-bottom: 2rem; }
-.lesson-title { font-size: 1.5rem; font-weight: 700; color: var(--black); margin: 0 0 1rem; }
-.lesson-description { color: var(--grey); line-height: 1.6; margin-bottom: 2rem; }
-
-/* ------- Sidebar cards ------- */
-.sidebar-title { font-size: 1.25rem; font-weight: 700; color: var(--black); margin: 0 0 1.5rem; }
-.upcoming-videos { display: flex; flex-direction: column; gap: 1rem; }
-.video-item { border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); transition: all .3s ease; }
-.video-item:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(7,23,23,.15); }
-.video-thumbnail { position: relative; width: 100%; height: 120px; background-size: cover; background-position: center; }
-.video-status-badge { position: absolute; top: .5rem; left: .5rem; padding: .25rem .5rem; border-radius: 999px; font-size: .75rem; font-weight: 600; color: white; text-transform: uppercase; }
-.status-complete { background: var(--green); }
-.status-progress { background: #f59e0b; }
-.video-overlay { position:absolute; inset:0; background:rgba(0,0,0,.4); display:flex; align-items:center; justify-content:center; }
-.play-button { width: 40px; height: 40px; background: white; border-radius: 50%; display:flex; align-items:center; justify-content:center; cursor:pointer; }
-.play-button svg { width: 16px; height: 16px; fill: var(--green); margin-left: 2px; }
-.video-info { padding: 1rem; }
-.video-title { font-weight: 600; color: var(--black); margin: 0 0 .5rem; font-size: .95rem; }
-.video-subtitle { color: var(--grey); font-size: .8rem; margin: 0 0 .75rem; }
-.video-duration { display:flex; justify-content: space-between; font-size: .75rem; color: var(--grey); font-weight: 500; }
-
-/* ------- Colors for thumbs ------- */
-.bg-project { background: linear-gradient(135deg, var(--green) 0%, var(--teal) 100%); }
-
-/* ------- Layout ------- */
-.course-layout { display:flex; justify-content: space-evenly; gap: 2rem; margin:0 auto; }
-.main-course-content { width: 70%; }
-.upcoming-videos-sidebar { background: var(--white); border: 1px solid #e2e8f0; width: 30%; border-radius: var(--radius); padding: 1.5rem; height: fit-content; position: sticky; top: 2rem; }
-
-/* ------- OC-like Stepper (no surrounding card) ------- */
-.oc-progress-nav { margin: .25rem 0 1rem; }
-.oc-steps { display:flex; align-items:center; flex-wrap: wrap; gap: .25rem 1rem; }
-.oc-step { display:flex; align-items:center; gap:.5rem; position:relative; white-space:nowrap; }
-.oc-step:not(:first-child)::before {
-  content: '›';
-  margin-right: .5rem;
-  color: #94a3b8; /* slate-400 */
-  font-weight: 700;
-}
-
-/* pastille */
-.oc-step-dot {
-  width: 28px; height: 28px; border-radius: 50%;
-  border: 2px solid #d1d5db; background: var(--white);
-  display:inline-flex; align-items:center; justify-content:center;
-  font-weight: 700; text-decoration:none;
-  color: var(--grey);
-  transition: transform .15s ease, border-color .15s ease, background .15s ease, color .15s ease;
-}
-.oc-step-dot:hover { transform: translateY(-1px); border-color: var(--teal); }
-
-/* labels */
-.oc-step-label { font-size: .9rem; color: var(--black); font-weight: 600; }
-
-/* states */
-.oc-step.done .oc-step-dot { background: var(--green); border-color: var(--green); color: white; }
-.oc-step.current .oc-step-dot { border-color: var(--teal); color: var(--teal); box-shadow: 0 0 0 4px rgba(26,109,85,.12); }
-.oc-step.todo .oc-step-dot { background: var(--white); color: var(--grey); }
-
-/* thin progress rail under the steps */
-.oc-rail { margin-top: .5rem; height: 4px; background: #e5e7eb; border-radius: 999px; overflow: hidden; }
-.oc-rail > span { display:block; height:100%; width:0%; background: linear-gradient(90deg, var(--teal), var(--green)); transition: width .3s ease; }
-
-/* Prev/Next */
-.lesson-nav { display:flex; justify-content:space-between; gap:.75rem; margin: .75rem 0 1.25rem; }
-.lesson-nav a {
-  display:inline-flex; align-items:center; gap:.5rem; padding:.625rem .9rem;
-  border-radius: var(--radius); border:1px solid #d1d5db; text-decoration:none;
-  color: var(--black); font-weight: 600; background: var(--white);
-  transition: border-color .2s ease, transform .1s ease;
-}
-.lesson-nav a:hover { border-color: var(--teal); transform: translateY(-1px); }
-.lesson-nav .primary { border-color: var(--teal); color: var(--teal); }
-
-/* ------- Responsive tweaks ------- */
-@media (max-width: 1024px) {
-  .course-layout { flex-direction: column; align-items:center; }
-  .main-course-content, .upcoming-videos-sidebar { width:100%; }
-  .upcoming-videos-sidebar { position: static; order:2; }
-}
-@media (max-width: 768px) {
-  .course-layout { padding: 1rem; gap: 1.5rem; }
-  .upcoming-videos { flex-direction: row; gap: 1rem; overflow-x: auto; padding-bottom: .5rem; }
-  .video-item { min-width: 250px; flex-shrink:0; }
-  .upcoming-videos-sidebar { padding: 1rem; }
-  .upcoming-videos-sidebar .sidebar-title { font-size: 1.1rem; margin-bottom: 1rem; }
-  .upcoming-videos::-webkit-scrollbar { height: 6px; }
-  .upcoming-videos::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 3px; }
-  .upcoming-videos::-webkit-scrollbar-thumb { background: var(--teal); border-radius: 3px; }
-}
-@media (max-width: 480px) {
-  .video-item { min-width: 200px; }
-  .video-thumbnail { height: 100px; }
-}
-
-.oc-rail-wrapper {
-  position: relative;
-}
-
-.oc-trophy {
-  position: absolute;
-  right: 35px; /* un peu en dehors de la barre */
-  bottom: 45px;
-  width: 24px;
-  height: 24px;
-  color: var(--teal);
-  display: none;
-}
-.oc-trophy-img{
-  width:60px;
-}
-
-.oc-rail-wrapper.complete .oc-trophy {
-  display: block;
-}
-</style>
- <nav class="oc-progress-nav" aria-label="Course progress">
-      <div class="oc-steps" role="list">
-        {% for video in videos %}
-          {% set userProgress = progress[video.id] ?? null %}
-          {% set isCurrent = currentVideo and currentVideo.id == video.id %}
-          <a
-            class="oc-step {{ userProgress and userProgress.completed ? 'done' : (isCurrent ? 'current' : 'todo') }}"
-            role="listitem"
-            href="{{ path('app_course_show', { id: course.id, videoId: video.id }) }}"
-            aria-current="{{ isCurrent ? 'step' : 'false' }}"
-            title="{{ video.title }}"
-          >
-            <span class="oc-step-dot" aria-label="{{ userProgress and userProgress.completed ? 'Completed' : (isCurrent ? 'In progress' : 'To do') }}">
-              {% if userProgress and userProgress.completed %}
-                <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
-                  <path fill="currentColor" d="M9 16.2l-3.5-3.5L4 14.2l5 5 11-11-1.5-1.5z"/>
-                </svg>
-              {% else %}
-                {{ loop.index }}
-              {% endif %}
-            </span>
-            <span class="oc-step-label">{{ video.title }}</span>
-          </a>
-        {% endfor %}
-      </div>
-      <div class="oc-rail-wrapper {{ progressPercent == 100 ? 'complete' : '' }}">
-  <div class="oc-rail" aria-hidden="true">
-    <span style="width: {{ progressPercent }}%;"></span>
-  </div>
- {% if progressPercent == 100 %}
-    <div class="oc-trophy">
-   
-       <img src="{{ asset('images/quiz_passed.svg') }}" alt="Quiz Passed" class="oc-trophy-img">
-   
-    </div>
-  {% endif %}
-</div>
-
-      {# If you want a tiny text counter, uncomment: #}
-    </nav>
-<div class="course-layout">
-  <div class="main-course-content">
-
-    {# ===== Progress (OC-style trace with checks) ===== #}
-    {% set totalVideos = videos|length %}
-    {% set completedCount = 0 %}
-    {% for v in videos %}
-      {% set p = progress[v.id] ?? null %}
-      {% if p and p.completed %}
-        {% set completedCount = completedCount + 1 %}
-      {% endif %}
-    {% endfor %}
-    <!-- Video Player -->
-<div class="video-container">
-  {% if currentVideo %}
-<iframe
-  src="{{ currentVideo.url }}"
-  width="100%"
-  height="100%"
-  frameborder="0"
-  allow="autoplay; fullscreen; picture-in-picture"
-  allowfullscreen
-  data-controller="progress"
-  data-progress-video-id-value="{{ currentVideo.id }}"
-  data-progress-expected-duration-value="{{ currentVideo.duration|default(0) }}"
-  data-progress-update-url-value="{{ path('app_progress_update', { id: currentVideo.id }) }}"
-  data-progress-popup-image-value="{{ asset('images/congrats.svg') }}"
-></iframe>
-
-  {% else %}
-    <div class="video-background"></div>
-    <div class="video-overlay">
-      <div class="lock-icon-large">
-        <svg viewBox="0 0 24 24">
-          <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
-        </svg>
-      </div>
-    </div>
-  {% endif %}
-</div>
-
-
-    {# Prev / Next navigation #}
-    {% set currentIndex = -1 %}
-    {% if currentVideo %}
-      {% for v in videos %}
-        {% if v.id == currentVideo.id %}
-          {% set currentIndex = loop.index0 %}
-        {% endif %}
-      {% endfor %}
-    {% endif %}
-    {% set hasPrev = currentIndex > 0 %}
-    {% set hasNext = currentIndex + 1 < videos|length %}
-    {% set prevVideo = hasPrev ? videos[currentIndex - 1] : null %}
-    {% set nextVideo = hasNext ? videos[currentIndex + 1] : null %}
-
-<div class="lesson-nav">
-  <div>
-    {% if hasPrev %}
-      <a href="{{ path('app_course_show', { id: course.id, videoId: prevVideo.id }) }}">
-        <svg viewBox="0 0 24 24" width="18" height="18">
-          <path fill="currentColor" d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
-        </svg>
-        Previous lesson
-      </a>
-    {% endif %}
-  </div>
-  <div>
-    {% if hasNext %}
-      <a class="primary" href="{{ path('app_course_show', { id: course.id, videoId: nextVideo.id }) }}">
-        Next lesson
-        <svg viewBox="0 0 24 24" width="18" height="18">
-          <path fill="currentColor" d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/>
-        </svg>
-      </a>
-    {% elseif progressPercent == 100 %}
-      <a class="primary" href="{{ path('course_quiz', { id: course.id }) }}">
-        Take Quiz
-        <svg viewBox="0 0 24 24" width="18" height="18">
-          <path fill="currentColor" d="M5 12h14v2H5zm0-4h14v2H5zm0 8h14v2H5z"/>
-        </svg>
-      </a>
-    {% endif %}
-  </div>
-</div>
-
-
-    <!-- Lesson Info -->
-    <div class="lesson-info">
-      <h2 class="lesson-title">{{ course.title }}</h2>
-      <p class="lesson-description">{{ course.description }}</p>
-    </div>
-  </div>
-
-  <!-- Sidebar -->
-  <aside class="upcoming-videos-sidebar">
-    <h3 class="sidebar-title">Lessons</h3>
-    <div class="upcoming-videos">
-      {% for video in videos %}
-        <div class="video-item">
-          <div class="video-thumbnail bg-project">
-            {% set userProgress = progress[video.id] ?? null %}
-            {% if userProgress and userProgress.completed %}
-              <div class="video-status-badge status-complete">Complete</div>
-            {% elseif userProgress %}
-              <div class="video-status-badge status-progress">In progress</div>
-            {% endif %}
-            <div class="video-overlay">
-              <a href="{{ path('app_course_show', { id: course.id, videoId: video.id }) }}" class="play-button">
-                <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-              </a>
+<div class="payment-layout">
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+        <!-- COURSE PRESENTATION -->
+        <div class="course-presentation">
+            <div class="course-hero">
+                <div class="course-thumbnail">
+                    <img src="{{ asset('uploads/courses/' ~ course.thumb) }}" alt="{{ course.title }}">
+                    <div class="play-overlay">
+                        <i class="fas fa-play"></i>
+                    </div>
+                </div>
+                
+                <div class="course-details">
+                    <h1>{{ course.title }}</h1>
+                    
+                    <div class="course-features">
+                        <span class="course-feature">Full access</span>
+                        <span class="course-feature">Certificate of completion</span>
+                        <span class="course-feature">24/7 Support</span>
+                    </div>
+                </div>
             </div>
-          </div>
-          <div class="video-info">
-            <h4 class="video-title">{{ video.title }}</h4>
-            <p class="video-subtitle">{{ course.description }}</p>
-            {% set mins = (video.duration / 60)|round(0, 'floor') %}
-            {% set secs = (video.duration % 60) %}
-            <div class="video-duration">
-              <span>00:00</span>
-              <span>{{ '%02d'|format(mins) }}:{{ '%02d'|format(secs) }}</span>
+            
+            <div class="course-description">
+                <h3>Course Description</h3>
+                <p>{{ course.description }}</p>
+                
+                <h3>What you will learn</h3>
+                <ul>
+                    {% for video in course.videos %}
+                        <li>{{ video.title }}</li>
+                    {% else %}
+                        <li>No videos available yet.</li>
+                    {% endfor %}
+                </ul>
+                
+                <h3>Requirements</h3>
+                <p>No specific requirements. This course is suitable for both beginners and professionals who want to deepen their knowledge.</p>
             </div>
-          </div>
         </div>
-      {% endfor %}
+
+        <!-- CUSTOMER INFORMATION -->
+        <div class="customer-section">
+            <h3>Company Information</h3>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="icon"><img class="icon" src="{{ asset('images/User.svg') }}" /></div>
+                    <div class="info-value">
+                        {{ app.user ? app.user.username|default('Sara Smith') : 'Sara Smith' }}
+                    </div>
+                </div>
+                <div class="info-item">
+                    <div class="icon"><img class="icon" src="{{ asset('images/email.svg') }}" /></div>
+                    <div class="info-value">
+                        {{ app.user ? app.user.email|default('user@example.com') : 'user@example.com' }}
+                    </div>
+                </div>
+                <div class="info-item">
+                    <div class="icon">
+                        <img class="icon" src="{{ asset('images/co.svg') }}" />
+                    </div>
+                    <div class="info-value">
+                        {{ app.user ? app.user.companyNameFromEmail : 'Saranco.' }}
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-  </aside>
 </div>
-<script src="https://player.vimeo.com/api/player.js"></script>
 {% endblock %}

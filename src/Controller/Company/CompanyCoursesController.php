@@ -132,4 +132,28 @@ class CompanyCoursesController extends AbstractController
         $this->addFlash('success', $message);
         return $this->redirectToRoute('company_courses');
     }
+
+    #[Route('/company/course/{id}/show', name: 'company_course_show')]
+    public function coursShowCo(
+        int $id,
+        Request $request,
+        CourseRepository $courseRepo,
+        EntityManagerInterface $em
+    ): Response {
+
+        $user = $this->getUser();
+            if (!$user) {
+        throw $this->createNotFoundException('user not found');
+        }
+        $course = $courseRepo->find($id);
+        if (!$course) {
+        throw $this->createNotFoundException('Course not found');
+        }
+
+
+return $this->render('company/courses/show.html.twig', [
+        'course' => $course
+    ]);
+    }
+    
 }
