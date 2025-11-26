@@ -1,0 +1,334 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Inscriptions utilisateurs{% endblock %}
+
+{% block stylesheets %}
+<style>
+    .enrollments-container {
+        background: var(--bg);
+        min-height: 100vh;
+        padding: 2rem 0;
+    }
+
+    .page-header {
+        background: var(--white);
+        padding: 2rem;
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        margin-bottom: 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .header-content h1 {
+        color: var(--black);
+        margin: 0 0 0.5rem 0;
+        font-size: 1.75rem;
+        font-weight: 600;
+    }
+
+    .header-content p {
+        color: var(--grey);
+        margin: 0;
+    }
+
+    .btn-add-enrollment {
+        padding: 0.75rem 1.5rem;
+        background: var(--teal);
+        color: var(--white);
+        text-decoration: none;
+        border-radius: var(--radius);
+        font-weight: 500;
+        transition: all 0.3s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-add-enrollment:hover {
+        background: var(--green);
+        transform: translateY(-1px);
+        box-shadow: var(--shadow);
+        color: var(--white);
+    }
+
+    .filter-panel {
+        background: var(--white);
+        padding: 1.5rem;
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        margin-bottom: 1.5rem;
+    }
+
+    .filter-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+    }
+
+    .filter-input {
+        padding: 0.75rem 1rem;
+        border: 2px solid var(--mint);
+        border-radius: var(--radius);
+        transition: all 0.3s;
+    }
+
+    .filter-input:focus {
+        outline: none;
+        border-color: var(--teal);
+        box-shadow: 0 0 0 3px rgba(13, 131, 131, 0.1);
+    }
+
+    .table-panel {
+        background: var(--white);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+    }
+
+    .table-responsive {
+        overflow-x: auto;
+    }
+
+    .enrollments-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .enrollments-table thead {
+        background: linear-gradient(135deg, var(--green), var(--teal));
+        color: var(--white);
+    }
+
+    .enrollments-table th {
+        padding: 1.25rem 1.5rem;
+        text-align: left;
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .enrollments-table tbody tr {
+        border-bottom: 1px solid var(--mint);
+        transition: all 0.3s;
+    }
+
+    .enrollments-table tbody tr:hover {
+        background: var(--mint);
+    }
+
+    .enrollments-table td {
+        padding: 1.25rem 1.5rem;
+        color: var(--black);
+    }
+
+    .user-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: var(--mint);
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 500;
+        color: var(--green);
+    }
+
+    .course-link {
+        color: var(--teal);
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.3s;
+    }
+
+    .course-link:hover {
+        color: var(--green);
+        text-decoration: underline;
+    }
+
+    .date-cell {
+        color: var(--grey);
+        font-size: 0.9rem;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: var(--grey);
+    }
+
+    .empty-state svg {
+        width: 100px;
+        height: 100px;
+        margin-bottom: 1.5rem;
+        opacity: 0.3;
+    }
+
+    .empty-state h3 {
+        color: var(--black);
+        margin-bottom: 0.5rem;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: var(--white);
+        padding: 1.5rem;
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        border-left: 4px solid var(--teal);
+    }
+
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--green);
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-label {
+        color: var(--grey);
+        font-size: 0.9rem;
+    }
+
+    .id-badge {
+        background: var(--mint);
+        color: var(--green);
+        padding: 0.25rem 0.75rem;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+        
+        <div class="page-header">
+            <div class="header-content">
+                <h1>📋 Liste des inscriptions</h1>
+                <p>Consultez et gérez toutes les inscriptions aux cours</p>
+            </div>
+            <a href="{{ path('admin_enrollments_manage') }}" class="btn-add-enrollment">
+                <span>➕</span>
+                <span>Nouvelle inscription</span>
+            </a>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value">{{ enrollments|length }}</div>
+                <div class="stat-label">Inscriptions totales</div>
+            </div>
+            <div class="stat-card" style="border-left-color: var(--green);">
+                <div class="stat-value">{{ enrollments|map(e => e.user.id)|length }}</div>
+                <div class="stat-label">Utilisateurs inscrits</div>
+            </div>
+            <div class="stat-card" style="border-left-color: var(--grey);">
+                <div class="stat-value">{{ enrollments|map(e => e.course.id)|length }}</div>
+                <div class="stat-label">Cours actifs</div>
+            </div>
+        </div>
+
+        <div class="filter-panel">
+            <div class="filter-grid">
+                <input type="text" id="searchUser" class="filter-input" placeholder="🔍 Rechercher un utilisateur...">
+                <input type="text" id="searchCourse" class="filter-input" placeholder="🔍 Rechercher un cours...">
+                <input type="date" id="filterDate" class="filter-input">
+            </div>
+        </div>
+
+        <div class="table-panel">
+            <div class="table-responsive">
+                <table class="enrollments-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>👤 Utilisateur</th>
+                            <th>✉️ Email</th>
+                            <th>📚 Cours</th>
+                            <th>📅 Date d'inscription</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for e in enrollments %}
+                            <tr data-user="{{ e.user.email|lower }}" 
+                                data-course="{{ e.course.title|lower }}"
+                                data-date="{{ e.createdAt ? e.createdAt|date('Y-m-d') : '' }}">
+                                <td>
+                                    <span class="id-badge">#{{ e.id }}</span>
+                                </td>
+                                <td>
+                                    <span class="user-badge">
+                                        <span>👤</span>
+                                        <span>{{ e.user.username }}</span>
+                                    </span>
+                                </td>
+                                <td>{{ e.user.email }}</td>
+                                <td>
+                                    <a href="{{ path('admin_course_show', { id: e.course.id }) }}" 
+                                       class="course-link">
+                                        {{ e.course.title }}
+                                    </a>
+                                </td>
+                                <td class="date-cell">
+                                    {{ e.createdAt ? e.createdAt|date('d/m/Y à H:i') : '-' }}
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="5">
+                                    <div class="empty-state">
+                                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                        </svg>
+                                        <h3>Aucune inscription trouvée</h3>
+                                        <p>Commencez par créer une nouvelle inscription</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+
+<script>
+// Filtrage en temps réel
+document.addEventListener('DOMContentLoaded', function() {
+    const searchUser = document.getElementById('searchUser');
+    const searchCourse = document.getElementById('searchCourse');
+    const filterDate = document.getElementById('filterDate');
+    const rows = document.querySelectorAll('.enrollments-table tbody tr[data-user]');
+
+    function filterTable() {
+        const userQuery = searchUser.value.toLowerCase();
+        const courseQuery = searchCourse.value.toLowerCase();
+        const dateQuery = filterDate.value;
+
+        rows.forEach(row => {
+            const userData = row.getAttribute('data-user');
+            const courseData = row.getAttribute('data-course');
+            const dateData = row.getAttribute('data-date');
+
+            const userMatch = !userQuery || userData.includes(userQuery);
+            const courseMatch = !courseQuery || courseData.includes(courseQuery);
+            const dateMatch = !dateQuery || dateData === dateQuery;
+
+            row.style.display = (userMatch && courseMatch && dateMatch) ? '' : 'none';
+        });
+    }
+
+    searchUser.addEventListener('input', filterTable);
+    searchCourse.addEventListener('input', filterTable);
+    filterDate.addEventListener('change', filterTable);
+});
+</script>
+{% endblock %}

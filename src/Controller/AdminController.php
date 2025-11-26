@@ -4,22 +4,24 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Entity\Course;
+use App\Entity\User;
 use App\Entity\Video;
-use App\Entity\QuizQuestion;
-use App\Entity\QuizAnswer;
+use App\Entity\Course;
 use App\Form\CourseType;
+use App\Entity\Enrollment;
+use App\Entity\QuizAnswer;
+use App\Entity\QuizQuestion;
 use App\Repository\CourseRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
-#[Route('/admin/courses', name: 'admin_course_')]
+#[Route('/admin', name: 'admin_')]
 class AdminController extends AbstractController
 {
-    #[Route('/', name: 'index', methods: ['GET'])]
+    #[Route('/courses', name: 'course_index', methods: ['GET'])]
     public function index(CourseRepository $repo): Response
     {
         $courses = $repo->findBy([], ['id' => 'DESC']);
@@ -29,7 +31,7 @@ class AdminController extends AbstractController
         ]);
     }
 
-#[Route('/new', name: 'new', methods: ['GET','POST'])]
+#[Route('/courses/new', name: 'course_new', methods: ['GET','POST'])]
 public function new(Request $request, EntityManagerInterface $em): Response
 {
     $course = new Course();
@@ -57,7 +59,7 @@ public function new(Request $request, EntityManagerInterface $em): Response
 
 
 
-    #[Route('/{id}', name: 'show', methods: ['GET'])]
+    #[Route('/courses/{id}', name: 'course_show', methods: ['GET'])]
     public function show(Course $course): Response
     {
         return $this->render('admin/show.html.twig', [
@@ -65,7 +67,7 @@ public function new(Request $request, EntityManagerInterface $em): Response
         ]);
     }
 
-    #[Route('/{id}/edit', name: 'edit', methods: ['GET', 'POST'])]
+    #[Route('/courses/{id}/edit', name: 'course_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, Course $course, EntityManagerInterface $em): Response
     {
         $form = $this->createForm(CourseType::class, $course);
@@ -86,7 +88,7 @@ public function new(Request $request, EntityManagerInterface $em): Response
         ]);
     }
 
-    #[Route('/{id}', name: 'delete', methods: ['POST'])]
+    #[Route('/courses/{id}', name: 'course_delete', methods: ['POST'])]
     public function delete(Request $request, Course $course, EntityManagerInterface $em): Response
     {
         if ($this->isCsrfTokenValid('delete_course_'.$course->getId(), (string) $request->request->get('_token'))) {
@@ -132,4 +134,158 @@ public function new(Request $request, EntityManagerInterface $em): Response
             }
         }
     }
+
+
+
+    #[Route('/enrollments', name: 'enrollments', methods: ['GET'])]
+public function listEnrollments(EntityManagerInterface $em): Response
+{
+    $admin = $this->getUser();
+    if (!in_array('ROLE_ADMIN', $admin->getRoles())) {
+        return $this->redirectToRoute('show_login');
+    }
+
+    $enrollments = $em->getRepository(Enrollment::class)->findBy([], ['id' => 'DESC']);
+
+    return $this->render('admin/enrollments.html.twig', [
+        'enrollments' => $enrollments,
+    ]);
+}
+
+#[Route('/enrollments/manage', name: 'enrollments_manage', methods: ['GET'])]
+public function manageEnrollments(Request $request, EntityManagerInterface $em): Response
+{
+    $admin = $this->getUser();
+    if (!in_array('ROLE_ADMIN', $admin->getRoles())) {
+        return $this->redirectToRoute('show_login');
+    }
+
+    // Recherche utilisateur
+    $email = $request->query->get('email');
+
+    $userRepo = $em->getRepository(User::class);
+    $courseRepo = $em->getRepository(Course::class);
+
+    $users = $email
+        ? $userRepo->createQueryBuilder('u')
+            ->where('u.email LIKE :email')
+            ->setParameter('email', '%' . $email . '%')
+            ->getQuery()
+            ->getResult()
+        : $userRepo->findBy([], ['id' => 'DESC']);
+
+    $courses = $courseRepo->findBy([], ['id' => 'DESC']);
+
+    return $this->render('admin/enrollments_manage.html.twig', [
+        'users' => $users,
+        'courses' => $courses,
+        'email' => $email,
+    ]);
+}
+
+
+#[Route('/enrollment/new/{courseId}/{userId}', name: 'enrollment_new', methods: ['POST', 'GET'])]
+public function createEnrollment(
+    int $courseId,
+    int $userId,
+    EntityManagerInterface $em
+): Response {
+
+    $admin = $this->getUser();
+if (!in_array('ROLE_ADMIN', $admin->getRoles())) {
+    return $this->redirectToRoute('show_login');
+}
+    $user = $em->getRepository(User::class)->find($userId);
+    $course = $em->getRepository(Course::class)->find($courseId);
+
+    if (!$user || !$course) {
+        $this->addFlash('danger', 'Utilisateur ou cours introuvable.');
+        return $this->redirectToRoute('admin_enrollments');
+    }
+
+    // Vérifier si déjà inscrit
+    $existing = $em->getRepository(Enrollment::class)->findOneBy([
+        'user'   => $user,
+        'course' => $course,
+    ]);
+
+    if ($existing) {
+        $this->addFlash('info', 'Cet utilisateur est déjà inscrit à ce cours.');
+        return $this->redirectToRoute('admin_enrollments');
+    }
+
+    // Création enrollment
+    $enrollment = new Enrollment();
+    $enrollment->setUser($user);
+    $enrollment->setCourse($course);
+
+    $em->persist($enrollment);
+    $em->flush();
+
+    $this->addFlash('success', "Inscription effectuée pour {$user->getEmail()}.");
+
+    return $this->redirectToRoute('admin_enrollments');
+}
+
+
+#[Route('/enrollment/bulk', name: 'enrollment_bulk', methods: ['POST'])]
+public function bulkEnrollment(Request $request, EntityManagerInterface $em): Response
+{
+    $admin = $this->getUser();
+    if (!in_array('ROLE_ADMIN', $admin->getRoles())) {
+        return $this->redirectToRoute('show_login');
+    }
+
+    $courseId = $request->request->get('courseId');
+    $userIds = $request->request->all('userIds');
+
+    if (!$courseId || empty($userIds)) {
+        $this->addFlash('danger', 'Données manquantes.');
+        return $this->redirectToRoute('admin_enrollments_manage');
+    }
+
+    $course = $em->getRepository(Course::class)->find($courseId);
+    if (!$course) {
+        $this->addFlash('danger', 'Cours introuvable.');
+        return $this->redirectToRoute('admin_enrollments_manage');
+    }
+
+    $successCount = 0;
+    $skipCount = 0;
+
+    foreach ($userIds as $userId) {
+        $user = $em->getRepository(User::class)->find($userId);
+        if (!$user) continue;
+
+        // Vérifier si déjà inscrit
+        $existing = $em->getRepository(Enrollment::class)->findOneBy([
+            'user' => $user,
+            'course' => $course,
+        ]);
+
+        if ($existing) {
+            $skipCount++;
+            continue;
+        }
+
+        $enrollment = new Enrollment();
+        $enrollment->setUser($user);
+        $enrollment->setCourse($course);
+        $em->persist($enrollment);
+        $successCount++;
+    }
+
+    $em->flush();
+
+    if ($successCount > 0) {
+        $this->addFlash('success', "$successCount inscription(s) effectuée(s) avec succès.");
+    }
+    if ($skipCount > 0) {
+        $this->addFlash('info', "$skipCount utilisateur(s) déjà inscrit(s) à ce cours.");
+    }
+
+    return $this->redirectToRoute('admin_enrollments');
+}
+
+
 }
