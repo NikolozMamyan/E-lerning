@@ -26,6 +26,7 @@ public function certificate(QuizAttemptRepository $quizAttemptRepo): Response
     ]);
 }
 
+
 #[Route('/app/certificate/{id}', name: 'generate_certificate')]
 public function generateCertificate(
     int $id,
@@ -78,34 +79,50 @@ public function generateCertificate(
         $pdf->Image($background, 0, 0, $pageWidth, $pageHeight);
 
         // Nom de l’étudiant
-$pdf->SetFont('Arial', 'B', 26);
-$pdf->SetTextColor(0, 0, 0);
-$nameWidth = $pdf->GetStringWidth(utf8_decode($user->getUserName()));
-$x = ($pageWidth - $nameWidth) / 2;
-$y = 95;
-$pdf->SetXY($x, $y);
-$pdf->Cell($nameWidth, 10, utf8_decode($user->getUserName()));
+        $pdf->SetFont('Arial', 'B', 26);
+        $pdf->SetTextColor(0, 0, 0);
+        $nameWidth = $pdf->GetStringWidth(utf8_decode($user->getUserName()));
+        $x = ($pageWidth - $nameWidth) / 2;
+        $y = 95;
+        $pdf->SetXY($x, $y);
+        $pdf->Cell($nameWidth, 10, utf8_decode($user->getUserName()));
 
+        // =============================
+        // TITRE DU COURS AVEC RETOUR LIGNE AUTOMATIQUE
+        // =============================
+        $pdf->SetFont('Arial', 'B', 18);
+        $pdf->SetTextColor(0, 0, 0);
 
-$pdf->SetFont('Arial', 'B', 18);
-$titleY = 130; // ajuste cette valeur pour le descendre
-$pdf->SetXY(0, $titleY);
-$pdf->Cell($pageWidth, 10, utf8_decode($course->getTitle()), 0, 0, 'C');
+        $title = utf8_decode($course->getTitle());
+        $maxWidth = $pageWidth * 0.8; // largeur max du bloc (80%)
 
-// --- Calcul de la durée totale du cours ---
-$totalDurationSeconds = 0;
+        $titleY = 130;
+        $pdf->SetY($titleY);
 
-foreach ($course->getVideos() as $video) {
-    $totalDurationSeconds += $video->getDuration(); // la durée est en secondes
-}
+        $titleWidth = $pdf->GetStringWidth($title);
 
-// Conversion en minutes (arrondie)
-$totalDurationMinutes = round($totalDurationSeconds / 60);
+        if ($titleWidth > $maxWidth) {
+            // MultiCell centré
+            $x = ($pageWidth - $maxWidth) / 2;
+            $pdf->SetX($x);
+            $pdf->MultiCell($maxWidth, 10, $title, 0, 'C');
+        } else {
+            // Affichage normal centré
+            $pdf->SetXY(0, $titleY);
+            $pdf->Cell($pageWidth, 10, $title, 0, 0, 'C');
+        }
 
-// --- Affichage dans le certificat ---
-$pdf->SetFont('Arial', '', 14);
-$pdf->SetXY(0, 150); // Ajuste la position selon ton template
-$pdf->Cell($pageWidth, 10, utf8_decode("Course Duration : " . $totalDurationMinutes . " min"), 0, 0, 'C');
+        // --- Calcul de la durée totale du cours ---
+        $totalDurationSeconds = 0;
+        foreach ($course->getVideos() as $video) {
+            $totalDurationSeconds += $video->getDuration();
+        }
+        $totalDurationMinutes = round($totalDurationSeconds / 60);
+
+        // --- Affichage durée ---
+        $pdf->SetFont('Arial', '', 14);
+        $pdf->SetXY(0, 150);
+        $pdf->Cell($pageWidth, 10, utf8_decode("Course Duration : " . $totalDurationMinutes . " min"), 0, 0, 'C');
 
         // Date
         $pdf->SetFont('Arial', '', 14);
@@ -118,6 +135,7 @@ $pdf->Cell($pageWidth, 10, utf8_decode("Course Duration : " . $totalDurationMinu
         $pdf->SetXY($pageWidth - 70, 10);
         $pdf->Cell(60, 10, 'Ref: ' . $certificateNumber, 0, 0, 'R');
 
+        // Final output
         $pdfContent = $pdf->Output('S');
 
         return new Response(
@@ -133,7 +151,5 @@ $pdf->Cell($pageWidth, 10, utf8_decode("Course Duration : " . $totalDurationMinu
     $this->addFlash('info', 'This attempt is not passed.');
     return $this->redirectToRoute('app_dashboard');
 }
-
-
 
 }
