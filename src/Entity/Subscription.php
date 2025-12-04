@@ -77,10 +77,14 @@ class Subscription
         $this->type = $type;
         return $this;
     }
+public function getIsActive(): bool
+{
+    return $this->isActive;
+}
 
     public function isActive(): bool
     {
-        return $this->isActive && $this->endDate > new \DateTime();
+          return $this->isActive && $this->endDate > new \DateTime();
     }
 
     public function setIsActive(bool $isActive): static

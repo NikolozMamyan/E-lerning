@@ -11,12 +11,16 @@ use App\Form\CourseType;
 use App\Entity\Enrollment;
 use App\Entity\QuizAnswer;
 use App\Entity\QuizQuestion;
+use App\Entity\Subscription;
+use App\Repository\UserRepository;
 use App\Repository\CourseRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use App\Repository\SubscriptionRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 #[Route('/admin', name: 'admin_')]
 class AdminController extends AbstractController
@@ -285,6 +289,207 @@ public function bulkEnrollment(Request $request, EntityManagerInterface $em): Re
     }
 
     return $this->redirectToRoute('admin_enrollments');
+}
+
+    #[Route('/subscriptions', name: 'subscription_add')]
+    public function adminSubscription(SubscriptionRepository $subRepo)
+    {
+         $admin = $this->getUser();
+    if (!in_array('ROLE_ADMIN', $admin->getRoles())) {
+        return $this->redirectToRoute('show_login');
+    }
+    $subscriptions = $subRepo->findAll();
+
+    return $this->render('admin/subscription.html.twig', [
+        'subscriptions' => $subscriptions,
+
+    ]);
+    }
+
+    #[Route('/subscription/toggle/{id}', name: 'subscription_toggle')]
+public function toggleSubscription(
+    Subscription $subscription,
+    EntityManagerInterface $em
+) {
+    $admin = $this->getUser();
+    if (!in_array('ROLE_ADMIN', $admin->getRoles())) {
+        return $this->redirectToRoute('show_login');
+    }
+
+
+
+$subscription->setIsActive(!$subscription->getIsActive());
+    
+
+    $em->persist($subscription);
+    $em->flush();
+
+    return $this->redirectToRoute('admin_subscription_add');
+}
+
+#[Route('/subscription/create', name: 'subscription_create')]
+public function createSubscription(
+    Request $request,
+    EntityManagerInterface $em,
+    UserRepository $userRepo,
+    SubscriptionRepository $subRepo
+) {
+    $admin = $this->getUser();
+    if (!in_array('ROLE_ADMIN', $admin->getRoles())) {
+        return $this->redirectToRoute('show_login');
+    }
+
+    if ($request->isMethod('POST')) {
+
+        $userId = $request->request->get('user_id');
+        $type   = $request->request->get('type');
+        $start  = $request->request->get('startDate');
+        $end    = $request->request->get('endDate');
+
+        $user = $userRepo->find($userId);
+
+        if (!$user) {
+            throw $this->createNotFoundException("User introuvable");
+        }
+
+        // 🔥 Vérifier si l'utilisateur a déjà une subscription
+        $oldSub = $subRepo->findOneBy(['user' => $user]);
+
+        if ($oldSub) {
+            $em->remove($oldSub); // Supprime l'ancienne
+        }
+
+        // 🔥 Nouvelle subscription
+        $subscription = new Subscription();
+        $subscription->setUser($user);
+        $subscription->setType($type);
+        $subscription->setStartDate(new \DateTime($start));
+        $subscription->setEndDate(new \DateTime($end));
+        $subscription->setIsActive(true);
+
+        $em->persist($subscription);
+        $em->flush();
+
+        return $this->redirectToRoute('admin_subscription_add');
+    }
+
+    // Liste des users pour formulaire
+    $users = $userRepo->findAll();
+
+    return $this->render('admin/subscription_create.html.twig', [
+        'users' => $users,
+    ]);
+}
+
+#[Route('/users/import', name: 'user_import')]
+public function importUsers(
+    Request $request,
+    EntityManagerInterface $em,
+    UserPasswordHasherInterface $passwordHasher,
+    UserRepository $userRepository
+): Response {
+    $results = [];
+
+    if ($request->isMethod('POST')) {
+
+        $file = $request->files->get('csv_file');
+
+        if (!$file) {
+            $this->addFlash('error', 'Aucun fichier envoyé.');
+            return $this->redirectToRoute('admin_user_import');
+        }
+
+        if ($file->getClientOriginalExtension() !== 'csv') {
+            $this->addFlash('error', 'Le fichier doit être un CSV.');
+            return $this->redirectToRoute('admin_user_import');
+        }
+
+        $handle = fopen($file->getRealPath(), 'r');
+
+        // --- AUTO-DÉTECTION DU SÉPARATEUR ---
+        $firstLine = fgets($handle);
+        rewind($handle);
+
+        $separator = str_contains($firstLine, ';') ? ';' : ',';
+
+        // --- LECTURE DYNAMIQUE DE L'ENTÊTE ---
+        $header = fgetcsv($handle, 0, $separator);
+        $header = array_map('trim', $header);
+
+        // Création d’un mapping colonne → index
+        $map = array_flip($header);
+
+        // Vérifie que les colonnes obligatoires existent
+        $required = ['email','username','password','role'];
+
+        foreach ($required as $col) {
+            if (!isset($map[$col])) {
+                $this->addFlash('error', "Colonne manquante dans le CSV : $col");
+                return $this->redirectToRoute('admin_user_import');
+            }
+        }
+
+        // --- LECTURE LIGNE PAR LIGNE ---
+        while (($data = fgetcsv($handle, 0, $separator)) !== false) {
+
+            $email       = $data[$map['email']]      ?? null;
+            $username    = $data[$map['username']]   ?? null;
+            $phone       = $data[$map['phone']]      ?? null;
+            $country     = $data[$map['country']]    ?? null;
+            $city        = $data[$map['city']]       ?? null;
+            $postalCode  = $data[$map['postalCode']] ?? null;
+            $passwordRaw = $data[$map['password']]   ?? null;
+            $roleRaw     = $data[$map['role']]       ?? null;
+
+            if (!$email || !$username) {
+                $results[] = "❌ Email ou username manquant → ligne ignorée";
+                continue;
+            }
+
+            if (!$passwordRaw) {
+                $results[] = "❌ Mot de passe manquant pour $email → ligne ignorée";
+                continue;
+            }
+
+            if (!in_array($roleRaw, ['ROLE_EMPLOYEE', 'ROLE_COMPANY'])) {
+                $results[] = "❌ Rôle invalide pour $email → ligne ignorée";
+                continue;
+            }
+
+            if ($userRepository->findOneBy(['email' => $email])) {
+                $results[] = "⚠️ Utilisateur existant : $email → ignoré";
+                continue;
+            }
+
+            // --- CRÉATION ---
+            $user = new User();
+            $user->setEmail($email);
+            $user->setUsername($username);
+            $user->setPhone($phone);
+            $user->setCountry($country);
+            $user->setCity($city);
+            $user->setPostalCode($postalCode);
+
+            $user->setPassword(
+                $passwordHasher->hashPassword($user, $passwordRaw)
+            );
+
+            $user->setRoles([$roleRaw]);
+
+            $em->persist($user);
+
+            $results[] = "✅ Utilisateur créé : $email";
+        }
+
+        fclose($handle);
+        $em->flush();
+
+        return $this->render('admin/user_import_results.html.twig', [
+            'results' => $results,
+        ]);
+    }
+
+    return $this->render('admin/user_import.html.twig');
 }
 
 

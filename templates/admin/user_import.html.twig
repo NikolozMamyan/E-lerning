@@ -1,0 +1,148 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+<div style="max-width: 800px; margin: 0 auto; padding: 2rem 1rem;">
+    
+    <div style="margin-bottom: 2rem;">
+        <h1 style="color: var(--black); font-size: 2rem; font-weight: 600; margin-bottom: 0.5rem;">
+            Import d'utilisateurs en masse
+        </h1>
+        <p style="color: var(--grey); font-size: 1rem;">
+            Glissez-déposez votre fichier CSV ou cliquez pour le sélectionner
+        </p>
+    </div>
+
+    <form action="{{ path('admin_user_import') }}" method="post" enctype="multipart/form-data">
+        
+        <div style="background: var(--white); padding: 2rem; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 1.5rem;">
+            
+            <div id="dropzone" style="
+                border: 2px dashed var(--teal); 
+                border-radius: var(--radius); 
+                padding: 3rem 2rem; 
+                text-align: center; 
+                cursor: pointer;
+                transition: all 0.3s ease;
+                background: var(--mint);
+            ">
+                <div id="dropzone-content">
+                    <svg style="width: 48px; height: 48px; margin: 0 auto 1rem; color: var(--teal);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                    </svg>
+                    <p style="color: var(--black); font-weight: 500; margin-bottom: 0.5rem; font-size: 1.1rem;">
+                        Glissez-déposez votre fichier CSV ici
+                    </p>
+                    <p style="color: var(--grey); font-size: 0.9rem;">
+                        ou cliquez pour parcourir vos fichiers
+                    </p>
+                </div>
+            </div>
+
+            <input type="file" id="csv_file" name="csv_file" accept=".csv" style="display:none;">
+
+            <div style="margin-top: 1rem; padding: 1rem; background: var(--bg); border-radius: 8px; border-left: 3px solid var(--teal);">
+                <p style="color: var(--grey); font-size: 0.875rem; margin: 0;">
+                    <strong style="color: var(--black);">Format attendu :</strong> Fichier CSV avec colonnes séparées par des virgules ou point virgules
+                </p>
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 1rem; align-items: center;">
+            <button type="submit" class="btn btn-primary" style="
+                background: var(--green); 
+                color: var(--white); 
+                border: none; 
+                padding: 0.75rem 2rem; 
+                border-radius: var(--radius); 
+                font-weight: 500;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                box-shadow: var(--shadow);
+            " onmouseover="this.style.background='var(--teal)'" onmouseout="this.style.background='var(--green)'">
+                Importer les utilisateurs
+            </button>
+            
+            <a href="{{ path('admin_user_import') }}" style="
+                color: var(--grey); 
+                text-decoration: none; 
+                font-weight: 500;
+                transition: color 0.3s ease;
+            " onmouseover="this.style.color='var(--black)'" onmouseout="this.style.color='var(--grey)'">
+                Annuler
+            </a>
+        </div>
+    </form>
+
+</div>
+
+<script>
+    let dropzone = document.getElementById('dropzone');
+    let fileInput = document.getElementById('csv_file');
+    let dropzoneContent = document.getElementById('dropzone-content');
+
+    dropzone.addEventListener('click', () => fileInput.click());
+
+    dropzone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropzone.style.borderColor = 'var(--green)';
+        dropzone.style.background = 'var(--white)';
+        dropzone.style.transform = 'scale(1.02)';
+    });
+
+    dropzone.addEventListener('dragleave', () => {
+        dropzone.style.borderColor = 'var(--teal)';
+        dropzone.style.background = 'var(--mint)';
+        dropzone.style.transform = 'scale(1)';
+    });
+
+    dropzone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropzone.style.borderColor = 'var(--green)';
+        dropzone.style.background = 'var(--mint)';
+        dropzone.style.transform = 'scale(1)';
+
+        let file = e.dataTransfer.files[0];
+        if (file) {
+            fileInput.files = e.dataTransfer.files;
+            updateDropzoneContent(file);
+        }
+    });
+
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files[0]) {
+            updateDropzoneContent(e.target.files[0]);
+        }
+    });
+
+    function updateDropzoneContent(file) {
+        dropzone.style.borderColor = 'var(--green)';
+        dropzone.style.borderStyle = 'solid';
+        
+        dropzoneContent.innerHTML = `
+            <svg style="width: 48px; height: 48px; margin: 0 auto 1rem; color: var(--green);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <p style="color: var(--green); font-weight: 600; margin-bottom: 0.5rem; font-size: 1.1rem;">
+                Fichier sélectionné
+            </p>
+            <p style="color: var(--black); font-size: 0.9rem; word-break: break-all;">
+                ${file.name}
+            </p>
+            <p style="color: var(--grey); font-size: 0.85rem; margin-top: 0.5rem;">
+                ${(file.size / 1024).toFixed(2)} Ko
+            </p>
+        `;
+    }
+</script>
+
+<style>
+    button[type="submit"]:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(26, 109, 85, 0.2);
+    }
+    
+    button[type="submit"]:active {
+        transform: translateY(0);
+    }
+</style>
+{% endblock %}

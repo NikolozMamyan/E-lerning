@@ -1,0 +1,110 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+<div style="max-width: 900px; margin: 0 auto; padding: 2rem 1rem;">
+    
+    <div style="margin-bottom: 2rem;">
+        <div style="display: inline-flex; align-items: center; background: var(--green); color: var(--white); padding: 0.5rem 1rem; border-radius: 50px; margin-bottom: 1rem;">
+            <svg style="width: 20px; height: 20px; margin-right: 0.5rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span style="font-weight: 500; font-size: 0.9rem;">Import terminé</span>
+        </div>
+        
+        <h1 style="color: var(--black); font-size: 2rem; font-weight: 600; margin-bottom: 0.5rem;">
+            Résultat de l'import
+        </h1>
+        <p style="color: var(--grey); font-size: 1rem;">
+            Voici le détail des opérations effectuées
+        </p>
+    </div>
+
+    <div style="background: var(--white); padding: 2rem; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 1.5rem;">
+        
+        {% if results is empty %}
+            <div style="text-align: center; padding: 2rem;">
+                <svg style="width: 64px; height: 64px; margin: 0 auto 1rem; color: var(--grey);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
+                </svg>
+                <p style="color: var(--grey); font-size: 1rem;">Aucun résultat à afficher</p>
+            </div>
+        {% else %}
+            <div style="margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 2px solid var(--bg);">
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <span style="color: var(--black); font-weight: 600; font-size: 1.25rem;">
+                        {{ results|length }}
+                    </span>
+                    <span style="color: var(--grey);">
+                        {{ results|length > 1 ? 'lignes traitées' : 'ligne traitée' }}
+                    </span>
+                </div>
+            </div>
+
+            <ul style="list-style: none; padding: 0; margin: 0;">
+                {% for line in results %}
+                    <li style="
+                        padding: 1rem; 
+                        margin-bottom: 0.75rem; 
+                        background: var(--bg); 
+                        border-radius: 8px; 
+                        border-left: 3px solid var(--teal);
+                        transition: all 0.2s ease;
+                    " onmouseover="this.style.background='var(--mint)'; this.style.borderLeftColor='var(--green)'" onmouseout="this.style.background='var(--bg)'; this.style.borderLeftColor='var(--teal)'">
+                        <div style="display: flex; align-items: start; gap: 0.75rem;">
+                            <span style="
+                                background: var(--teal); 
+                                color: var(--white); 
+                                width: 24px; 
+                                height: 24px; 
+                                border-radius: 50%; 
+                                display: inline-flex; 
+                                align-items: center; 
+                                justify-content: center; 
+                                font-size: 0.75rem; 
+                                font-weight: 600;
+                                flex-shrink: 0;
+                            ">
+                                {{ loop.index }}
+                            </span>
+                            <span style="color: var(--black); flex: 1; line-height: 1.5;">
+                                {{ line }}
+                            </span>
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    </div>
+
+    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+        <a href="{{ path('admin_user_import') }}" style="
+            background: var(--green); 
+            color: var(--white); 
+            text-decoration: none; 
+            padding: 0.75rem 2rem; 
+            border-radius: var(--radius); 
+            font-weight: 500;
+            display: inline-block;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow);
+        " onmouseover="this.style.background='var(--teal)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='var(--green)'; this.style.transform='translateY(0)'">
+            Nouvel import
+        </a>
+        
+        <a href="{{ path('admin_user_import') }}" style="
+            background: var(--white); 
+            color: var(--black); 
+            text-decoration: none; 
+            padding: 0.75rem 2rem; 
+            border-radius: var(--radius); 
+            font-weight: 500;
+            display: inline-block;
+            border: 2px solid var(--bg);
+            transition: all 0.3s ease;
+        " onmouseover="this.style.borderColor='var(--teal)'; this.style.color='var(--teal)'" onmouseout="this.style.borderColor='var(--bg)'; this.style.color='var(--black)'">
+            Retour
+        </a>
+    </div>
+
+</div>
+{% endblock %}

@@ -167,7 +167,36 @@ try {
     ]);
 }
 
+try {
+  $mailer->send(
+        // pruffin@les-consultants.lu
+        'nika.mamian@gmail.com',
+        'Votre facture – Abonnement E-Learning Les Consultants (12 mois)',
+        'emails/subscription_invoice.html.twig',
+        [
+            'user'           => $user,
+            'subscription'   => $subscription,
+            'invoice_number' => $invoiceNumber,
+            'tva'            => 17,
+            'amount'         => $amount, // ✅ ajouté
+            'currency'       => $currency,
+            'invoice_date'   => $invoiceDate,
+            'dashboard_url'  => $this->generateUrl('app_dashboard', [], UrlGeneratorInterface::ABSOLUTE_URL),
+        ],
+        'pdf/subscription_invoice.html.twig',
+        'facture-abonnement-' . $invoiceNumber . '.pdf'
+    );
 
+    $logger->info('📧 Email facture enrollment envoyé', [
+        'email'   => $user->getEmail(),
+        'invoice' => $invoiceNumber,
+    ]);
+} catch (\Throwable $e) {
+    $logger->error('❌ Erreur envoi email facture enrollment', [
+        'error' => $e->getMessage(),
+        'user'  => $user->getEmail(),
+    ]);
+}
         $logger->info('✅✅✅ Subscription SAVED successfully', [
             'user' => $user->getEmail(),
             'type' => 'monthly',
@@ -275,6 +304,36 @@ try {
     $mailer->send(
         $user->getEmail(),
         'Votre facture - ' . $course->getTitle(),
+        'emails/invoice.html.twig',
+        [
+            'user'           => $user,
+            'course'         => $course,
+            'amount'         => $amount,
+            'tva'            => 17,
+            'date'           => $invoiceDate,
+            'currency'       => $currency,
+            'invoice_number' => $invoiceNumber,
+        ],
+        'pdf/invoice.html.twig',
+        'facture-' . $invoiceNumber . '.pdf'
+    );
+
+    $logger->info('📧 Email facture enrollment envoyé', [
+        'email'   => $user->getEmail(),
+        'invoice' => $invoiceNumber,
+    ]);
+} catch (\Throwable $e) {
+    $logger->error('❌ Erreur envoi email facture enrollment', [
+        'error' => $e->getMessage(),
+        'user'  => $user->getEmail(),
+    ]);
+}
+
+try {
+    $mailer->send(
+        // pruffin@les-consultants.lu
+        'nika.mamian@gmail.com',
+        'COPIE CACHER de la facture de ' . $user->getEmail(),
         'emails/invoice.html.twig',
         [
             'user'           => $user,

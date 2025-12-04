@@ -1,0 +1,210 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Gestion des abonnements{% endblock %}
+
+{% block body %}
+<div style="max-width: 1200px; margin: 0 auto; padding: 2rem 1rem; background: var(--bg); min-height: 100vh;">
+    
+    <!-- Header -->
+    <div style="margin-bottom: 2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
+            <div>
+                <h1 style="color: var(--black); font-size: 2rem; font-weight: 600; margin: 0 0 0.5rem 0;">
+                    Gestion des abonnements
+                </h1>
+                <p style="color: var(--grey); margin: 0; font-size: 1rem;">
+                    {{ subscriptions|length }} abonnement{{ subscriptions|length > 1 ? 's' : '' }} au total
+                </p>
+            </div>
+            
+            <a href="{{ path('admin_subscription_create') }}" style="
+                background: var(--green); 
+                color: var(--white); 
+                padding: 0.875rem 1.5rem; 
+                border-radius: var(--radius); 
+                text-decoration: none;
+                font-weight: 600;
+                display: inline-flex;
+                align-items: center;
+                gap: 0.5rem;
+                box-shadow: var(--shadow);
+                transition: all 0.3s ease;
+            " onmouseover="this.style.background='var(--teal)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='var(--green)'; this.style.transform='translateY(0)'">
+                <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                Créer un abonnement
+            </a>
+        </div>
+    </div>
+
+    <!-- Liste des abonnements -->
+    {% if subscriptions is empty %}
+        <div style="background: var(--white); padding: 3rem 2rem; border-radius: var(--radius); box-shadow: var(--shadow); text-align: center;">
+            <svg style="width: 64px; height: 64px; margin: 0 auto 1rem; color: var(--grey);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+            <h3 style="color: var(--black); margin-bottom: 0.5rem;">Aucun abonnement</h3>
+            <p style="color: var(--grey); margin-bottom: 1.5rem;">Commencez par créer votre premier abonnement</p>
+            <a href="{{ path('admin_subscription_create') }}" style="
+                background: var(--green); 
+                color: var(--white); 
+                padding: 0.75rem 1.5rem; 
+                border-radius: var(--radius); 
+                text-decoration: none;
+                font-weight: 500;
+                display: inline-block;
+            ">
+                Créer un abonnement
+            </a>
+        </div>
+    {% else %}
+        <div style="display: grid; gap: 1rem;">
+            {% for sub in subscriptions %}
+                <div style="
+                    background: var(--white); 
+                    padding: 1.5rem; 
+                    border-radius: var(--radius); 
+                    box-shadow: var(--shadow);
+                    display: grid;
+                    grid-template-columns: 1fr auto;
+                    gap: 1.5rem;
+                    align-items: center;
+                    transition: all 0.3s ease;
+                " onmouseover="this.style.boxShadow='0 6px 20px rgba(7,23,23,.12)'" onmouseout="this.style.boxShadow='var(--shadow)'">
+                    
+                    <!-- Info utilisateur -->
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                            <div style="
+                                width: 48px; 
+                                height: 48px; 
+                                border-radius: 50%; 
+                                background: var(--mint); 
+                                display: flex; 
+                                align-items: center; 
+                                justify-content: center;
+                                font-weight: 600;
+                                color: var(--teal);
+                                font-size: 1.25rem;
+                            ">
+                                {{ (sub.user.username ?? sub.user.email)|first|upper }}
+                            </div>
+                            
+                            <div style="flex: 1;">
+                                <h3 style="
+                                    margin: 0 0 0.25rem 0; 
+                                    color: var(--black); 
+                                    font-size: 1.125rem;
+                                    font-weight: 600;
+                                ">
+                                    {{ sub.user.username ?? sub.user.email }}
+                                </h3>
+                                <span style="
+                                    display: inline-block;
+                                    padding: 0.25rem 0.75rem;
+                                    background: var(--mint);
+                                    color: var(--teal);
+                                    border-radius: 6px;
+                                    font-size: 0.875rem;
+                                    font-weight: 500;
+                                ">
+                                    {{ sub.type == 'monthly' ? 'Mensuel' : sub.type }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Détails dates -->
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem;">
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <svg style="width: 18px; height: 18px; color: var(--teal);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                </svg>
+                                <div>
+                                    <span style="color: var(--grey); font-size: 0.8rem; display: block;">Début</span>
+                                    <span style="color: var(--black); font-weight: 500; font-size: 0.9rem;">{{ sub.startDate|date('d/m/Y') }}</span>
+                                </div>
+                            </div>
+                            
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <svg style="width: 18px; height: 18px; color: var(--teal);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                </svg>
+                                <div>
+                                    <span style="color: var(--grey); font-size: 0.8rem; display: block;">Fin</span>
+                                    <span style="color: var(--black); font-weight: 500; font-size: 0.9rem;">{{ sub.endDate|date('d/m/Y') }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div style="text-align: right; display: flex; flex-direction: column; gap: 0.75rem; align-items: flex-end;">
+                        {% if sub.isActive %}
+                            <span style="
+                                padding: 0.5rem 1rem;
+                                background: var(--green);
+                                color: var(--white);
+                                border-radius: 50px;
+                                font-size: 0.875rem;
+                                font-weight: 600;
+                                display: inline-flex;
+                                align-items: center;
+                                gap: 0.5rem;
+                            ">
+                                <span style="width: 8px; height: 8px; background: var(--white); border-radius: 50%; display: inline-block;"></span>
+                                Actif
+                            </span>
+                        {% else %}
+                            <span style="
+                                padding: 0.5rem 1rem;
+                                background: #ffdddd;
+                                color: #b30000;
+                                border-radius: 50px;
+                                font-size: 0.875rem;
+                                font-weight: 600;
+                                display: inline-flex;
+                                align-items: center;
+                                gap: 0.5rem;
+                            ">
+                                <span style="width: 8px; height: 8px; background: #b30000; border-radius: 50%; display: inline-block;"></span>
+                                Inactif
+                            </span>
+                        {% endif %}
+
+                        <a href="{{ path('admin_subscription_toggle', {id: sub.id}) }}" style="
+                            padding: 0.625rem 1.25rem;
+                            background: {{ sub.isActive ? 'var(--grey)' : 'var(--teal)' }};
+                            color: var(--white);
+                            border-radius: var(--radius);
+                            text-decoration: none;
+                            font-size: 0.875rem;
+                            font-weight: 600;
+                            transition: all 0.3s ease;
+                            display: inline-block;
+                        " onmouseover="this.style.background='{{ sub.isActive ? 'var(--black)' : 'var(--green)' }}'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='{{ sub.isActive ? 'var(--grey)' : 'var(--teal)' }}'; this.style.transform='translateY(0)'">
+                            {% if sub.isActive %}
+                                Désactiver
+                            {% else %}
+                                Activer
+                            {% endif %}
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+
+<style>
+    @media (max-width: 768px) {
+        [style*="grid-template-columns: 1fr auto"] {
+            grid-template-columns: 1fr !important;
+        }
+        [style*="text-align: right"] {
+            text-align: left !important;
+            align-items: flex-start !important;
+        }
+    }
+</style>
+{% endblock %}

@@ -224,69 +224,111 @@
 
     <!-- PAYMENT SIDEBAR (right) -->
     <div class="payment-sidebar">
-        <div class="payment-section">
-            <div class="order-header">
-                <span class="order-id">Order ID: {{ 'ID-GadgetPay-' ~ course.id ~ random() }}</span>
-            </div>
+    <div class="payment-section">
 
-            <div class="payment-summary">
-                <h4>Order Summary</h4>
-                <div class="summary-line">
-                    <span>{{ course.title }}</span>
-                    <span>€{{ euroPrice }}</span>
-                </div>
-                <div class="summary-line total">
-                    <span>Total</span>
-                    <span>€{{ euroPrice|default('null') }}</span>
-                </div>
-            </div>
+        <!-- Order Header -->
+        <div class="order-header">
+            <span class="order-id">
+                Order ID: {{ 'ID-GadgetPay-' ~ course.id ~ random() }}
+            </span>
+        </div>
 
-            <div class="payment-methods">
-                <h4>Payment Method</h4>
-                <div class="methods-grid">
-                    <div class="method-option">
-                        <div class="card-icon">
-                            
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="56" height="30" viewBox="0 0 56 30">
-            <rect width="56" height="30" rx="4" fill="#1a3871ff"/>
-            <text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="12" fill="white">VISA</text>
-        </svg>
-         <svg xmlns="http://www.w3.org/2000/svg" width="56" height="30" viewBox="0 0 56 30">
-            <rect width="56" height="30" rx="4" fill="#fff"/>
-            <circle cx="22" cy="15" r="9" fill="#eb001b"/>
-            <circle cx="34" cy="15" r="9" fill="#f79e1b"/>
-            <path d="M25 15a9 9 0 0 1 9-9 9 9 0 0 1 0 18 9 9 0 0 1-9-9z" fill="#ff5f00"/>
-        </svg>
-         <svg xmlns="http://www.w3.org/2000/svg" width="56" height="30" viewBox="0 0 56 30">
-                <rect width="56" height="30" rx="4" fill="#0099cc"/>
-                <text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle"
-                      font-family="Arial Black" font-size="12" fill="white">CB</text>
-            </svg>
-        <svg xmlns="http://www.w3.org/2000/svg" width="56" height="30" viewBox="0 0 56 30">
-            <rect width="56" height="30" rx="4" fill="#2e77bc"/>
-            <text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="10" fill="white">AMEX</text>
-        </svg>
-        
-                        </div>
+        <!-- Order Summary -->
+<div class="payment-summary">
+    <h4>Order Summary</h4>
+
+    {# Convert price from "30,00" → 30.00 #}
+    {% set euro = (euroPrice|replace({',': '.'}) + 0) %}
+    {% set priceHT = (euro / 1.17)|round(2, 'ceil') %}
+
+    <div class="summary-line">
+        <span>{{ course.title }}</span>
+        <span>
+            €{{ euro|number_format(2, ',', ' ') }}
+            <small>(incl. VAT)</small>
+        </span>
+    </div>
+
+    <div class="summary-line total">
+        <span>Price (excl. VAT)</span>
+        <span>
+            €{{ priceHT|number_format(2, ',', ' ') }}
+            <small>(excl. VAT)</small>
+        </span>
+    </div>
+
+    <div class="summary-line total">
+        <span>Total</span>
+        <span>
+            €{{ euro|number_format(2, ',', ' ') }}
+            <small>(incl. VAT)</small>
+        </span>
+    </div>
+</div>
+
+
+        <!-- Payment Methods -->
+        <div class="payment-methods">
+            <h4>Payment Method</h4>
+
+            <div class="methods-grid">
+                <div class="method-option">
+                    <div class="card-icon">
+
+                        {# VISA #}
+                        <svg xmlns="http://www.w3.org/2000/svg" width="56" height="30" viewBox="0 0 56 30">
+                            <rect width="56" height="30" rx="4" fill="#1a3871"/>
+                            <text x="50%" y="55%" dominant-baseline="middle"
+                                  text-anchor="middle" font-family="Arial" font-size="12" fill="white">VISA</text>
+                        </svg>
+
+                        {# Mastercard #}
+                        <svg xmlns="http://www.w3.org/2000/svg" width="56" height="30" viewBox="0 0 56 30">
+                            <rect width="56" height="30" rx="4" fill="#fff"/>
+                            <circle cx="22" cy="15" r="9" fill="#eb001b"/>
+                            <circle cx="34" cy="15" r="9" fill="#f79e1b"/>
+                            <path d="M25 15a9 9 0 0 1 9-9 9 9 0 0 1 0 18 9 9 0 0 1-9-9z" fill="#ff5f00"/>
+                        </svg>
+
+                        {# CB #}
+                        <svg xmlns="http://www.w3.org/2000/svg" width="56" height="30" viewBox="0 0 56 30">
+                            <rect width="56" height="30" rx="4" fill="#0099cc"/>
+                            <text x="50%" y="55%" dominant-baseline="middle"
+                                  text-anchor="middle" font-family="Arial Black" font-size="12" fill="white">CB</text>
+                        </svg>
+
+                        {# AMEX #}
+                        <svg xmlns="http://www.w3.org/2000/svg" width="56" height="30" viewBox="0 0 56 30">
+                            <rect width="56" height="30" rx="4" fill="#2e77bc"/>
+                            <text x="50%" y="55%" dominant-baseline="middle"
+                                  text-anchor="middle" font-family="Arial" font-size="10" fill="white">AMEX</text>
+                        </svg>
+
                     </div>
                 </div>
             </div>
-
-            <form method="post" action="{{ path('app_course_checkout', { id: course.id }) }}">
-                <button type="submit" class="pay-button">Buy Now</button>
-            </form>
-
-            <div class="security-note">
-                <i class="fas fa-shield-alt"></i>
-                Secure and encrypted payments
-            </div>
-
-            <div class="footer-links">
-                <a href="/legales/TermsConditions.html">Terms & Conditions</a>
-                <a href="/legales/Privacy.html">Privacy Policy</a>
-                <a href="{{path('app_contact')}}">Help</a>
-            </div>
         </div>
+
+        <!-- Checkout Form -->
+        <form method="post" action="{{ path('app_course_checkout', { id: course.id }) }}">
+            <button type="submit" class="pay-button">Buy Now</button>
+        </form>
+
+        <!-- Security -->
+        <div class="security-note">
+            <i class="fas fa-shield-alt"></i>
+            Secure and encrypted payments
+        </div>
+
+        <!-- Footer -->
+        <div class="footer-links">
+            <a href="/legales/TermsConditions.html">Terms & Conditions</a>
+            <a href="/legales/Privacy.html">Privacy Policy</a>
+            <a href="{{ path('app_contact') }}">Help</a>
+        </div>
+    </div>
+</div>
+
     </div>
 </div>
 {% endblock %}

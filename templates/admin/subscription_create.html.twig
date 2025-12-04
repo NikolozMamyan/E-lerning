@@ -1,0 +1,235 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Créer un abonnement{% endblock %}
+
+{% block body %}
+<div style="background: var(--bg); min-height: 100vh; padding: 2rem 1rem;">
+    <div style="max-width: 600px; margin: 0 auto;">
+        
+        <!-- Breadcrumb -->
+        <div style="margin-bottom: 1.5rem;">
+            <a href="{{ path('admin_subscription_add') }}" style="
+                color: var(--grey); 
+                text-decoration: none; 
+                display: inline-flex; 
+                align-items: center; 
+                gap: 0.5rem;
+                font-size: 0.9rem;
+                transition: color 0.3s ease;
+            " onmouseover="this.style.color='var(--teal)'" onmouseout="this.style.color='var(--grey)'">
+                <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+                Retour aux abonnements
+            </a>
+        </div>
+
+        <!-- Card principale -->
+        <div style="background: var(--white); padding: 2.5rem; border-radius: var(--radius); box-shadow: var(--shadow);">
+            
+            <!-- Header -->
+            <div style="text-align: center; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 2px solid var(--bg);">
+                <div style="
+                    width: 64px; 
+                    height: 64px; 
+                    background: var(--mint); 
+                    border-radius: 50%; 
+                    display: flex; 
+                    align-items: center; 
+                    justify-content: center;
+                    margin: 0 auto 1rem;
+                ">
+                    <svg style="width: 32px; height: 32px; color: var(--teal);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                </div>
+                <h2 style="color: var(--black); font-size: 1.75rem; font-weight: 600; margin: 0 0 0.5rem 0;">
+                    Créer un abonnement
+                </h2>
+                <p style="color: var(--grey); margin: 0; font-size: 0.95rem;">
+                    Remplissez les informations ci-dessous
+                </p>
+            </div>
+
+            <!-- Formulaire -->
+            <form method="POST">
+                
+                <!-- Utilisateur -->
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="
+                        display: block; 
+                        font-weight: 600; 
+                        margin-bottom: 0.5rem; 
+                        color: var(--black);
+                        font-size: 0.95rem;
+                    ">
+                        <svg style="width: 16px; height: 16px; display: inline-block; vertical-align: middle; margin-right: 0.25rem; color: var(--teal);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                        </svg>
+                        Utilisateur
+                    </label>
+                    <select name="user_id" required style="
+                        width: 100%; 
+                        padding: 0.875rem; 
+                        border: 2px solid var(--bg); 
+                        border-radius: var(--radius);
+                        font-size: 1rem;
+                        color: var(--black);
+                        background: var(--white);
+                        transition: all 0.3s ease;
+                        cursor: pointer;
+                    " onfocus="this.style.borderColor='var(--teal)'; this.style.background='var(--mint)'" onblur="this.style.borderColor='var(--bg)'; this.style.background='var(--white)'">
+                        <option value="">Sélectionnez un utilisateur</option>
+                        {% for user in users %}
+                            <option value="{{ user.id }}">
+                                {{ user.username ?? user.email }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Type d'abonnement -->
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="
+                        display: block; 
+                        font-weight: 600; 
+                        margin-bottom: 0.5rem; 
+                        color: var(--black);
+                        font-size: 0.95rem;
+                    ">
+                        <svg style="width: 16px; height: 16px; display: inline-block; vertical-align: middle; margin-right: 0.25rem; color: var(--teal);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                        </svg>
+                        Type d'abonnement
+                    </label>
+                    <select name="type" required style="
+                        width: 100%; 
+                        padding: 0.875rem; 
+                        border: 2px solid var(--bg); 
+                        border-radius: var(--radius);
+                        font-size: 1rem;
+                        color: var(--black);
+                        background: var(--white);
+                        transition: all 0.3s ease;
+                        cursor: pointer;
+                    " onfocus="this.style.borderColor='var(--teal)'; this.style.background='var(--mint)'" onblur="this.style.borderColor='var(--bg)'; this.style.background='var(--white)'">
+                        <option value="monthly">Mensuel</option>
+                        {# <option value="yearly">Annuel</option> #}
+                    </select>
+                </div>
+
+                <!-- Dates -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem;">
+                    
+                    <!-- Date de début -->
+                    <div>
+                        <label style="
+                            display: block; 
+                            font-weight: 600; 
+                            margin-bottom: 0.5rem; 
+                            color: var(--black);
+                            font-size: 0.95rem;
+                        ">
+                            <svg style="width: 16px; height: 16px; display: inline-block; vertical-align: middle; margin-right: 0.25rem; color: var(--teal);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                            Date de début
+                        </label>
+                        <input type="date" name="startDate" required style="
+                            width: 100%; 
+                            padding: 0.875rem; 
+                            border: 2px solid var(--bg); 
+                            border-radius: var(--radius);
+                            font-size: 1rem;
+                            color: var(--black);
+                            background: var(--white);
+                            transition: all 0.3s ease;
+                        " onfocus="this.style.borderColor='var(--teal)'; this.style.background='var(--mint)'" onblur="this.style.borderColor='var(--bg)'; this.style.background='var(--white)'">
+                    </div>
+
+                    <!-- Date de fin -->
+                    <div>
+                        <label style="
+                            display: block; 
+                            font-weight: 600; 
+                            margin-bottom: 0.5rem; 
+                            color: var(--black);
+                            font-size: 0.95rem;
+                        ">
+                            <svg style="width: 16px; height: 16px; display: inline-block; vertical-align: middle; margin-right: 0.25rem; color: var(--teal);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                            Date de fin
+                        </label>
+                        <input type="date" name="endDate" required style="
+                            width: 100%; 
+                            padding: 0.875rem; 
+                            border: 2px solid var(--bg); 
+                            border-radius: var(--radius);
+                            font-size: 1rem;
+                            color: var(--black);
+                            background: var(--white);
+                            transition: all 0.3s ease;
+                        " onfocus="this.style.borderColor='var(--teal)'; this.style.background='var(--mint)'" onblur="this.style.borderColor='var(--bg)'; this.style.background='var(--white)'">
+                    </div>
+                </div>
+
+                <!-- Info box -->
+                <div style="
+                    background: var(--mint); 
+                    padding: 1rem; 
+                    border-radius: var(--radius); 
+                    border-left: 3px solid var(--teal);
+                    margin-bottom: 1.5rem;
+                ">
+                    <p style="color: var(--black); margin: 0; font-size: 0.9rem; line-height: 1.5;">
+                        <strong style="color: var(--teal);">💡 Astuce :</strong> L’abonnement sera automatiquement activé lors de sa création. Vous pourrez le désactiver depuis la liste des abonnements, ou il sera automatiquement désactivé à sa date d’échéance.
+                    </p>
+                </div>
+
+                <!-- Boutons -->
+                <div style="display: flex; gap: 1rem; flex-direction: column;">
+                    <button type="submit" style="
+                        width: 100%; 
+                        padding: 1rem; 
+                        background: var(--green); 
+                        color: var(--white); 
+                        border: none; 
+                        border-radius: var(--radius);
+                        font-size: 1rem;
+                        font-weight: 600;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                        box-shadow: var(--shadow);
+                    " onmouseover="this.style.background='var(--teal)'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(26, 109, 85, 0.2)'" onmouseout="this.style.background='var(--green)'; this.style.transform='translateY(0)'; this.style.boxShadow='var(--shadow)'">
+                        Créer l'abonnement
+                    </button>
+                    
+                    <a href="{{ path('admin_subscription_add') }}" style="
+                        display: block;
+                        text-align: center;
+                        padding: 0.875rem; 
+                        background: var(--white); 
+                        color: var(--grey); 
+                        border: 2px solid var(--bg); 
+                        border-radius: var(--radius);
+                        text-decoration: none;
+                        font-weight: 600;
+                        transition: all 0.3s ease;
+                    " onmouseover="this.style.borderColor='var(--teal)'; this.style.color='var(--teal)'" onmouseout="this.style.borderColor='var(--bg)'; this.style.color='var(--grey)'">
+                        Annuler
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    @media (max-width: 640px) {
+        [style*="grid-template-columns: 1fr 1fr"] {
+            grid-template-columns: 1fr !important;
+        }
+    }
+</style>
+{% endblock %}
