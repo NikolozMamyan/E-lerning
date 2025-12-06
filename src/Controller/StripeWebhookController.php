@@ -169,9 +169,8 @@ try {
 
 try {
   $mailer->send(
-        // pruffin@les-consultants.lu
-        'nika.mamian@gmail.com',
-        'Votre facture – Abonnement E-Learning Les Consultants (12 mois)',
+        'pruffin@les-consultants.lu',
+        'COPIE CACHER dabonnement E-Learning Les Consultants (12 mois)',
         'emails/subscription_invoice.html.twig',
         [
             'user'           => $user,
@@ -331,8 +330,7 @@ try {
 
 try {
     $mailer->send(
-        // pruffin@les-consultants.lu
-        'nika.mamian@gmail.com',
+        'pruffin@les-consultants.lu',
         'COPIE CACHER de la facture de ' . $user->getEmail(),
         'emails/invoice.html.twig',
         [

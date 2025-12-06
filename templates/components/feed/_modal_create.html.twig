@@ -1,0 +1,67 @@
+{# templates/feed/_modal_create.html.twig #}
+<div class="modal" id="create-modal" aria-hidden="true">
+    <div class="modal-content linkedin-modal">
+        <div class="modal-header">
+            <div class="user-line">
+  <img class="user-avatar" src="{{ asset(app.user.avatar ? 'uploads/avatars/' ~ app.user.avatar : 'images/User.svg') }}"
+             class="composer-avatar"
+             alt="Avatar"/>
+                <div class="user-info">
+                    <strong>{{ app.user.username }}</strong>
+                    <span class="visibility">
+                        <i class="fa-solid fa-globe"></i> Visibility: anonymous
+                    </span>
+                </div>
+            </div>
+            <button class="btn-close js-close-modal"
+                    type="button"
+                    aria-label="Close">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <form action="{{ path('article_create') }}"
+              method="POST"
+              enctype="multipart/form-data"
+              id="article-create-form">
+            <div class="modal-body">
+                <input type="text"
+                       name="title"
+                       id="article-title"
+                       placeholder="Article title"
+                       class="input-field"
+                       required>
+
+                <div id="editor"></div>
+                <textarea name="description"
+                          id="editor-output"
+                          hidden></textarea>
+
+                <input type="file"
+                       name="image"
+                       id="modal-image-input"
+                       accept="image/*"
+                       hidden>
+
+                <div id="image-preview-container"></div>
+            </div>
+
+            <div class="linkedin-footer">
+                <div class="left-icons">
+                    <button type="button"
+                            class="icon-btn"
+                            id="image-btn"
+                            title="Add image">
+                        <i class="fa-regular fa-image"></i>
+                    </button>
+                </div>
+                <button type="submit"
+                        id="publish-btn"
+                        class="publish-btn"
+                        disabled>
+                    Publish
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

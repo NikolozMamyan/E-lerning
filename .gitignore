@@ -33,4 +33,5 @@ yarn-error.log
 
 # Uploaded files (avatars, etc.)
 /public/uploads/avatars/
+/public/uploads/articles/
 /public/uploads/courses/

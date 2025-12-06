@@ -1,0 +1,196 @@
+{% extends 'base.html.twig' %}
+
+{% block head %}
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Quill Editor -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+{% endblock %}
+
+
+{% block body %}
+
+<style>
+/* --- Même STYLE que ton feed --- */
+:root {
+    --green: #1A6D55;
+    --teal: #0D8383;
+    --black: #071717;
+    --mint: #E7F3F3;
+    --grey: #606060;
+    --light-grey: #8b9499;
+    --white: #FFFFFF;
+    --bg: #f4f9f8;
+    --radius: 16px;
+    --radius-sm: 8px;
+    --shadow: 0 2px 8px rgba(7, 23, 23, .06);
+    --transition: .25s ease;
+}
+
+body {
+    background: var(--bg);
+    font-family: system-ui, sans-serif;
+}
+
+.edit-container {
+    max-width: 850px;
+    margin: 30px auto;
+    background: var(--white);
+    padding: 20px 24px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+}
+
+h2 {
+    margin-bottom: 20px;
+    color: var(--black);
+    font-weight: 700;
+}
+
+/* INPUT fields */
+.input-field {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid #e0e0e0;
+    border-radius: var(--radius-sm);
+    margin-bottom: 18px;
+    font-size: 15px;
+    transition: var(--transition);
+}
+
+.input-field:focus {
+    border-color: var(--teal);
+    box-shadow: 0 0 0 3px rgba(13,131,131,0.1);
+    outline: none;
+}
+
+/* QUILL */
+#editor {
+    background: white;
+    min-height: 200px;
+    border-radius: var(--radius-sm);
+    margin-bottom: 20px;
+}
+
+.ql-toolbar {
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+}
+
+.ql-container {
+    border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+}
+
+/* Image preview */
+#image-preview {
+    max-width: 100%;
+    border-radius: var(--radius-sm);
+    margin-top: 10px;
+    display: block;
+}
+
+/* Submit button */
+.btn-submit {
+    background: var(--green);
+    border: none;
+    padding: 12px 24px;
+    color: white;
+    font-weight: 600;
+    border-radius: 24px;
+    cursor: pointer;
+    margin-top:20px;
+    font-size: 15px;
+    transition: var(--transition);
+}
+
+.btn-submit:hover {
+    background: var(--teal);
+    transform: scale(1.02);
+}
+</style>
+
+
+<div class="edit-container">
+
+    <h2><i class="fa-solid fa-pen"></i> Modifier l'article</h2>
+
+    <form action="{{ path('article_edit', {id: article.id}) }}" method="POST" enctype="multipart/form-data">
+
+        <!-- TITRE -->
+        <input type="text"
+               name="title"
+               value="{{ article.titre }}"
+               class="input-field"
+               placeholder="Titre de l’article"
+               required>
+
+
+        <!-- DESCRIPTION / QUILL -->
+        <div id="editor"></div>
+        <textarea id="editor-output" name="description" hidden>{{ article.description|raw }}</textarea>
+
+
+        <!-- CONTENT (si tu veux un content séparé de description) -->
+
+
+
+        <!-- IMAGE -->
+        <label style="font-weight:600; color:var(--grey);">Image</label>
+        <input type="file" name="image" accept="image/*" id="img-input" class="input-field">
+
+        {% if article.image %}
+            <img id="image-preview" src="/uploads/articles/{{ article.image }}" alt="">
+        {% else %}
+            <img id="image-preview" style="display:none;">
+        {% endif %}
+
+
+        <!-- SUBMIT -->
+        <button type="submit" class="btn-submit">
+            Enregistrer les modifications
+        </button>
+
+    </form>
+
+</div>
+
+
+
+
+<script>
+/* ========== QUILL INIT ========== */
+const quill = new Quill('#editor', {
+    theme: 'snow',
+    placeholder: 'Modifier la description...',
+    modules: {
+        toolbar: [
+            ['bold', 'italic', 'underline'],
+            [{ 'header': [2, 3, false] }],
+            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+            ['link']
+        ]
+    }
+});
+
+// Insère la description existante dans Quill
+quill.root.innerHTML = document.getElementById("editor-output").value;
+
+// Synchronise Quill vers textarea
+quill.on('text-change', function() {
+    document.getElementById("editor-output").value = quill.root.innerHTML;
+});
+
+
+/* ========== IMAGE PREVIEW ========== */
+document.getElementById("img-input").addEventListener("change", function(e) {
+    const file = e.target.files[0];
+    const preview = document.getElementById("image-preview");
+
+    if (file) {
+        preview.src = URL.createObjectURL(file);
+        preview.style.display = "block";
+    }
+});
+</script>
+
+{% endblock %}

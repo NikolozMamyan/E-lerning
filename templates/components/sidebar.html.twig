@@ -59,6 +59,7 @@
           Dashboard
         </a>
       </li>
+
       <li class="nav-item">
         <a href="{{ path('app_courses') }}"
            class="nav-link {{ app.request.attributes.get('_route') == 'app_courses' ? 'active' : '' }}">
@@ -107,6 +108,15 @@
             <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
           </svg>
           Progress Tracking
+        </a>
+      </li>
+                  <li class="nav-item">
+        <a href="{{ path('article_feed') }}"
+           class="nav-link {{ app.request.attributes.get('_route') == 'article_feed' ? 'active' : '' }}">
+    <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M4 6h16v2H4V6zm0 5h16v2H4v-2zm0 5h10v2H4v-2z"/>
+    </svg>
+          Posts
         </a>
       </li>
 <li class="nav-item">

@@ -1,0 +1,24 @@
+{# templates/feed/_composer.html.twig #}
+<div class="composer-card">
+    <div class="composer-top">
+        <img class="user-avatar" src="{{ asset(app.user.avatar ? 'uploads/avatars/' ~ app.user.avatar : 'images/User.svg') }}"
+             class="composer-avatar"
+             alt="Avatar"/>
+        <div class="composer-input js-open-modal">
+            Start a post...
+        </div>
+    </div>
+
+    <div class="composer-actions">
+        <button type="button"
+                class="composer-action-btn js-open-modal-with-image">
+            <i class="fa-regular fa-image"></i>
+            <span>Photo</span>
+        </button>
+        <button type="button"
+                class="composer-action-btn js-open-modal">
+            <i class="fa-solid fa-pen-to-square"></i>
+            <span>Write article</span>
+        </button>
+    </div>
+</div>

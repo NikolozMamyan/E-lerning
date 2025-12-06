@@ -1,0 +1,1060 @@
+{# templates/feed/index.html.twig #}
+{% extends 'base.html.twig' %}
+
+{% block head %}
+    {{ parent() }}
+
+    {# Font Awesome #}
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+          integrity="sha512-pVIpG8GqTn+DOkP02IXj9O7M0vSuaM9CjNsxE6Q2IVaNQ8zjF7A9oXo2xjzU4XbB5nG9yZ5N9x0j9V3QYxY7Wg=="
+          crossorigin="anonymous"
+          referrerpolicy="no-referrer" />
+
+    {# Quill Editor #}
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+
+    {# Feed CSS #}
+    <link rel="stylesheet" href="{{ asset('assets/css/feed.css') }}">
+{% endblock %}
+
+{% block body %}
+<style>
+/* ========== VARIABLES ========== */
+:root {
+    --green: #1A6D55;
+    --teal: #0D8383;
+    --black: #071717;
+    --mint: #E7F3F3;
+    --grey: #606060;
+    --light-grey: #8b9499;
+    --white: #FFFFFF;
+    --bg: #f4f9f8;
+    --radius: 16px;
+    --radius-sm: 8px;
+    --shadow: 0 2px 8px rgba(7, 23, 23, .06);
+    --shadow-md: 0 4px 16px rgba(7, 23, 23, .08);
+    --shadow-lg: 0 8px 24px rgba(7, 23, 23, .12);
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body {
+    background: var(--bg);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+/* ========== LAYOUT ========== */
+
+.article-root {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* ========== COMPOSER CARD ========== */
+
+.composer-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 16px;
+    box-shadow: var(--shadow);
+    margin-bottom: 16px;
+    transition: var(--transition);
+}
+
+.composer-card:hover {
+    box-shadow: var(--shadow-md);
+}
+
+.composer-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.composer-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--mint);
+}
+
+.composer-input {
+    flex: 1;
+    background: transparent;
+    border: 1px solid #e0e0e0;
+    padding: 12px 16px;
+    border-radius: 24px;
+    cursor: pointer;
+    color: var(--light-grey);
+    transition: var(--transition);
+    font-weight: 500;
+}
+
+.composer-input:hover {
+    background: var(--bg);
+    border-color: var(--teal);
+}
+
+.composer-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 12px;
+    margin-top: 12px;
+    border-top: 1px solid #e0e0e0;
+}
+
+.composer-action-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--light-grey);
+    font-size: 14px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    transition: var(--transition);
+}
+
+.composer-action-btn:hover {
+    background: var(--bg);
+    color: var(--teal);
+}
+
+.composer-action-btn i {
+    font-size: 20px;
+}
+
+/* ========== ARTICLE CARD ========== */
+
+.articles-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.article-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    transition: var(--transition);
+    overflow: hidden;
+}
+
+.article-card:hover {
+    box-shadow: var(--shadow-md);
+}
+
+/* Header */
+.article-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 16px 20px;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+
+
+.user-avatar--small {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+}
+
+.user-details {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.username {
+    font-weight: 600;
+    color: var(--black);
+    font-size: 15px;
+}
+
+.date {
+    font-size: 13px;
+    color: var(--light-grey);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.article-menu {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-icon {
+    background: transparent;
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--light-grey);
+    transition: var(--transition);
+    text-decoration: none;
+}
+
+.btn-icon:hover {
+    background: var(--bg);
+    color: var(--teal);
+}
+
+.btn-icon.danger:hover {
+    background: #fee;
+    color: #dc3545;
+}
+
+/* Content */
+.article-content {
+    padding: 0 20px 16px;
+}
+
+.article-content h3 {
+    color: var(--black);
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    line-height: 1.4;
+}
+
+.article-body {
+    color: var(--grey);
+    font-size: 15px;
+    line-height: 1.6;
+    margin-bottom: 12px;
+}
+
+.article-body p {
+    margin-bottom: 12px;
+    word-wrap: break-word;
+}
+
+.article-body strong {
+    font-weight: 600;
+    color: var(--black);
+}
+
+/* Styled links in article body */
+.article-body a {
+    color: var(--teal);
+    text-decoration: none;
+    font-weight: 500;
+    border-bottom: 1px solid transparent;
+    transition: var(--transition);
+}
+
+.article-body a:hover {
+    color: var(--green);
+    border-bottom-color: var(--green);
+}
+
+/* Lists & headings */
+.article-body ul,
+.article-body ol {
+    margin-left: 20px;
+    margin-bottom: 12px;
+}
+
+.article-body li {
+    margin-bottom: 6px;
+}
+
+.article-body h2 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--black);
+    margin-top: 16px;
+    margin-bottom: 8px;
+}
+
+.article-body h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--black);
+    margin-top: 12px;
+    margin-bottom: 6px;
+}
+
+.article-image {
+    width: 100%;
+    max-height: 400px;
+    object-fit: cover;
+    display: block;
+    margin: 16px 0 0;
+    cursor: pointer;
+}
+
+/* Actions */
+.article-actions {
+    display: flex;
+    gap: 4px;
+    padding: 8px 12px;
+    border-top: 1px solid #e0e0e0;
+}
+
+.btn-action {
+    background: transparent;
+    border: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    color: var(--light-grey);
+    font-size: 14px;
+    font-weight: 600;
+    transition: var(--transition);
+    padding: 8px 16px;
+    border-radius: var(--radius-sm);
+    flex: 1;
+    justify-content: center;
+}
+
+.btn-action:hover {
+    background: var(--bg);
+}
+
+.btn-action.like-btn:hover {
+    color: #e74c3c;
+}
+
+.btn-action.comment-btn:hover {
+    color: var(--teal);
+}
+
+.btn-action.active {
+    color: #e74c3c;
+}
+
+.btn-action i {
+    font-size: 18px;
+}
+
+.btn-action .count {
+    font-weight: 600;
+}
+
+/* ========== COMMENTS ========== */
+
+.comments-section {
+    background: var(--bg);
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), padding 0.4s;
+    padding: 0 20px;
+}
+
+.comments-section.expanded {
+    max-height: 2000px;
+    padding: 16px 20px 20px;
+}
+
+.comment {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 12px;
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.comment-content {
+    flex: 1;
+    background: var(--white);
+    padding: 12px;
+    border-radius: 12px;
+}
+
+.comment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.comment-header .username {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.comment-header .date {
+    font-size: 12px;
+}
+
+.comment-content p {
+    color: var(--black);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.comment-form {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-top: 12px;
+}
+
+.comment-form .input-field {
+    flex: 1;
+}
+
+/* Inputs */
+.input-field {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid #e0e0e0;
+    border-radius: var(--radius-sm);
+    font-size: 16px;
+    font-family: inherit;
+    transition: var(--transition);
+    margin-bottom:15px;
+}
+
+.input-field:focus {
+    outline: none;
+    border-color: var(--teal);
+    box-shadow: 0 0 0 3px rgba(13, 131, 131, 0.1);
+}
+
+/* Comment send button */
+.btn-send {
+    background: var(--teal);
+    color: var(--white);
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.btn-send:hover {
+    background: var(--green);
+    transform: scale(1.05);
+}
+
+.btn-send:disabled {
+    background: var(--light-grey);
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+/* ========== MODAL ========== */
+
+.modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(7, 23, 23, 0.75);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+    opacity: 0;
+    transition: opacity 0.3s ease-out;
+}
+
+.modal.is-open {
+    display: flex;
+    opacity: 1;
+}
+
+.modal-content {
+    background: var(--white);
+    border-radius: var(--radius);
+    max-width: 700px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: var(--shadow-lg);
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.user-line {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.modal-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.modal-header .user-info strong {
+    display: block;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--black);
+}
+
+.visibility {
+    font-size: 12px;
+    color: var(--light-grey);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.btn-close {
+    background: transparent;
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--light-grey);
+    transition: var(--transition);
+    font-size: 20px;
+}
+
+.btn-close:hover {
+    background: var(--bg);
+    color: var(--black);
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+#editor {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: var(--radius-sm);
+    min-height: 200px;
+}
+
+.ql-toolbar {
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0 !important;
+    background: var(--bg) !important;
+}
+
+.ql-container {
+    border-radius: 0 0 var(--radius-sm) var(--radius-sm) !important;
+    font-size: 15px !important;
+}
+
+/* Image Preview Container */
+#image-preview-container {
+    margin-top: 16px;
+    position: relative;
+}
+
+#image-preview-container.has-image {
+    border: 1px solid #e0e0e0;
+    border-radius: var(--radius-sm);
+    padding: 8px;
+    background: var(--bg);
+}
+
+.image-preview-wrapper {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+}
+
+#image-preview-container img {
+    max-width: 100%;
+    max-height: 300px;
+    width: auto;
+    height: auto;
+    border-radius: var(--radius-sm);
+    display: block;
+    margin: 0 auto;
+    object-fit: contain;
+}
+
+.remove-image-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(220, 53, 69, 0.9);
+    color: white;
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: var(--transition);
+    font-size: 16px;
+    z-index: 10;
+}
+
+.remove-image-btn:hover {
+    background: #dc3545;
+    transform: scale(1.1);
+}
+
+/* Footer modal */
+
+.linkedin-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-top: 1px solid #e0e0e0;
+}
+
+.left-icons {
+    display: flex;
+    gap: 8px;
+}
+
+.icon-btn {
+    background: transparent;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--light-grey);
+    font-size: 20px;
+    transition: var(--transition);
+}
+
+.icon-btn:hover {
+    background: var(--bg);
+    color: var(--teal);
+}
+
+.icon-btn.active {
+    color: var(--teal);
+    background: var(--bg);
+}
+
+.publish-btn {
+    padding: 10px 24px;
+    border-radius: 24px;
+    border: none;
+    cursor: pointer;
+    background: #d3d3d3;
+    color: white;
+    font-weight: 600;
+    font-size: 15px;
+    transition: var(--transition);
+}
+
+.publish-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.publish-btn.enabled {
+    background: var(--green);
+}
+
+.publish-btn.enabled:hover {
+    background: var(--teal);
+    transform: scale(1.02);
+}
+
+/* ========== RESPONSIVE ========== */
+
+@media (max-width: 768px) {
+    .article-root {
+        padding: 0;
+        margin-top: 15px;
+        margin-bottom: 15px;
+    }
+
+    .composer-card {
+        border-radius: 0;
+    }
+
+    .article-card {
+        border-radius: 0;
+    }
+
+    .article-content h3 {
+        font-size: 18px;
+    }
+
+    .modal-content {
+        width: 95%;
+        border-radius: 12px 12px 0 0;
+        align-self: flex-end;
+    }
+}
+
+/* ========== UTILITIES ========== */
+
+.text-muted {
+    color: var(--light-grey);
+}
+
+</style>
+<section class="article-root">
+
+    {# COMPOSER #}
+    {% if is_granted('ROLE_USER') %}
+        {% include 'components/feed/_composer.html.twig' %}
+    {% endif %}
+
+    {# LISTE DES ARTICLES #}
+    <section class="articles-list">
+        {% for article in articles %}
+            {% include 'components/feed/_article_card.html.twig' with { article: article } %}
+        {% else %}
+            <p class="text-muted">Aucun article pour le moment.</p>
+        {% endfor %}
+    </section>
+
+    {# MODAL CRÉATION ARTICLE #}
+    {% if is_granted('ROLE_USER') %}
+        {% include 'components/feed/_modal_create.html.twig' %}
+    {% endif %}
+
+</section>
+
+{# Scripts en bas de page #}
+<script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+<script>
+// public/assets/js/feed.js
+
+document.addEventListener('DOMContentLoaded', () => {
+    const modal = document.getElementById('create-modal');
+    const articleTitleInput = document.getElementById('article-title');
+    const editorOutput = document.getElementById('editor-output');
+    const publishBtn = document.getElementById('publish-btn');
+    const fileInput = document.getElementById('modal-image-input');
+    const imageBtn = document.getElementById('image-btn');
+    const imagePreviewContainer = document.getElementById('image-preview-container');
+
+    // ========== MODAL ==========
+
+    function openModal() {
+        if (!modal) return;
+        modal.classList.add('is-open');
+        modal.setAttribute('aria-hidden', 'false');
+    }
+
+    function openModalWithImage() {
+        openModal();
+        if (fileInput) {
+            setTimeout(() => fileInput.click(), 100);
+        }
+    }
+
+    function resetModal() {
+        if (articleTitleInput) {
+            articleTitleInput.value = '';
+        }
+        if (quill) {
+            quill.setContents([]);
+            editorOutput.value = '';
+        }
+        if (fileInput) {
+            fileInput.value = '';
+        }
+        if (imagePreviewContainer) {
+            imagePreviewContainer.innerHTML = '';
+            imagePreviewContainer.classList.remove('has-image');
+        }
+        if (imageBtn) {
+            imageBtn.classList.remove('active');
+        }
+        updatePublishButton();
+    }
+
+    function closeModal() {
+        if (!modal) return;
+        modal.classList.remove('is-open');
+        modal.setAttribute('aria-hidden', 'true');
+        resetModal();
+    }
+
+    // Bind open / close triggers
+    document.querySelectorAll('.js-open-modal').forEach(el => {
+        el.addEventListener('click', openModal);
+    });
+
+    document.querySelectorAll('.js-open-modal-with-image').forEach(el => {
+        el.addEventListener('click', openModalWithImage);
+    });
+
+    document.querySelectorAll('.js-close-modal').forEach(el => {
+        el.addEventListener('click', closeModal);
+    });
+
+    if (modal) {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeModal();
+            }
+        });
+    }
+
+    // ========== QUILL EDITOR ==========
+
+    let quill = null;
+    const editorEl = document.getElementById('editor');
+
+    if (editorEl) {
+        quill = new Quill('#editor', {
+            theme: 'snow',
+            placeholder: 'Share your thoughts...',
+            modules: {
+                toolbar: [
+                    ['bold', 'italic', 'underline'],
+                    [{ header: [2, 3, false] }],
+                    [{ list: 'ordered' }, { list: 'bullet' }],
+                    ['link']
+                ]
+            }
+        });
+
+        quill.on('text-change', () => {
+            const html = quill.root.innerHTML;
+            if (editorOutput) {
+                editorOutput.value = html;
+            }
+            updatePublishButton();
+        });
+    }
+
+    function updatePublishButton() {
+        if (!publishBtn) return;
+
+        const hasTitle = articleTitleInput && articleTitleInput.value.trim().length > 0;
+        const hasText = quill && quill.getText().trim().length > 0;
+
+        const enabled = hasTitle && hasText;
+
+        publishBtn.disabled = !enabled;
+        publishBtn.classList.toggle('enabled', enabled);
+    }
+
+    if (articleTitleInput) {
+        articleTitleInput.addEventListener('input', updatePublishButton);
+    }
+
+    // ========== IMAGE PREVIEW ==========
+
+    if (fileInput && imagePreviewContainer && imageBtn) {
+        imageBtn.addEventListener('click', () => fileInput.click());
+
+        fileInput.addEventListener('change', function () {
+            const file = this.files[0];
+            imagePreviewContainer.innerHTML = '';
+
+            if (file) {
+                imagePreviewContainer.classList.add('has-image');
+                imageBtn.classList.add('active');
+
+                const wrapper = document.createElement('div');
+                wrapper.className = 'image-preview-wrapper';
+
+                const img = document.createElement('img');
+                img.src = URL.createObjectURL(file);
+
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'remove-image-btn';
+                removeBtn.type = 'button';
+                removeBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+                removeBtn.title = 'Remove image';
+
+                removeBtn.addEventListener('click', () => {
+                    fileInput.value = '';
+                    imagePreviewContainer.innerHTML = '';
+                    imagePreviewContainer.classList.remove('has-image');
+                    imageBtn.classList.remove('active');
+                });
+
+                wrapper.appendChild(img);
+                wrapper.appendChild(removeBtn);
+                imagePreviewContainer.appendChild(wrapper);
+            } else {
+                imagePreviewContainer.classList.remove('has-image');
+                imageBtn.classList.remove('active');
+            }
+        });
+    }
+
+    // ========== LIKE BUTTONS ==========
+
+    document.querySelectorAll('.like-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const articleId = this.dataset.articleId;
+            if (!articleId) return;
+
+            const icon = this.querySelector('i');
+
+            fetch(`/app/articles/${articleId}/like`, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    const likeCountEl = document.getElementById(`like-count-${articleId}`);
+                    if (likeCountEl) {
+                        likeCountEl.textContent = data.likes;
+                    }
+
+                    if (data.liked === true) {
+                        icon.classList.remove('fa-regular');
+                        icon.classList.add('fa-solid');
+                        this.classList.add('active');
+                    } else {
+                        icon.classList.remove('fa-solid');
+                        icon.classList.add('fa-regular');
+                        this.classList.remove('active');
+                    }
+                })
+                .catch(err => {
+                    console.error('Error updating like:', err);
+                });
+        });
+    });
+
+    // ========== TOGGLE COMMENTS SECTION ==========
+
+    document.querySelectorAll('.comment-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const articleId = this.dataset.articleId;
+            if (!articleId) return;
+
+            const commentsSection = document.getElementById(`comments-${articleId}`);
+            if (!commentsSection) return;
+
+            commentsSection.classList.toggle('expanded');
+
+            if (commentsSection.classList.contains('expanded')) {
+                const input = commentsSection.querySelector('.comment-form .input-field');
+                if (input) {
+                    setTimeout(() => input.focus(), 300);
+                }
+            }
+        });
+    });
+
+    // ========== AJAX COMMENT SUBMISSION ==========
+
+    document.querySelectorAll('.comment-form').forEach(form => {
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const articleId = this.dataset.articleId;
+            if (!articleId) return;
+
+            const input = this.querySelector('.input-field');
+            if (!input) return;
+
+            const content = input.value.trim();
+            if (!content) return;
+
+            fetch(`/app/articles/${articleId}/comment`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: new URLSearchParams({ comment: content })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    const commentsSection = document.getElementById(`comments-${articleId}`);
+                    if (!commentsSection) return;
+
+                    const commentDiv = document.createElement('div');
+                    commentDiv.classList.add('comment');
+                    commentDiv.innerHTML = `
+                        <div class="user-avatar user-avatar--small">
+                             <img  src="{{ asset(app.user.avatar ? 'uploads/avatars/' ~ app.user.avatar : 'images/User.svg') }}"
+           class="user-avatar user-avatar--small"
+             alt="Avatar"/>
+                        </div>
+                        <div class="comment-content">
+                            <div class="comment-header">
+                                <span class="username">${data.author}</span>
+                                <span class="date">
+                                    <i class="fa-regular fa-clock"></i>
+                                    ${data.date}
+                                </span>
+                            </div>
+                            <p>${data.content}</p>
+                        </div>
+                    `;
+
+                    commentsSection.insertBefore(commentDiv, this);
+
+                    const countSpan = document.querySelector(
+                        `.comment-btn[data-article-id="${articleId}"] .count`
+                    );
+                    if (countSpan) {
+                        countSpan.textContent = parseInt(countSpan.textContent, 10) + 1;
+                    }
+
+                    input.value = '';
+                })
+                .catch(err => {
+                    console.error('Error adding comment:', err);
+                });
+        });
+    });
+});
+
+</script>
+
+
+{% endblock %}

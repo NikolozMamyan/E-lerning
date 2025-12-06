@@ -92,7 +92,11 @@ private Collection $notifications;
 #[ORM\OneToMany(mappedBy: 'user', targetEntity: Subscription::class, cascade: ['persist', 'remove'])]
 private Collection $subscriptions;
 
+#[ORM\OneToMany(mappedBy: 'author', targetEntity: Article::class)]
+private Collection $articles;
 
+#[ORM\OneToMany(mappedBy: 'author', targetEntity: Comment::class)]
+private Collection $comments;
 
 
 public function __construct()
@@ -503,4 +507,56 @@ public function hasActiveSubscription(): bool
     }
     return false;
 }
+
+public function getArticles(): Collection
+{
+    return $this->articles;
+}
+
+public function addArticle(Article $article): static
+{
+    if (!$this->articles->contains($article)) {
+        $this->articles->add($article);
+        $article->setAuthor($this);
+    }
+
+    return $this;
+}
+
+public function removeArticle(Article $article): static
+{
+    if ($this->articles->removeElement($article)) {
+        if ($article->getAuthor() === $this) {
+            $article->setAuthor(null);
+        }
+    }
+
+    return $this;
+}
+public function getComments(): Collection
+{
+    return $this->comments;
+}
+
+public function addComment(Comment $comment): static
+{
+    if (!$this->comments->contains($comment)) {
+        $this->comments->add($comment);
+        $comment->setAuthor($this);
+    }
+
+    return $this;
+}
+
+public function removeComment(Comment $comment): static
+{
+    if ($this->comments->removeElement($comment)) {
+        if ($comment->getAuthor() === $this) {
+            $comment->setAuthor(null);
+        }
+    }
+
+    return $this;
+}
+
 }

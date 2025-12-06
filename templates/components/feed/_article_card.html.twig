@@ -1,0 +1,123 @@
+{# templates/feed/_article_card.html.twig #}
+<article class="article-card" id="article-{{ article.id }}">
+    {# HEADER #}
+    <div class="article-header">
+        <div class="user-info">
+            <div class="user-avatar">
+              <img class="user-avatar" src="{{ asset(app.user.avatar ? 'uploads/avatars/' ~ app.user.avatar : 'images/User.svg') }}" />
+            </div>
+            <div class="user-details">
+                <span class="username">
+    User-{{ article.createdAt|date('Ymd') }}-{{ article.author.id }}
+</span>
+
+                <span class="date">
+                    <i class="fa-regular fa-clock"></i>
+                    {{ article.createdAt|date('m/d/Y \\a\\t H:i') }}
+                </span>
+            </div>
+        </div>
+
+        {% if app.user and app.user == article.author %}
+            <div class="article-menu">
+                <a href="{{ path('article_edit', {id: article.id}) }}"
+                   class="btn-icon"
+                   title="Edit">
+                    <i class="fa-solid fa-pen"></i>
+                </a>
+                <a href="{{ path('article_delete', {id: article.id}) }}"
+                   class="btn-icon danger"
+                   title="Delete"
+                   onclick="return confirm('Are you sure you want to delete this article?');">
+                    <i class="fa-solid fa-trash"></i>
+                </a>
+            </div>
+        {% endif %}
+    </div>
+
+    {# CONTENT #}
+    <div class="article-content">
+        <h3>{{ article.titre }}</h3>
+        <div class="article-body">
+            {{ article.description|raw }}
+        </div>
+    </div>
+
+    {% if article.image %}
+        <img src="/uploads/articles/{{ article.image }}"
+             class="article-image"
+             alt="{{ article.titre }}"
+             loading="lazy">
+    {% endif %}
+
+    {# ACTIONS #}
+    <div class="article-actions">
+        <button class="btn-action like-btn {{ app.user and article.isLikedByUser(app.user) ? 'active' : '' }}"
+                data-article-id="{{ article.id }}"
+                type="button">
+            <i class="{{ app.user and article.isLikedByUser(app.user) ? 'fa-solid' : 'fa-regular' }} fa-heart"></i>
+            <span class="count"
+                  id="like-count-{{ article.id }}">{{ article.likesCount }}</span>
+        </button>
+
+        <button class="btn-action comment-btn"
+                data-article-id="{{ article.id }}"
+                type="button">
+            <i class="fa-regular fa-comment"></i>
+            <span class="count">{{ article.comments|length }}</span>
+        </button>
+
+        <button class="btn-action"
+                type="button">
+            <i class="fa-solid fa-share"></i>
+            <span>Share</span>
+        </button>
+    </div>
+
+    {# COMMENTS #}
+    <div class="comments-section"
+         id="comments-{{ article.id }}">
+        {% for comment in article.comments %}
+            <div class="comment">
+                <div class="user-avatar user-avatar--small">
+                           <img  src="{{ asset(comment.author.avatar ? 'uploads/avatars/' ~ comment.author.avatar : 'images/User.svg') }}"
+           class="user-avatar user-avatar--small"
+             alt="Avatar"/>
+                </div>
+                <div class="comment-content">
+                    <div class="comment-header">
+                        User-{{ comment.createdAt|date('Ymd') }}-{{ comment.author.id }}
+
+                        <span class="date">
+                            <i class="fa-regular fa-clock"></i>
+                            {{ comment.createdAt|date('m/d/Y') }}
+                        </span>
+                    </div>
+                    <p>{{ comment.content }}</p>
+                </div>
+            </div>
+        {% endfor %}
+
+        {% if is_granted('ROLE_USER') %}
+            <form class="comment-form"
+                  data-article-id="{{ article.id }}"
+                  action="{{ path('article_comment', {id: article.id}) }}"
+                  method="POST">
+                <div class="user-avatar user-avatar--small">
+                     <img  src="{{ asset(app.user.avatar ? 'uploads/avatars/' ~ app.user.avatar : 'images/User.svg') }}"
+           class="user-avatar user-avatar--small"
+             alt="Avatar"/>
+                </div>
+                <input type="text"
+                       name="comment"
+                       placeholder="Write a comment..."
+                       class="input-field"
+                       required>
+                <button class="btn-send" type="submit">
+                    <i class="fa-solid fa-paper-plane"></i>
+                </button>
+            </form>
+        {% endif %}
+    </div>
+
+</article>
