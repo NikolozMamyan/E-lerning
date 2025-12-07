@@ -167,11 +167,28 @@ public function getLikesCount(): int
 {
     return $this->likedBy->count();
 }
-    private function slugify(string $text): string
-    {
-        $text = strtolower($text);
-        $text = iconv('UTF-8', 'ASCII//TRANSLIT', $text);
-        $text = preg_replace('/[^a-z0-9]+/', '-', $text);
-        return trim($text, '-');
+private function slugify(string $text): string
+{
+    // Supprimer les emojis et symboles spéciaux qui cassent iconv
+    $text = preg_replace('/[\x{1F600}-\x{1F6FF}]/u', '', $text); // emojis
+    $text = preg_replace('/[^\p{L}\p{N}\s]/u', '', $text); // autres symboles
+
+    $text = strtolower($text);
+
+    // Utiliser transliterator si disponible (meilleur choix)
+    if (function_exists('transliterator_transliterate')) {
+        $text = transliterator_transliterate(
+            'Any-Latin; Latin-ASCII; [:Nonspacing Mark:] Remove; Lower()', 
+            $text
+        );
+    } else {
+        // Fallback si transliterator n'est pas installé
+        $text = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $text);
     }
+
+    // Remplacer tout ce qui n'est pas a-z/0-9 par des tirets
+    $text = preg_replace('/[^a-z0-9]+/', '-', $text);
+
+    return trim($text, '-');
+}
 }

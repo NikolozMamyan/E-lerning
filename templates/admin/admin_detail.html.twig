@@ -1,0 +1,598 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+<!-- Google Fonts - Inter -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+<div class="detail-container">
+    
+    <!-- Breadcrumb -->
+    <nav class="breadcrumb">
+        <a href="{{ path('admin_articles') }}" class="breadcrumb-link">
+            <i class="fas fa-arrow-left"></i> Articles
+        </a>
+        <span class="breadcrumb-separator">/</span>
+        <span class="breadcrumb-current">Détails</span>
+    </nav>
+
+    <!-- Article Header Card -->
+    <div class="header-card">
+        <div class="header-grid">
+            <div class="header-info">
+                <h1>{{ article.titre }}</h1>
+                
+                <div class="meta-info">
+                    <div class="meta-item">
+                        <div class="author-avatar-large">
+                            {{ article.author.username|slice(0, 1)|upper }}
+                        </div>
+                        <div class="meta-details">
+                            <div class="meta-value">{{ article.author.username }}</div>
+                            <small class="meta-label">Auteur</small>
+                        </div>
+                    </div>
+
+                    <div class="meta-divider"></div>
+
+                    <div class="meta-item">
+                        <div class="meta-details">
+                            <div class="meta-value">{{ article.createdAt|date('d/m/Y à H:i') }}</div>
+                            <small class="meta-label">Date de publication</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="header-stats">
+                <div class="stat-box stat-comments">
+                    <div class="stat-value">{{ article.comments|length }}</div>
+                    <small class="stat-label">Commentaires</small>
+                </div>
+                <div class="stat-box stat-likes">
+                    <div class="stat-value">{{ article.likesCount }}</div>
+                    <small class="stat-label">Likes</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Article Content -->
+    <div class="content-grid">
+        <div class="content-main">
+            <!-- Description -->
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-file-alt"></i> Contenu de l'article</h5>
+                </div>
+                <div class="card-body article-content">
+                    {{ article.description|raw }}
+                </div>
+            </div>
+
+            <!-- Comments Section -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="header-flex">
+                        <h5><i class="fas fa-comments"></i> Commentaires ({{ article.comments|length }})</h5>
+                        {% if article.comments|length > 0 %}
+                        <button class="btn btn-delete-all">
+                            <i class="fas fa-trash"></i> Tout supprimer
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="card-body-no-padding">
+                    {% if article.comments|length > 0 %}
+                        <div class="comments-list">
+                        {% for c in article.comments %}
+                            <div class="comment-item">
+                                <div class="comment-content">
+                                    <div class="comment-avatar">
+                                        {{ c.author.username|slice(0, 1)|upper }}
+                                    </div>
+
+                                    <div class="comment-body">
+                                        <div class="comment-header">
+                                            <div class="comment-info">
+                                                <div class="comment-author">{{ c.author.username }}</div>
+                                                <small class="comment-date">{{ c.createdAt|date('d/m/Y à H:i') }}</small>
+                                            </div>
+
+                                            <form action="{{ path('admin_comment_delete', {id: c.id}) }}"
+                                                  method="POST"
+                                                  class="delete-form"
+                                                  onsubmit="return confirm('Supprimer ce commentaire ?');">
+                                                <button class="btn-icon-delete">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+
+                                        <p class="comment-text">{{ c.content }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="fas fa-comments empty-icon"></i>
+                            <p>Aucun commentaire pour le moment</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="content-sidebar">
+            {% if article.image %}
+            <div class="card">
+                <div class="card-header">
+                    <h6><i class="fas fa-image"></i> Image de l'article</h6>
+                </div>
+                <div class="card-body">
+                    <img src="/uploads/articles/{{ article.image }}" 
+                         class="article-image" 
+                         alt="{{ article.titre }}">
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Actions Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h6><i class="fas fa-cog"></i> Actions</h6>
+                </div>
+                <div class="card-body">
+                    <div class="actions-stack">
+                        <hr class="divider">
+                        <form action="{{ path('admin_article_delete_admin', {id: article.id}) }}"
+                              method="POST"
+                              onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet article ?');">
+                            <button class="btn btn-danger btn-full">
+                                <i class="fas fa-trash"></i> Supprimer l'article
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Inter', sans-serif;
+    }
+
+    .detail-container {
+        padding: 2rem;
+        background: var(--bg);
+        min-height: 100vh;
+    }
+
+    /* Breadcrumb */
+    .breadcrumb {
+        margin-bottom: 2rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .breadcrumb-link {
+        color: var(--teal);
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: color 0.2s;
+    }
+
+    .breadcrumb-link:hover {
+        color: var(--green);
+    }
+
+    .breadcrumb-separator {
+        color: var(--grey);
+    }
+
+    .breadcrumb-current {
+        color: var(--grey);
+    }
+
+    /* Cards */
+    .card {
+        background: var(--white);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        margin-bottom: 2rem;
+    }
+
+    .card-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--mint);
+    }
+
+    .card-header h5,
+    .card-header h6 {
+        color: var(--green);
+        font-weight: 600;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .card-header h6 {
+        font-size: 0.95rem;
+    }
+
+    .header-flex {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .card-body {
+        padding: 1.5rem;
+    }
+
+    .card-body-no-padding {
+        padding: 0;
+    }
+
+    /* Header Card */
+    .header-card {
+        background: var(--white);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .header-grid {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 2rem;
+        align-items: start;
+    }
+
+    .header-info h1 {
+        color: var(--black);
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        font-size: 2rem;
+    }
+
+    .meta-info {
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .meta-divider {
+        width: 1px;
+        height: 40px;
+        background: var(--mint);
+    }
+
+    .author-avatar-large {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--teal);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        flex-shrink: 0;
+    }
+
+    .meta-value {
+        font-weight: 600;
+        color: var(--black);
+        font-size: 0.95rem;
+    }
+
+    .meta-label {
+        color: var(--grey);
+        font-size: 0.85rem;
+    }
+
+    .header-stats {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .stat-box {
+        padding: 1rem 1.25rem;
+        border-radius: 10px;
+        text-align: center;
+        min-width: 90px;
+        transition: all 0.2s;
+    }
+
+    .stat-box:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow);
+    }
+
+    .stat-comments {
+        background: var(--mint);
+    }
+
+    .stat-likes {
+        background: #FFE5E5;
+    }
+
+    .stat-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        line-height: 1;
+    }
+
+    .stat-comments .stat-value {
+        color: var(--teal);
+    }
+
+    .stat-likes .stat-value {
+        color: #D32F2F;
+    }
+
+    .stat-label {
+        display: block;
+        margin-top: 0.25rem;
+        font-weight: 500;
+    }
+
+    .stat-comments .stat-label {
+        color: var(--green);
+    }
+
+    .stat-likes .stat-label {
+        color: #D32F2F;
+    }
+
+    /* Content Grid */
+    .content-grid {
+        display: grid;
+        grid-template-columns: 1fr 350px;
+        gap: 2rem;
+    }
+
+    /* Article Content */
+    .article-content {
+        color: var(--black);
+        line-height: 1.7;
+    }
+
+    /* Comments */
+    .comments-list {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .comment-item {
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--mint);
+        transition: all 0.2s;
+    }
+
+    .comment-item:hover {
+        background: var(--bg);
+    }
+
+    .comment-item:last-child {
+        border-bottom: none;
+    }
+
+    .comment-content {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .comment-avatar {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: var(--green);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        flex-shrink: 0;
+    }
+
+    .comment-body {
+        flex: 1;
+    }
+
+    .comment-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        margin-bottom: 0.75rem;
+    }
+
+    .comment-author {
+        font-weight: 600;
+        color: var(--black);
+    }
+
+    .comment-date {
+        color: var(--grey);
+        font-size: 0.85rem;
+    }
+
+    .comment-text {
+        color: var(--black);
+        margin: 0;
+        line-height: 1.6;
+    }
+
+    .delete-form {
+        display: inline;
+    }
+
+    .btn-icon-delete {
+        background: transparent;
+        color: var(--grey);
+        border: 1px solid var(--mint);
+        border-radius: 8px;
+        padding: 0.4rem 0.75rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 0.9rem;
+    }
+
+    .btn-icon-delete:hover {
+        background: #FFE5E5;
+        color: #D32F2F;
+        border-color: #FFE5E5;
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        color: var(--grey);
+    }
+
+    .empty-icon {
+        font-size: 3rem;
+        opacity: 0.3;
+        margin-bottom: 1rem;
+    }
+
+    .empty-state p {
+        margin: 0;
+    }
+
+    /* Sidebar */
+    .article-image {
+        width: 100%;
+        border-radius: 10px;
+        display: block;
+    }
+
+    .actions-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .divider {
+        border: none;
+        height: 1px;
+        background: var(--mint);
+        margin: 0.5rem 0;
+        opacity: 0.5;
+    }
+
+    /* Buttons */
+    .btn {
+        border: none;
+        border-radius: var(--radius);
+        padding: 0.75rem 1rem;
+        font-weight: 500;
+        font-family: 'Inter', sans-serif;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 0.9rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .btn-full {
+        width: 100%;
+    }
+
+    .btn-danger {
+        background: #FFE5E5;
+        color: #D32F2F;
+    }
+
+    .btn-danger:hover {
+        background: #D32F2F;
+        color: white;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(211, 47, 47, 0.3);
+    }
+
+    .btn-delete-all {
+        background: #FFE5E5;
+        color: #D32F2F;
+        border: none;
+        border-radius: 8px;
+        padding: 0.5rem 1rem;
+        font-weight: 500;
+        cursor: pointer;
+        font-size: 0.85rem;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        transition: all 0.2s;
+    }
+
+    .btn-delete-all:hover {
+        background: #D32F2F;
+        color: white;
+    }
+
+    /* Responsive */
+    @media (max-width: 1200px) {
+        .content-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .detail-container {
+            padding: 1rem;
+        }
+
+        .header-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .header-stats {
+            justify-content: flex-start;
+             }
+
+    .meta-info {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .meta-divider {
+        display: none;
+    }
+}
+</style>
+{% endblock %}

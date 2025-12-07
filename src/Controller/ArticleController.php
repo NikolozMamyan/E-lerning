@@ -113,36 +113,53 @@ public function addComment(Article $article, Request $request, EntityManagerInte
 }
 
 
-    #[Route('/{id}/edit', name: 'article_edit')]
-    #[IsGranted('ROLE_USER')]
-    public function edit(Article $article, Request $request, EntityManagerInterface $em): Response
-    {
-        if ($this->getUser() !== $article->getAuthor()) {
-            throw $this->createAccessDeniedException('You are not allowed to edit this article');
-        }
-
-        if ($request->isMethod('POST')) {
-            $title = trim($request->request->get('title', ''));
-            $description = trim($request->request->get('description', ''));
-            
-            if (empty($title) || empty($description)) {
-                $this->addFlash('error', 'Title and content are required');
-                return $this->redirectToRoute('article_edit', ['id' => $article->getId()]);
-            }
-            
-            $article->setTitre($title);
-            $article->setDescription($description);
-
-            $em->flush();
-
-            $this->addFlash('success', 'Article updated successfully!');
-            return $this->redirectToRoute('article_feed');
-        }
-
-        return $this->render('article/edit.html.twig', [
-            'article' => $article
-        ]);
+#[Route('/{id}/edit', name: 'article_edit')]
+#[IsGranted('ROLE_USER')]
+public function edit(Article $article, Request $request, EntityManagerInterface $em): Response
+{
+    if ($this->getUser() !== $article->getAuthor()) {
+        throw $this->createAccessDeniedException('You are not allowed to edit this article');
     }
+
+    if ($request->isMethod('POST')) {
+
+        // ---- Titre + description ----
+        $title = trim($request->request->get('title', ''));
+        $description = trim($request->request->get('description', ''));
+
+        if (empty($title) || empty($description)) {
+            $this->addFlash('error', 'Title and content are required');
+            return $this->redirectToRoute('article_edit', ['id' => $article->getId()]);
+        }
+
+        $article->setTitre($title);
+        $article->setDescription($description);
+
+        // ---- IMAGE UPLOAD ----
+        $imageFile = $request->files->get('image');
+
+        if ($imageFile) {
+            $newFilename = uniqid().'_'.$imageFile->getClientOriginalName();
+            $imageFile->move(
+                $this->getParameter('articles_dir'), 
+                $newFilename
+            );
+
+            // Met à jour le nom dans l'entité
+            $article->setImage($newFilename);
+        }
+
+        $em->flush();
+
+        $this->addFlash('success', 'Article updated successfully!');
+        return $this->redirectToRoute('article_feed');
+    }
+
+    return $this->render('article/edit.html.twig', [
+        'article' => $article
+    ]);
+}
+
 
     #[Route('/{id}/delete', name: 'article_delete')]
     #[IsGranted('ROLE_USER')]
@@ -165,24 +182,5 @@ public function addComment(Article $article, Request $request, EntityManagerInte
 
         $this->addFlash('success', 'Article deleted successfully!');
         return $this->redirectToRoute('article_feed');
-    }
-
-    // ---------- ADMIN PAGES -------------
-    #[Route('/admin', name: 'article_admin')]
-    #[IsGranted('ROLE_ADMIN')]
-    public function adminList(ArticleRepository $repo): Response
-    {
-        return $this->render('article/admin_list.html.twig', [
-            'articles' => $repo->findBy([], ['createdAt' => 'DESC'])
-        ]);
-    }
-
-    #[Route('/admin/{id}', name: 'article_admin_detail')]
-    #[IsGranted('ROLE_ADMIN')]
-    public function adminDetail(Article $article): Response
-    {
-        return $this->render('article/admin_detail.html.twig', [
-            'article' => $article
-        ]);
     }
 }

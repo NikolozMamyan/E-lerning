@@ -38,6 +38,7 @@
     --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+
 body {
     background: var(--bg);
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -236,10 +237,40 @@ body {
 }
 
 .article-body {
-    color: var(--grey);
-    font-size: 15px;
-    line-height: 1.6;
-    margin-bottom: 12px;
+    max-height: 180px;
+    overflow: hidden;
+    position: relative;
+    transition: max-height 0.4s ease;
+}
+
+/* Quand la carte est ouverte */
+.article-body.expanded {
+    max-height: 2000px; /* grande hauteur */
+}
+
+/* Dégradé visuel */
+.article-body::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 40px;
+    width: 100%;
+    pointer-events: none;
+}
+
+.article-body.expanded::after {
+    display: none;
+}
+
+/* Bouton see more */
+.see-more-btn {
+    border: none;
+    border-radius:7px;
+    color: var(--teal);
+    font-weight: 600;
+    cursor: pointer;
+    padding: 8px 20px;
 }
 
 .article-body p {
@@ -1053,6 +1084,34 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 });
+// ========== SEE MORE / AUTO HIDE ==========
+document.querySelectorAll('.see-more-btn').forEach(btn => {
+    const id = btn.dataset.id;
+    const body = document.getElementById(`article-body-${id}`);
+
+    if (!body) return;
+
+    // Si le texte est trop court → cacher le bouton
+    const visibleHeight = 180; // même valeur que le CSS
+    const fullHeight = body.scrollHeight;
+
+    if (fullHeight <= visibleHeight + 10) { // +10 pour sécurité
+        btn.style.display = "none";
+        return;
+    }
+
+    // Sinon → gérer le toggle
+    btn.addEventListener('click', function () {
+        body.classList.toggle('expanded');
+
+        if (body.classList.contains('expanded')) {
+            btn.textContent = "See less";
+        } else {
+            btn.textContent = "See more";
+        }
+    });
+});
+
 
 </script>
 

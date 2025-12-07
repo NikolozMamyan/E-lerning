@@ -7,6 +7,8 @@ namespace App\Controller;
 use App\Entity\User;
 use App\Entity\Video;
 use App\Entity\Course;
+use App\Entity\Article;
+use App\Entity\Comment;
 use App\Form\CourseType;
 use App\Entity\Enrollment;
 use App\Entity\QuizAnswer;
@@ -14,6 +16,7 @@ use App\Entity\QuizQuestion;
 use App\Entity\Subscription;
 use App\Repository\UserRepository;
 use App\Repository\CourseRepository;
+use App\Repository\ArticleRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\SubscriptionRepository;
 use Symfony\Component\HttpFoundation\Request;
@@ -493,4 +496,48 @@ public function importUsers(
 }
 
 
+    // ---------- ADMIN ARTICLES PAGES -------------
+   #[Route('/articles', name: 'articles')]
+    #[IsGranted('ROLE_ADMIN')]
+    public function adminArticles(ArticleRepository $repo): Response
+    {
+        return $this->render('admin/admin_list.html.twig', [
+            'articles' => $repo->findBy([], ['createdAt' => 'DESC'])
+        ]);
+    }
+
+    #[Route('/articles/{id}', name: 'article_detail')]
+    #[IsGranted('ROLE_ADMIN')]
+    public function adminArticleDetail(Article $article): Response
+    {
+        return $this->render('admin/admin_detail.html.twig', [
+            'article' => $article
+        ]);
+    }
+
+    #[Route('/comments/{id}/delete', name: 'comment_delete', methods: ['POST'])]
+    #[IsGranted('ROLE_ADMIN')]
+    public function deleteComment(Comment $comment, EntityManagerInterface $em): Response
+    {
+        $articleId = $comment->getArticle()->getId();
+
+        $em->remove($comment);
+        $em->flush();
+
+        $this->addFlash('success', 'Comment deleted.');
+
+        return $this->redirectToRoute('admin_article_detail', ['id' => $articleId]);
+    }
+
+    #[Route('/articles/{id}/delete', name: 'article_delete_admin', methods: ['POST'])]
+    #[IsGranted('ROLE_ADMIN')]
+    public function deleteArticle(Article $article, EntityManagerInterface $em): Response
+    {
+        $em->remove($article);
+        $em->flush();
+
+        $this->addFlash('success', 'Article deleted.');
+
+        return $this->redirectToRoute('admin_articles');
+    }
 }

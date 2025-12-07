@@ -38,9 +38,14 @@
     {# CONTENT #}
     <div class="article-content">
         <h3>{{ article.titre }}</h3>
-        <div class="article-body">
-            {{ article.description|raw }}
-        </div>
+<div class="article-body" id="article-body-{{ article.id }}">
+    {{ article.description|raw }}
+</div>
+
+<button class="see-more-btn" data-id="{{ article.id }}" type="button">
+    See more
+</button>
+
     </div>
 
     {% if article.image %}

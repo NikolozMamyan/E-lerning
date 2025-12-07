@@ -68,6 +68,17 @@
            Attribuer un cours
         </a>
       </li>
+
+            <li class="nav-item">
+       <a href="{{ path('admin_articles') }}"
+           class="nav-link {{ app.request.attributes.get('_route') == 'admin_articles' ? 'active' : '' }}">
+<svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M4 6h16v2H4V6zm0 5h16v2H4v-2zm0 5h10v2H4v-2z"></path>
+    </svg>
+
+           Articles
+        </a>
+      </li>
       {# <li class="nav-item">
         <a href="{{ path('app_certificates') }}"
            class="nav-link {{ app.request.attributes.get('_route') == 'app_certificates' ? 'active' : '' }}">
