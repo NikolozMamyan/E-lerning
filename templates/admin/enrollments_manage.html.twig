@@ -157,7 +157,7 @@
                 {% for c in courses %}
                     <div class="course-card" data-course-id="{{ c.id }}" onclick="toggleCourse({{ c.id }})">
                         <div class="course-title">{{ c.title }}</div>
-                        <div class="course-description">{{ c.description }}</div>
+                        <div class="course-description">  {{ c.description|slice(0, 100)}} ...</div>
                     </div>
                 {% else %}
                     <p class="p-3 text-muted">Aucun cours disponible</p>

@@ -85,7 +85,7 @@ if ($existing) {
     // ✅ 2. Envoi d’email à l’administrateur
     // -------------------------------------------------------
     $mailer->send(
-        to: "nika.mamian@gmail.com",
+        to: "pruffin@les-consultants.lu",
         subject: "New article published on your platform",
         template: "emails/new_article.html.twig",
         context: [
