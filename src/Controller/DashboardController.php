@@ -2,11 +2,11 @@
 
 namespace App\Controller;
 
-
 use App\Service\MailerService;
 use App\Repository\CourseRepository;
 use App\Repository\ProgressRepository;
 use App\Repository\EnrollmentRepository;
+use App\Repository\ArticleRepository; // Ajouter ceci
 use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\QuizAttemptRepository;
 use Symfony\Component\HttpFoundation\Response;
@@ -15,13 +15,13 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 final class DashboardController extends AbstractController{
 
-
    #[Route('app/dashboard', name: 'app_dashboard')]
 public function index(
     CourseRepository $courseRepo,
     ProgressRepository $progressRepo,
     QuizAttemptRepository $quizAttemptRepo,
     EnrollmentRepository $enrollmentRepo,
+    ArticleRepository $articleRepo, // Ajouter ceci
     EntityManagerInterface $em
 ): Response {
     $user = $this->getUser();
@@ -39,7 +39,6 @@ public function index(
             $percent = 0;
 
             if ($totalVideos > 1) {
-                // --- CAS MULTI-VIDÉOS ---
                 $completed = 0;
                 foreach ($videos as $video) {
                     $p = $progressRepo->findOneBy(['user' => $user, 'video' => $video]);
@@ -52,7 +51,6 @@ public function index(
                     ? round(($completed / $totalVideos) * 100, 2)
                     : 0;
             } elseif ($totalVideos === 1) {
-                // --- CAS UNE SEULE VIDÉO ---
                 $video = $videos[0];
                 $progress = $progressRepo->findOneBy(['user' => $user, 'video' => $video]);
 
@@ -92,6 +90,9 @@ public function index(
     // Enrollments (transactions)
     $enrollments = $user ? $enrollmentRepo->findByUserWithCourse($user) : [];
 
+    // Articles récents (ajouter ceci)
+    $latestArticles = $articleRepo->findBy([], ['createdAt' => 'DESC'], 6);
+
     return $this->render('dashboard/index.html.twig', [
         'courses' => $courses,
         'progressData' => $progressData,
@@ -99,12 +100,7 @@ public function index(
         'userAttempts' => $userAttempts,
         'latestCourses' => $latestCourses,
         'enrollments' => $enrollments,
+        'latestArticles' => $latestArticles, // Ajouter ceci
     ]);
 }
-
-
 }
-
-
-
-

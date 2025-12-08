@@ -21,6 +21,20 @@
 </head>
 <body>
 <div class="wrapper-layout">
+{% for type, messages in app.flashes %}
+    {% for message in messages %}
+        <div class="flash flash-{{ type }}">
+            <i class="fa-solid 
+                {% if type == 'success' %} fa-circle-check 
+                {% elseif type == 'error' %} fa-circle-xmark 
+                {% elseif type == 'warning' %} fa-triangle-exclamation 
+                {% else %} fa-info-circle 
+                {% endif %}">
+            </i>
+            {{ message }}
+        </div>
+    {% endfor %}
+{% endfor %}
 {% if "ROLE_ADMIN" in app.user.roles %}
     {% include 'admin/components/sidebar.html.twig' %}
     <div class="overlay" id="overlay"></div>

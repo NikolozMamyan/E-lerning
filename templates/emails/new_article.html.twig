@@ -1,0 +1,16 @@
+<h2>New Article Published</h2>
+
+<p>
+    A new article has been published on the platform.
+</p>
+
+<p>
+    <strong>Author:</strong> {{ author.email }}<br>
+    <strong>Title:</strong> {{ article.titre }}<br>
+</p>
+
+<p>
+    <a href="{{ absolute_url(path('article_feed')) }}#article-{{ article.id }}">
+        View this article in the feed
+    </a>
+</p>

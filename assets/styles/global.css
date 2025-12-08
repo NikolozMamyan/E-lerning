@@ -26,6 +26,63 @@ a:hover{ text-decoration:underline; }
 display: flex;
 min-height: 100vh;
 }
+.flash {
+    position: fixed;
+    bottom: 20px;
+    right: 15px;
+
+    padding: 14px 20px;
+    border-radius: 12px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    z-index: 9999; /* IMPORTANT — sinon il peut passer derrière une carte */
+
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+
+    animation: fadeIn 0.4s ease-out,
+               fadeOut 0.4s ease-in 4s forwards;
+}
+
+/* Pour que plusieurs messages se stackent proprement */
+.flash + .flash {
+    margin-top: 10px;
+}
+
+
+/* Couleurs par type */
+.flash-success {
+    background: #E6F6EA;
+    color: #207345;
+}
+
+.flash-error {
+    background: #FCE8E6;
+    color: #A4282D;
+}
+
+.flash-warning {
+    background: #FFF4D8;
+    color: #946200;
+}
+
+.flash-info {
+    background: #E7F3F9;
+    color: #0C5460;
+}
+
+/* Animation */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateX(50px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes fadeOut {
+    to { opacity: 0; transform: translateX(50px); }
+}
+
 
 .wrapper-layout {
 margin-left: 295px;

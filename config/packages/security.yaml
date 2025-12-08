@@ -42,8 +42,8 @@ security:
         - { path: ^/app/, roles: [ROLE_EMPLOYEE] }
         - { path: ^/admin, roles: [ROLE_ADMIN] }
         - { path: ^/company, roles: [ROLE_COMPANY] }
-        - { path: ^/settings, roles: [ROLE_COMPANY , ROLE_EMPLOYEE] }
-        - { path: ^/notifications, roles: [ROLE_COMPANY , ROLE_EMPLOYEE] }
+        - { path: ^/settings, roles: [ROLE_COMPANY , ROLE_EMPLOYEE, ROLE_ADMIN] }
+        - { path: ^/notifications, roles: [ROLE_COMPANY , ROLE_EMPLOYEE, ROLE_ADMIN] }
     
 
 when@test:

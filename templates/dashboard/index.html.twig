@@ -149,6 +149,225 @@
     grid-template-columns: 1fr;
   }
 }
+/* ------- Articles Section / Feeds ------- */
+.articles-section {
+    margin-top: 3rem;
+}
+
+.articles-section .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.articles-section .section-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--black);
+    margin: 0;
+}
+
+.articles-section .section-title i {
+    color: var(--teal);
+    margin-right: 0.5rem;
+}
+
+/* Bouton Voir tous les articles */
+.articles-section .btn-view-all {
+    background: linear-gradient(135deg, var(--green), var(--teal));
+    color: var(--white);
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius);
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow);
+}
+
+.articles-section .btn-view-all:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(13, 131, 131, 0.3);
+}
+
+/* Grid Articles */
+.articles-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    margin-bottom:20px;
+}
+
+/* Article Card */
+.article-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.article-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 8px 24px rgba(7, 23, 23, 0.15);
+}
+
+/* Image Article */
+.article-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.article-card:hover .article-image {
+    transform: scale(1.05);
+}
+
+.article-image-placeholder {
+    width: 100%;
+    height: 200px;
+    background: linear-gradient(135deg, var(--mint), var(--teal));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.article-image-placeholder i {
+    font-size: 3rem;
+    color: var(--white);
+    opacity: 0.5;
+}
+
+/* Contenu Article */
+.article-content {
+    padding: 1.5rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.article-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--black);
+    margin: 0 0 1rem;
+    line-height: 1.4;
+}
+
+.article-description {
+    color: var(--grey);
+    font-size: 0.9rem;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+    flex: 1;
+}
+
+/* Métadonnées Article */
+.article-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+    color: var(--grey);
+    padding-top: 1rem;
+    border-top: 1px solid var(--mint);
+    margin-top: auto;
+}
+
+.article-author,
+.article-date {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.article-meta i {
+    color: var(--teal);
+}
+
+/* Likes */
+.article-likes {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-weight: 600;
+    color: var(--grey);
+    margin-top: 0.75rem;
+}
+
+.article-likes i {
+    color: #e53e3e;
+    font-size: 1.1rem;
+}
+
+/* Message vide */
+.articles-empty {
+    text-align: center;
+    padding: 3rem;
+    color: var(--grey);
+    grid-column: 1 / -1;
+}
+
+/* Animation au chargement */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.article-card {
+    animation: fadeInUp 0.6s ease forwards;
+    opacity: 0;
+}
+
+.article-card:nth-child(1) { animation-delay: 0.1s; }
+.article-card:nth-child(2) { animation-delay: 0.2s; }
+.article-card:nth-child(3) { animation-delay: 0.3s; }
+.article-card:nth-child(4) { animation-delay: 0.4s; }
+.article-card:nth-child(5) { animation-delay: 0.5s; }
+.article-card:nth-child(6) { animation-delay: 0.6s; }
+
+/* ------- Responsive Articles ------- */
+@media (max-width: 1200px) {
+    .articles-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .articles-section .section-header {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+
+    .articles-section .btn-view-all {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .articles-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .article-image,
+    .article-image-placeholder {
+        height: 180px;
+    }
+}
 </style>
 
 <div class="dashboard_bottom"> 
@@ -185,6 +404,17 @@
   <div class="card video-card">
     <div class="card-header">
       <h2 class="card-title">Recent Courses</h2>
+        <a href="https://form.jotform.com/253131874206453"
+     class="view-all-link"
+      target="_blank"
+     rel="noopener noreferrer">
+     
+    Knowledge Quiz 
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M14 3h7v7h-2V6.41l-9.29 9.3-1.42-1.42 9.3-9.29H14V3z"/>
+      <path d="M5 5h5V3H5c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-5h-2v5H5V5z"/>
+    </svg>
+  </a>
       <a href="{{ path('app_courses') }}" class="view-all-link">View All</a>
     </div>
     <div class="video-grid">
@@ -217,5 +447,62 @@
       {% endfor %}
     </div>
   </div>
+</div>
+{# Articles Section / Feeds #}
+<div class="articles-section">
+    <div class="section-header">
+        <h2 class="section-title">
+            <i class="fas fa-newspaper"></i>E-learning Feed
+        </h2>
+        <a href="{{ path('article_feed') }}" class="btn-view-all">
+            View All
+            <i class="fas fa-arrow-right"></i>
+        </a>
+    </div>
+
+    <div class="articles-grid">
+        {% for article in latestArticles %}
+        <a href="{{ path('article_feed')}}#article-{{article.id}}" class="article-link-wrapper">
+            <div class="article-card">
+                {% if article.image %}
+                    <img src="{{ asset('uploads/articles/' ~ article.image) }}" 
+                         class="article-image" 
+                         alt="{{ article.titre }}">
+                {% else %}
+                    <div class="article-image-placeholder">
+                        <i class="fas fa-image"></i>
+                    </div>
+                {% endif %}
+                
+                <div class="article-content">
+                    <h3 class="article-title">{{ article.titre }}</h3>
+<p class="article-description">
+    {{ article.description|striptags|length > 120 
+        ? article.description|striptags|slice(0, 120) ~ '...' 
+        : article.description|striptags 
+    }}
+</p>
+
+                    
+                    <div class="article-meta">
+                        <div class="article-author">
+                            <i class="fas fa-user"></i>
+                            <span>{{ article.author.email|split('@')[0] }}</span>
+                        </div>
+                        <div class="article-date">
+                            <i class="fas fa-calendar"></i>
+                            <span>{{ article.createdAt|date('d/m/Y') }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </a>
+        {% else %}
+            <div class="articles-empty">
+                <i class="fas fa-newspaper" style="font-size: 3rem; color: var(--mint); margin-bottom: 1rem;"></i>
+                <p>No news for the moment.</p>
+            </div>
+        {% endfor %}
+    </div>
 </div>
 {% endblock %}

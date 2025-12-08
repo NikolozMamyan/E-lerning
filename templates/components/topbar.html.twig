@@ -292,21 +292,14 @@
                  data-id="{{ notification.id }}">
               
               <!-- Icône de notification -->
-              <div class="notification-item-icon">
-                {% if notification.icon == 'payment-success' %}
-                  🎉
-                {% elseif notification.type == 'success' %}
-                  ✅
-                {% elseif notification.type == 'warning' %}
-                  ⚠️
-                {% elseif notification.type == 'error' %}
-                  ❌
-                {% elseif notification.type == 'order' %}
-                  📦
-                {% else %}
-                  ℹ️
-                {% endif %}
-              </div>
+<div class="notification-item-icon">
+    {% if notification.icon %}
+        <i class="{{ notification.icon }}"></i>
+    {% else %}
+        <i class="fa-solid fa-info-circle"></i>
+    {% endif %}
+</div>
+
               
               <!-- Contenu de la notification -->
               <div class="notification-content">

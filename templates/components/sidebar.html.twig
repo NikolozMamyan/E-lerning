@@ -110,16 +110,19 @@
           Progress Tracking
         </a>
       </li>
-                  <li class="nav-item">
-        <a href="{{ path('article_feed') }}"
-           class="nav-link {{ app.request.attributes.get('_route') == 'article_feed' ? 'active' : '' }}">
-    <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M4 6h16v2H4V6zm0 5h16v2H4v-2zm0 5h10v2H4v-2z"/>
-    </svg>
-          Posts
-        </a>
       </li>
-<li class="nav-item">
+      <li class="nav-item">
+  <a href="{{ path('article_feed') }}"
+     class="nav-link nav-link-featured"
+     rel="noopener noreferrer">
+    Activity Feed
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M14 3h7v7h-2V6.41l-9.29 9.3-1.42-1.42 9.3-9.29H14V3z"/>
+      <path d="M5 5h5V3H5c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-5h-2v5H5V5z"/>
+    </svg>
+  </a>
+</li>
+{# <li class="nav-item">
   <a href="https://form.jotform.com/253131874206453"
      class="nav-link nav-link-featured"
       target="_blank"
@@ -131,7 +134,7 @@
       <path d="M5 5h5V3H5c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-5h-2v5H5V5z"/>
     </svg>
   </a>
-</li>
+</li> #}
       <!-- Séparateur -->
       <div class="separator"></div>
 

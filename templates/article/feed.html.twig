@@ -38,7 +38,6 @@
     --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-
 body {
     background: var(--bg);
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -774,7 +773,6 @@ body {
 
 </style>
 <section class="article-root">
-
     {# COMPOSER #}
     {% if is_granted('ROLE_USER') %}
         {% include 'components/feed/_composer.html.twig' %}

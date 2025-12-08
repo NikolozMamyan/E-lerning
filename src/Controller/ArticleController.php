@@ -4,15 +4,17 @@ namespace App\Controller;
 
 use App\Entity\Article;
 use App\Entity\Comment;
+use App\Service\MailerService;
+use App\Service\NotificationService;
 use App\Repository\ArticleRepository;
 use App\Repository\CommentRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
 
 #[Route('/app/articles')]
 class ArticleController extends AbstractController
@@ -27,7 +29,8 @@ class ArticleController extends AbstractController
 
     #[Route('/create', name: 'article_create', methods: ['POST'])]
     #[IsGranted('ROLE_USER')]
-    public function create(Request $request, EntityManagerInterface $em): Response
+    public function create(Request $request, EntityManagerInterface $em,  NotificationService $notificationService,
+    MailerService $mailer): Response
     {
         $title = trim($request->request->get('title', ''));
         $description = trim($request->request->get('description', ''));
@@ -36,6 +39,14 @@ class ArticleController extends AbstractController
             $this->addFlash('error', 'Title and content are required');
             return $this->redirectToRoute('article_feed');
         }
+
+        // Check for duplicate title
+$existing = $em->getRepository(Article::class)->findOneBy(['titre' => $title]);
+
+if ($existing) {
+    $this->addFlash('error', 'An article with a similar title already exists.');
+    return $this->redirectToRoute('article_feed');
+}
 
         $article = new Article();
         $article->setTitre($title);
@@ -57,60 +68,136 @@ class ArticleController extends AbstractController
         $em->persist($article);
         $em->flush();
 
-        $this->addFlash('success', 'Article published successfully!');
+        // -------------------------------------------------------
+    // ✅ 1. Création de la notification utilisateur
+    // -------------------------------------------------------
+    $notificationService->createEntityNotification(
+        user: $this->getUser(),
+        title: "Your article has been published!",
+        relatedEntity: $article,
+        message: "Your article {$article->getTitre()} is now visible in the feed.",
+        type: "success",
+        actionUrl: "/app/articles#article-" . $article->getId(),
+        icon: "fa-solid fa-newspaper"
+    );
+
+    // -------------------------------------------------------
+    // ✅ 2. Envoi d’email à l’administrateur
+    // -------------------------------------------------------
+    $mailer->send(
+        to: "nika.mamian@gmail.com",
+        subject: "New article published on your platform",
+        template: "emails/new_article.html.twig",
+        context: [
+            "author" => $this->getUser(),
+            "article" => $article,
+        ]
+    );
+
+    // -------------------------------------------------------
+    // Message flash visuel en bas à droite
+    // -------------------------------------------------------
+    $this->addFlash('success', 'Article published successfully!');
         return $this->redirectToRoute('article_feed');
     }
 
-    #[Route('/{id}/like', name: 'article_like', methods: ['POST'])]
-    #[IsGranted('ROLE_USER')]
-    public function like(Article $article, EntityManagerInterface $em): Response
-    {
-        $user = $this->getUser();
 
-        // Toggle like
-        if ($article->isLikedByUser($user)) {
-            $article->removeLikedBy($user);
-            $liked = false;
-        } else {
-            $article->addLikedBy($user);
-            $liked = true;
+#[Route('/{id}/like', name: 'article_like', methods: ['POST'])]
+#[IsGranted('ROLE_USER')]
+public function like(
+    Article $article,
+    EntityManagerInterface $em,
+    NotificationService $notificationService
+): Response {
+    $user = $this->getUser();
+    $author = $article->getAuthor();
+
+    // Toggle like
+    if ($article->isLikedByUser($user)) {
+        $article->removeLikedBy($user);
+        $liked = false;
+    } else {
+        $article->addLikedBy($user);
+        $liked = true;
+
+        // ---------------------------------------------------
+        // ✅ Créer une notification pour l'auteur de l'article
+        // ---------------------------------------------------
+        if ($author !== $user) { // éviter auto-notif
+            $notificationService->createEntityNotification(
+                user: $author,
+                title: "A user liked your article",
+                relatedEntity: $article,
+                message: "Your article {$article->getTitre()} received a new like.",
+                type: "info",
+                actionUrl: "/app/articles#article-" . $article->getId(),
+                icon: "fa-solid fa-heart",
+                priority: "normal"
+            );
         }
-
-        $em->flush();
-
-        return $this->json([
-            'liked' => $liked,
-            'likes' => $article->getLikesCount()
-        ]);
     }
 
-    #[Route('/{id}/comment', name: 'article_comment', methods: ['POST'])]
+    $em->flush();
+
+    return $this->json([
+        'liked' => $liked,
+        'likes' => $article->getLikesCount()
+    ]);
+}
+
+
+
+#[Route('/{id}/comment', name: 'article_comment', methods: ['POST'])]
 #[IsGranted('ROLE_USER')]
-public function addComment(Article $article, Request $request, EntityManagerInterface $em): Response
-{
+public function addComment(
+    Article $article,
+    Request $request,
+    EntityManagerInterface $em,
+    NotificationService $notificationService
+): Response {
     $content = trim($request->request->get('comment', ''));
 
     if (!$content) {
         return $this->json(['error' => 'Comment cannot be empty'], 400);
     }
 
+    $user = $this->getUser();
+    $author = $article->getAuthor();
+
+    // Création du commentaire
     $comment = new Comment();
     $comment->setContent($content);
     $comment->setArticle($article);
-    $comment->setAuthor($this->getUser());
+    $comment->setAuthor($user);
     $comment->setCreatedAt(new \DateTimeImmutable());
 
     $em->persist($comment);
     $em->flush();
 
+    // ---------------------------------------------------
+    // ✅ NOTIFICATION ANONYME POUR L'AUTEUR
+    // ---------------------------------------------------
+    if ($author !== $user) {
+        $notificationService->createEntityNotification(
+            user: $author,
+            title: "A user commented on your article",
+            message: "Someone left a new comment on {$article->getTitre()}.",
+            relatedEntity: $article,
+            type: "info",
+            icon: "fa-solid fa-comment",
+            actionUrl: "/app/articles#article-" . $article->getId(),
+        );
+    }
+
     return $this->json([
         'id' => $comment->getId(),
-        'author' => 'User-'.$comment->getCreatedAt()->format('Ymd').'-'.$comment->getAuthor()->getId(),
-        'avatar' => strtoupper($comment->getAuthor()->getUsername()[0]),
+        'author' => "User-" . $comment->getCreatedAt()->format('Ymd') . "-" . $user->getId(),
+        'avatar' => strtoupper($user->getUsername()[0]),
         'content' => $comment->getContent(),
         'date' => $comment->getCreatedAt()->format('m/d/Y')
     ]);
 }
+
 
 
 #[Route('/{id}/edit', name: 'article_edit')]

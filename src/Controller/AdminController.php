@@ -243,56 +243,62 @@ public function bulkEnrollment(Request $request, EntityManagerInterface $em): Re
         return $this->redirectToRoute('show_login');
     }
 
-    $courseId = $request->request->get('courseId');
-    $userIds = $request->request->all('userIds');
+    $courseIds = $request->request->all('courseIds');
+    $userIds   = $request->request->all('userIds');
 
-    if (!$courseId || empty($userIds)) {
-        $this->addFlash('danger', 'Données manquantes.');
+    if (empty($courseIds) || empty($userIds)) {
+        $this->addFlash('danger', 'Aucun utilisateur ou cours sélectionné.');
         return $this->redirectToRoute('admin_enrollments_manage');
     }
 
-    $course = $em->getRepository(Course::class)->find($courseId);
-    if (!$course) {
-        $this->addFlash('danger', 'Cours introuvable.');
-        return $this->redirectToRoute('admin_enrollments_manage');
-    }
+    $courseRepo = $em->getRepository(Course::class);
+    $userRepo   = $em->getRepository(User::class);
 
     $successCount = 0;
     $skipCount = 0;
 
-    foreach ($userIds as $userId) {
-        $user = $em->getRepository(User::class)->find($userId);
-        if (!$user) continue;
+    foreach ($courseIds as $courseId) {
+        $course = $courseRepo->find($courseId);
+        if (!$course) continue;
 
-        // Vérifier si déjà inscrit
-        $existing = $em->getRepository(Enrollment::class)->findOneBy([
-            'user' => $user,
-            'course' => $course,
-        ]);
+        foreach ($userIds as $userId) {
 
-        if ($existing) {
-            $skipCount++;
-            continue;
+            $user = $userRepo->find($userId);
+            if (!$user) continue;
+
+            // Déjà inscrit ?
+            $existing = $em->getRepository(Enrollment::class)->findOneBy([
+                'user' => $user,
+                'course' => $course,
+            ]);
+
+            if ($existing) {
+                $skipCount++;
+                continue;
+            }
+
+            // Création
+            $enrollment = new Enrollment();
+            $enrollment->setUser($user);
+            $enrollment->setCourse($course);
+            $em->persist($enrollment);
+
+            $successCount++;
         }
-
-        $enrollment = new Enrollment();
-        $enrollment->setUser($user);
-        $enrollment->setCourse($course);
-        $em->persist($enrollment);
-        $successCount++;
     }
 
     $em->flush();
 
     if ($successCount > 0) {
-        $this->addFlash('success', "$successCount inscription(s) effectuée(s) avec succès.");
+        $this->addFlash('success', "$successCount inscription(s) créée(s) avec succès.");
     }
     if ($skipCount > 0) {
-        $this->addFlash('info', "$skipCount utilisateur(s) déjà inscrit(s) à ce cours.");
+        $this->addFlash('info', "$skipCount inscription(s) déjà existante(s).");
     }
 
     return $this->redirectToRoute('admin_enrollments');
 }
+
 
     #[Route('/subscriptions', name: 'subscription_add')]
     public function adminSubscription(SubscriptionRepository $subRepo)
