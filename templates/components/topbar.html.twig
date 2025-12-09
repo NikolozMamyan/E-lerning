@@ -286,32 +286,38 @@
 
         
         {% if recentNotifications|length > 0 %}
-          {% for notification in recentNotifications %}
-            <div class="notification-item {{ not notification.isRead ? 'unread' : '' }}" 
-                 data-type="{{ notification.type }}" 
-                 data-id="{{ notification.id }}">
-              
-              <!-- Icône de notification -->
-<div class="notification-item-icon">
-    {% if notification.icon %}
-        <i class="{{ notification.icon }}"></i>
-    {% else %}
-        <i class="fa-solid fa-info-circle"></i>
-    {% endif %}
-</div>
 
-              
-              <!-- Contenu de la notification -->
-              <div class="notification-content">
-                <p>{{ notification.title }}</p>
-                {% if notification.message %}
-                  <div class="notification-message">{{ notification.message }}</div>
-                {% endif %}
-                <small class="notification-time">{{ notification.timeAgo }}</small>
-              </div>
-            </div>
-          {% endfor %}
-          
+{% for notification in recentNotifications %}
+    <a 
+       href="{{ notification.actionUrl }}"
+       class="notification-item-link"
+       data-id="{{ notification.id }}"
+    >
+        <div class="notification-item {{ not notification.isRead ? 'unread' : '' }}"
+             data-type="{{ notification.type }}">
+             
+             <!-- Icône -->
+             <div class="notification-item-icon">
+                 {% if notification.icon %}
+                     <i class="{{ notification.icon }}"></i>
+                 {% else %}
+                     <i class="fa-solid fa-info-circle"></i>
+                 {% endif %}
+             </div>
+
+             <!-- Contenu -->
+             <div class="notification-content">
+                 <p>{{ notification.title }}</p>
+                 {% if notification.message %}
+                     <div class="notification-message">{{ notification.message }}</div>
+                 {% endif %}
+                 <small class="notification-time">{{ notification.timeAgo }}</small>
+             </div>
+        </div>
+    </a>
+{% endfor %}
+
+          </a>
           <a href="{{ path('app_notifications') }}" class="view-all-notifications">
             View all notifications
           </a>
@@ -392,5 +398,22 @@ document.addEventListener("DOMContentLoaded", () => {
   document.addEventListener('click', closeNotifications);
 
   // Marquer les notifications comme lues quand on ouvre le dropdown (optionnel)
+  document.querySelectorAll('.notification-item-link').forEach(link => {
+    link.addEventListener('click', function (e) {
+        e.preventDefault();
+
+        const id = this.dataset.id;
+        const url = this.getAttribute('href');
+
+        fetch(`/notifications/${id}/mark-read`, {
+            method: 'POST'
+        })
+        .finally(() => {
+            // Navigation vers l'actionUrl peu importe le résultat
+            window.location.href = url;
+        });
+    });
+});
+
 });
 </script>

@@ -8,7 +8,7 @@
             </div>
             <div class="user-details">
                 <span class="username">
-    User-{{ article.createdAt|date('Ymd') }}-{{ article.author.id }}
+    {# User-{{ article.createdAt|date('Ymd') }}-{{ article.author.id }} USER NAME #}
 </span>
 
                 <span class="date">
@@ -72,11 +72,11 @@
             <span class="count">{{ article.comments|length }}</span>
         </button>
 
-        <button class="btn-action"
+        {# <button class="btn-action"
                 type="button">
             <i class="fa-solid fa-share"></i>
             <span>Share</span>
-        </button>
+        </button> #}
     </div>
 
     {# COMMENTS #}
@@ -91,7 +91,7 @@
                 </div>
                 <div class="comment-content">
                     <div class="comment-header">
-                        User-{{ comment.createdAt|date('Ymd') }}-{{ comment.author.id }}
+                        {# User-{{ comment.createdAt|date('Ymd') }}-{{ comment.author.id }} USER NAME #}
 
                         <span class="date">
                             <i class="fa-regular fa-clock"></i>

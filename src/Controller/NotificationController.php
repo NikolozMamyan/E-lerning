@@ -23,14 +23,23 @@ class NotificationController extends AbstractController
         ]);
     }
 
-    #[Route('/notifications/{id}/mark-read', name: 'app_notification_mark_read', methods: ['POST'])]
-    public function markAsRead(int $id, NotificationService $notificationService): Response
-    {
-        // Logique pour marquer une notification comme lue via AJAX
-        // Tu peux implémenter ça plus tard si besoin
-        
-        return $this->json(['success' => true]);
+#[Route('/notifications/{id}/mark-read', name: 'app_notification_mark_read', methods: ['POST'])]
+public function markAsRead(int $id, NotificationService $notificationService): Response
+{
+    $user = $this->getUser();
+    $notification = $notificationService->findByIdAndUser($id, $user);
+
+    if (!$notification) {
+        return $this->json(['success' => false, 'error' => 'Not found'], 404);
     }
+
+    if (!$notification->getIsRead()) {
+        $notificationService->markAsRead($notification);
+    }
+
+    return $this->json(['success' => true]);
+}
+
     #[Route('/notifications/{id}/delete', name: 'app_notification_delete', methods: ['POST'])]
 public function delete(int $id, NotificationService $notificationService): Response
 {
