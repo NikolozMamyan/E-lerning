@@ -64,7 +64,6 @@ if ($existing) {
                 $this->addFlash('error', 'Image upload error');
             }
         }
-
         $em->persist($article);
         $em->flush();
 
@@ -91,6 +90,7 @@ if ($existing) {
         context: [
             "author" => $this->getUser(),
             "article" => $article,
+            "description" => $article->getDescription(),
         ]
     );
 

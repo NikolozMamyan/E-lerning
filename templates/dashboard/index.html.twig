@@ -341,33 +341,31 @@
 .article-card:nth-child(6) { animation-delay: 0.6s; }
 
 /* ------- Responsive Articles ------- */
-@media (max-width: 1200px) {
-    .articles-grid {
-        grid-template-columns: repeat(2, 1fr);
+
+
+/* Mode escalier : uniquement sur les grands écrans avec 3 colonnes */
+@media (min-width: 1201px) {
+    .articles-grid--staggered .article-link-wrapper {
+        transition: margin-top 0.3s ease;
+    }
+
+    /* Colonne 1 : pas de décalage */
+    .articles-grid--staggered .article-link-wrapper:nth-child(3n + 1) {
+        margin-top: 0;
+    }
+
+    /* Colonne 2 : léger décalage */
+    .articles-grid--staggered .article-link-wrapper:nth-child(3n + 2) {
+        margin-top: 3rem;
+    }
+
+    /* Colonne 3 : plus gros décalage */
+    .articles-grid--staggered .article-link-wrapper:nth-child(3n + 3) {
+        margin-top: 6rem;
     }
 }
 
-@media (max-width: 768px) {
-    .articles-section .section-header {
-        flex-direction: column;
-        gap: 1rem;
-        align-items: flex-start;
-    }
 
-    .articles-section .btn-view-all {
-        width: 100%;
-        justify-content: center;
-    }
-
-    .articles-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .article-image,
-    .article-image-placeholder {
-        height: 180px;
-    }
-}
 </style>
 
 <div class="dashboard_bottom"> 
@@ -449,7 +447,7 @@
         </a>
     </div>
 
-    <div class="articles-grid">
+    <div class="articles-grid articles-grid--staggered">
         {% for article in latestArticles %}
         <a href="{{ path('article_feed')}}#article-{{article.id}}" class="article-link-wrapper">
             <div class="article-card">
@@ -457,10 +455,10 @@
                     <img src="{{ asset('uploads/articles/' ~ article.image) }}" 
                          class="article-image" 
                          alt="{{ article.titre }}">
-                {% else %}
+                {# {% else %}
                     <div class="article-image-placeholder">
                         <i class="fas fa-image"></i>
-                    </div>
+                    </div> #}
                 {% endif %}
                 
                 <div class="article-content">
@@ -476,7 +474,6 @@
                     <div class="article-meta">
                         <div class="article-author">
                             <i class="fas fa-user"></i>
-                            <span>{{ article.author.email|split('@')[0] }}</span>
                         </div>
                         <div class="article-date">
                             <i class="fas fa-calendar"></i>
