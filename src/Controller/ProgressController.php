@@ -59,9 +59,20 @@ class ProgressController extends AbstractController
         );
 
         // Si le front signale que la vidéo est terminée → on la marque comme complétée
-        if ($completed && !$progress->isCompleted()) {
-            $progress->setCompleted(true);
-        }
+// Si le front signale que la vidéo est terminée → on la marque comme complétée
+if ($completed && !$progress->isCompleted()) {
+
+    // Durée totale de la vidéo
+    $duration = $video->getDuration() ?? 0;
+
+    // On met le watchedTime à la durée totale pour garantir 100%
+    if ($duration > 0) {
+        $progress->setWatchedSeconds($duration);
+    }
+
+    // On marque comme complété
+    $progress->setCompleted(true);
+}
 
         $em->persist($progress);
         $em->flush();
@@ -157,7 +168,9 @@ public function progress(
 
         // Certification si progression 100% et quiz réussi
         $certified = $quizPassed;
-
+          if ($percent >= 92 && $percent < 100) {
+            $percent = 100;
+        }
         $data[] = [
             'course' => $course,
             'enrollment' => $enrollment,
