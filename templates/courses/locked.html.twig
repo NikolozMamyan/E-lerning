@@ -141,10 +141,26 @@
                 position: static;
             }
         }
+
+        .tax-info {
+    font-size: 14px;
+    color: #555;
+    margin-top: 3px;
+    line-height: 1.3;
+}
+
+.course-price strong {
+    font-size: 26px;
+    color: #007bff;
+}
+
     </style>
 {% endblock %}
 
 {% block body %}
+ {# Convert price from "30,00" → 30.00 #}
+    {% set euro = (euroPrice|replace({',': '.'}) + 0) %}
+    {% set priceHT = (euro / 1.17)|round(2, 'ceil') %}
 <div class="payment-layout">
     <!-- MAIN CONTENT -->
     <div class="main-content">
@@ -161,9 +177,14 @@
                 <div class="course-details">
                     <h1>{{ course.title }}</h1>
                     
-                    <div class="course-price">
-                        €{{ euroPrice|default('null') }}
-                    </div>
+<div class="course-price">
+    <strong>€{{ euro|number_format(2, ',', ' ') }}</strong> <span>(incl. VAT)</span>
+    <div class="tax-info">
+       <br>
+        <span>€{{ priceHT|number_format(2, ',', ' ') }} (excl. VAT)</span>
+    </div>
+</div>
+
                     
 <div class="course-features">
     <span class="course-feature">Full access</span>
@@ -236,11 +257,6 @@
         <!-- Order Summary -->
 <div class="payment-summary">
     <h4>Order Summary</h4>
-
-    {# Convert price from "30,00" → 30.00 #}
-    {% set euro = (euroPrice|replace({',': '.'}) + 0) %}
-    {% set priceHT = (euro / 1.17)|round(2, 'ceil') %}
-
     <div class="summary-line">
         <span>{{ course.title }}</span>
         <span>
