@@ -4,7 +4,12 @@
     <div class="article-header">
         <div class="user-info">
             <div class="user-avatar">
-              <img class="user-avatar" src="{{ asset(app.user.avatar ? 'uploads/avatars/' ~ app.user.avatar : 'images/User.svg') }}" />
+
+              <img class="user-avatar"
+ <img class="user-avatar"
+     src="{{ asset(article.author.avatar ? 'uploads/avatars/' ~ article.author.avatar : 'images/User.svg') }}">
+
+
             </div>
             <div class="user-details">
                 <span class="username">
