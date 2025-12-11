@@ -7,6 +7,7 @@ use App\Repository\VideoRepository;
 use App\Repository\CourseRepository;
 use App\Repository\ProgressRepository;
 use App\Repository\EnrollmentRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -63,7 +64,8 @@ public function show(
     VideoRepository $videoRepo,
     ProgressRepository $progressRepo,
     Request $request,
-    EnrollmentRepository $enrollmentRepo
+    EnrollmentRepository $enrollmentRepo,
+    EntityManagerInterface $em
 ): Response {
     $course = $courseRepo->find($id);
     if (!$course) {
@@ -134,19 +136,36 @@ foreach ($videos as $video) {
     }
 }
 
-    // progression
-    $progress = [];
-    if ($user) {
-        foreach ($videos as $v) {
-            $p = $progressRepo->findOneBy(['user' => $user, 'video' => $v]);
-            if ($p) {
-                $progress[$v->getId()] = [
-                    'completed' => $p->isCompleted(),
-                    'watched' => $p->getWatchedSeconds()
-                ];
+// progression
+$progress = [];
+$updated = false; // pour savoir si on doit faire un flush
+
+if ($user) {
+    foreach ($videos as $v) {
+        $p = $progressRepo->findOneBy(['user' => $user, 'video' => $v]);
+
+        if ($p) {
+            $duration = $v->getDuration() ?? 0;
+
+            // 🔹 Si la vidéo est marquée comme complétée mais que watchedSeconds < duration,
+            // on corrige en BDD pour mettre à 100%
+            if ($p->isCompleted() && $duration > 0 && $p->getWatchedSeconds() < $duration) {
+                $p->setWatchedSeconds($duration);
+                $updated = true; // au moins un enregistrement modifié
             }
+
+            $progress[$v->getId()] = [
+                'completed' => $p->isCompleted(),
+                'watched'   => $p->getWatchedSeconds(),
+            ];
         }
     }
+
+    if ($updated) {
+        $em->flush();
+    }
+}
+
 
     $completedCount = count(array_filter($progress, fn($p) => $p['completed'] ?? false));
     $progressPercent = count($videos) > 0 ? round(($completedCount / count($videos)) * 100) : 0;
