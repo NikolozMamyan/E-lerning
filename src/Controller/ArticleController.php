@@ -9,6 +9,8 @@ use App\Service\NotificationService;
 use App\Repository\ArticleRepository;
 use App\Repository\CommentRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use App\Service\LinkPreviewService;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -396,4 +398,25 @@ public function delete(Article $article, EntityManagerInterface $em): Response
     $this->addFlash('success', 'Article deleted successfully!');
     return $this->redirectToRoute('article_feed');
 }
+
+
+
+#[Route('/link-preview', name: 'link_preview', methods: ['POST'])]
+public function linkPreview(
+    Request $request,
+    LinkPreviewService $previewService
+): JsonResponse {
+    $url = $request->toArray()['url'] ?? null;
+
+    if (!$url) {
+        return $this->json(['error' => 'URL manquante'], 400);
+    }
+
+    try {
+        return $this->json($previewService->fetch($url));
+    } catch (\Exception $e) {
+        return $this->json(['error' => 'Impossible de charger le preview'], 500);
+    }
+}
+
 }
