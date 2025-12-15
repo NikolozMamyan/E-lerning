@@ -42,6 +42,9 @@ class Article
     #[ORM\OneToMany(mappedBy: 'article', targetEntity: Comment::class, orphanRemoval: true, cascade: ['persist'])]
     private Collection $comments;
 
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    private ?string $video = null;
+
     public function __construct()
     {
         $this->comments = new ArrayCollection();
@@ -166,6 +169,16 @@ public function removeLikedBy(User $user): static
 public function getLikesCount(): int
 {
     return $this->likedBy->count();
+}
+public function getVideo(): ?string
+{
+    return $this->video;
+}
+
+public function setVideo(?string $video): self
+{
+    $this->video = $video;
+    return $this;
 }
 private function slugify(string $text): string
 {

@@ -736,6 +736,64 @@ body {
     background: var(--teal);
     transform: scale(1.02);
 }
+/* Style unifié pour les wrappers d'aperçu */
+.image-preview-wrapper,
+.video-preview-wrapper {
+    position: relative;
+    display: inline-block;
+    margin-top: 15px;
+    max-width: 100%;
+}
+
+.image-preview-wrapper img,
+.video-preview-wrapper video {
+    max-width: 100%;
+    border-radius: 8px;
+    display: block;
+}
+
+/* Bouton remove (identique pour image et vidéo) */
+.remove-image-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(0, 0, 0, 0.7);
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    z-index: 10;
+}
+
+.remove-image-btn i {
+    color: white;
+    font-size: 16px;
+}
+
+.remove-image-btn:hover {
+    background: rgba(220, 53, 69, 0.9);
+    transform: scale(1.1);
+}
+
+/* Hint pour la taille max */
+.upload-hint {
+    font-size: 12px;
+    color: #666;
+    margin-left: 10px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.upload-hint i {
+    font-size: 14px;
+    color: #0066cc;
+}
 
 /* ========== RESPONSIVE ========== */
 
@@ -799,6 +857,8 @@ body {
 <script>
 // public/assets/js/feed.js
 
+// public/assets/js/feed.js
+
 document.addEventListener('DOMContentLoaded', () => {
     const modal = document.getElementById('create-modal');
     const articleTitleInput = document.getElementById('article-title');
@@ -807,6 +867,37 @@ document.addEventListener('DOMContentLoaded', () => {
     const fileInput = document.getElementById('modal-image-input');
     const imageBtn = document.getElementById('image-btn');
     const imagePreviewContainer = document.getElementById('image-preview-container');
+    const videoInput = document.getElementById('modal-video-input');
+    const videoPreviewContainer = document.getElementById('video-preview-container');
+    const videoBtnModal = document.getElementById('video-btn-modal');
+    const videoBtnComposer = document.getElementById('video-btn');
+
+    // Constantes
+    const MAX_VIDEO_SIZE = 50 * 1024 * 1024; // 50MB
+
+    // ========== FONCTIONS UTILITAIRES ==========
+
+    function clearImageUpload() {
+        if (fileInput) {
+            fileInput.value = '';
+        }
+        if (imagePreviewContainer) {
+            imagePreviewContainer.innerHTML = '';
+            imagePreviewContainer.classList.remove('has-image');
+        }
+        if (imageBtn) {
+            imageBtn.classList.remove('active');
+        }
+    }
+
+    function clearVideoUpload() {
+        if (videoInput) {
+            videoInput.value = '';
+        }
+        if (videoPreviewContainer) {
+            videoPreviewContainer.innerHTML = '';
+        }
+    }
 
     // ========== MODAL ==========
 
@@ -824,22 +915,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function resetModal() {
+        clearVideoUpload();
+        clearImageUpload();
+
         if (articleTitleInput) {
             articleTitleInput.value = '';
         }
         if (quill) {
             quill.setContents([]);
             editorOutput.value = '';
-        }
-        if (fileInput) {
-            fileInput.value = '';
-        }
-        if (imagePreviewContainer) {
-            imagePreviewContainer.innerHTML = '';
-            imagePreviewContainer.classList.remove('has-image');
-        }
-        if (imageBtn) {
-            imageBtn.classList.remove('active');
         }
         updatePublishButton();
     }
@@ -869,6 +953,21 @@ document.addEventListener('DOMContentLoaded', () => {
             if (e.target === modal) {
                 closeModal();
             }
+        });
+    }
+
+    // Video button from composer
+    if (videoBtnComposer) {
+        videoBtnComposer.addEventListener('click', () => {
+            openModal();
+            setTimeout(() => videoInput.click(), 100);
+        });
+    }
+
+    // Video button from modal
+    if (videoBtnModal && videoInput) {
+        videoBtnModal.addEventListener('click', () => {
+            videoInput.click();
         });
     }
 
@@ -923,38 +1022,93 @@ document.addEventListener('DOMContentLoaded', () => {
 
         fileInput.addEventListener('change', function () {
             const file = this.files[0];
-            imagePreviewContainer.innerHTML = '';
-
-            if (file) {
-                imagePreviewContainer.classList.add('has-image');
-                imageBtn.classList.add('active');
-
-                const wrapper = document.createElement('div');
-                wrapper.className = 'image-preview-wrapper';
-
-                const img = document.createElement('img');
-                img.src = URL.createObjectURL(file);
-
-                const removeBtn = document.createElement('button');
-                removeBtn.className = 'remove-image-btn';
-                removeBtn.type = 'button';
-                removeBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
-                removeBtn.title = 'Remove image';
-
-                removeBtn.addEventListener('click', () => {
-                    fileInput.value = '';
-                    imagePreviewContainer.innerHTML = '';
-                    imagePreviewContainer.classList.remove('has-image');
-                    imageBtn.classList.remove('active');
-                });
-
-                wrapper.appendChild(img);
-                wrapper.appendChild(removeBtn);
-                imagePreviewContainer.appendChild(wrapper);
-            } else {
-                imagePreviewContainer.classList.remove('has-image');
-                imageBtn.classList.remove('active');
+            
+            if (!file) {
+                clearImageUpload();
+                return;
             }
+
+            // ❌ Supprimer vidéo si image
+            clearVideoUpload();
+
+            imagePreviewContainer.innerHTML = '';
+            imagePreviewContainer.classList.add('has-image');
+            imageBtn.classList.add('active');
+
+            const wrapper = document.createElement('div');
+            wrapper.className = 'image-preview-wrapper';
+
+            const img = document.createElement('img');
+            img.src = URL.createObjectURL(file);
+
+            const removeBtn = document.createElement('button');
+            removeBtn.className = 'remove-image-btn';
+            removeBtn.type = 'button';
+            removeBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+            removeBtn.title = 'Remove image';
+
+            removeBtn.addEventListener('click', () => {
+                clearImageUpload();
+            });
+
+            wrapper.appendChild(img);
+            wrapper.appendChild(removeBtn);
+            imagePreviewContainer.appendChild(wrapper);
+        });
+    }
+
+    // ========== VIDEO PREVIEW ==========
+
+    if (videoInput && videoPreviewContainer) {
+        videoInput.addEventListener('change', function () {
+            const file = this.files[0];
+            
+            if (!file) {
+                clearVideoUpload();
+                return;
+            }
+
+            // ✅ Validation de la taille AVANT preview
+            if (file.size > MAX_VIDEO_SIZE) {
+                alert('Video too large! Maximum size is 50MB.');
+                this.value = '';
+                return;
+            }
+
+            // ✅ Validation du format
+            const allowedTypes = ['video/mp4', 'video/webm', 'video/ogg'];
+            if (!allowedTypes.includes(file.type)) {
+                alert('Invalid video format. Allowed: MP4, WebM, OGG');
+                this.value = '';
+                return;
+            }
+
+            // ❌ Supprimer image si vidéo
+            clearImageUpload();
+
+            videoPreviewContainer.innerHTML = '';
+
+            const wrapper = document.createElement('div');
+            wrapper.className = 'video-preview-wrapper';
+
+            const video = document.createElement('video');
+            video.src = URL.createObjectURL(file);
+            video.controls = true;
+            video.style.maxWidth = '100%';
+
+            const removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.className = 'remove-image-btn';
+            removeBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+            removeBtn.title = 'Remove video';
+
+            removeBtn.addEventListener('click', () => {
+                clearVideoUpload();
+            });
+
+            wrapper.appendChild(video);
+            wrapper.appendChild(removeBtn);
+            videoPreviewContainer.appendChild(wrapper);
         });
     }
 
@@ -1081,36 +1235,36 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
         });
     });
-});
-// ========== SEE MORE / AUTO HIDE ==========
-document.querySelectorAll('.see-more-btn').forEach(btn => {
-    const id = btn.dataset.id;
-    const body = document.getElementById(`article-body-${id}`);
 
-    if (!body) return;
+    // ========== SEE MORE / AUTO HIDE ==========
 
-    // Si le texte est trop court → cacher le bouton
-    const visibleHeight = 180; // même valeur que le CSS
-    const fullHeight = body.scrollHeight;
+    document.querySelectorAll('.see-more-btn').forEach(btn => {
+        const id = btn.dataset.id;
+        const body = document.getElementById(`article-body-${id}`);
 
-    if (fullHeight <= visibleHeight + 10) { // +10 pour sécurité
-        btn.style.display = "none";
-        return;
-    }
+        if (!body) return;
 
-    // Sinon → gérer le toggle
-    btn.addEventListener('click', function () {
-        body.classList.toggle('expanded');
+        // Si le texte est trop court → cacher le bouton
+        const visibleHeight = 180; // même valeur que le CSS
+        const fullHeight = body.scrollHeight;
 
-        if (body.classList.contains('expanded')) {
-            btn.textContent = "See less";
-        } else {
-            btn.textContent = "See more";
+        if (fullHeight <= visibleHeight + 10) { // +10 pour sécurité
+            btn.style.display = "none";
+            return;
         }
+
+        // Sinon → gérer le toggle
+        btn.addEventListener('click', function () {
+            body.classList.toggle('expanded');
+
+            if (body.classList.contains('expanded')) {
+                btn.textContent = "See less";
+            } else {
+                btn.textContent = "See more";
+            }
+        });
     });
 });
-
-
 </script>
 
 

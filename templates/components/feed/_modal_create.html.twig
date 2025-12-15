@@ -3,9 +3,9 @@
     <div class="modal-content linkedin-modal">
         <div class="modal-header">
             <div class="user-line">
-  <img class="user-avatar" src="{{ asset(app.user.avatar ? 'uploads/avatars/' ~ app.user.avatar : 'images/User.svg') }}"
-             class="composer-avatar"
-             alt="Avatar"/>
+                <img class="user-avatar" 
+                     src="{{ asset(app.user.avatar ? 'uploads/avatars/' ~ app.user.avatar : 'images/User.svg') }}"
+                     alt="Avatar"/>
                 <div class="user-info">
                     <strong>{{ app.user.username }}</strong>
                     <span class="visibility">
@@ -43,7 +43,14 @@
                        accept="image/*"
                        hidden>
 
+                <input type="file"
+                       name="video"
+                       id="modal-video-input"
+                       accept="video/mp4,video/webm,video/ogg"
+                       hidden>
+
                 <div id="image-preview-container"></div>
+                <div id="video-preview-container"></div>
             </div>
 
             <div class="linkedin-footer">
@@ -54,6 +61,16 @@
                             title="Add image">
                         <i class="fa-regular fa-image"></i>
                     </button>
+                    <button type="button"
+                            class="icon-btn"
+                            id="video-btn-modal"
+                            title="Add video">
+                        <i class="fa-solid fa-video"></i>
+                    </button>
+                    <span class="upload-hint">
+                        <i class="fa-solid fa-circle-info"></i>
+                        Max video: 50MB
+                    </span>
                 </div>
                 <button type="submit"
                         id="publish-btn"

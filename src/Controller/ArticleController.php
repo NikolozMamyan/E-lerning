@@ -34,6 +34,7 @@ class ArticleController extends AbstractController
     {
         $title = trim($request->request->get('title', ''));
         $description = trim($request->request->get('description', ''));
+
         
         if (empty($title) || empty($description)) {
             $this->addFlash('error', 'Title and content are required');
@@ -64,6 +65,35 @@ if ($existing) {
                 $this->addFlash('error', 'Image upload error');
             }
         }
+        // Video upload
+$videoFile = $request->files->get('video');
+
+if ($videoFile) {
+    $allowedMimeTypes = ['video/mp4', 'video/webm', 'video/ogg'];
+
+    if (!in_array($videoFile->getMimeType(), $allowedMimeTypes)) {
+        $this->addFlash('error', 'Invalid video format');
+        return $this->redirectToRoute('article_feed');
+    }
+
+    // Optionnel : limite taille (ex 50MB)
+    if ($videoFile->getSize() > 50 * 1024 * 1024) {
+        $this->addFlash('error', 'Video is too large (max 50MB)');
+        return $this->redirectToRoute('article_feed');
+    }
+
+    $videoName = uniqid('video_') . '.' . $videoFile->guessExtension();
+
+    try {
+        $videoFile->move(
+            $this->getParameter('videos_dir'),
+            $videoName
+        );
+        $article->setVideo($videoName);
+    } catch (FileException $e) {
+        $this->addFlash('error', 'Video upload error');
+    }
+}
         $em->persist($article);
         $em->flush();
 
@@ -222,18 +252,107 @@ public function edit(Article $article, Request $request, EntityManagerInterface 
         $article->setTitre($title);
         $article->setDescription($description);
 
-        // ---- IMAGE UPLOAD ----
+        // ---- GESTION IMAGE/VIDEO MUTUELLE ----
         $imageFile = $request->files->get('image');
+        $videoFile = $request->files->get('video');
 
+        // Vérifier qu'on n'a pas les deux en même temps
+        if ($imageFile && $videoFile) {
+            $this->addFlash('error', 'You cannot upload both an image and a video');
+            return $this->redirectToRoute('article_edit', ['id' => $article->getId()]);
+        }
+
+        // ---- IMAGE UPLOAD ----
         if ($imageFile) {
-            $newFilename = uniqid().'_'.$imageFile->getClientOriginalName();
+            // Supprimer l'ancienne image si elle existe
+            if ($article->getImage()) {
+                $oldImagePath = $this->getParameter('articles_dir') . '/' . $article->getImage();
+                if (file_exists($oldImagePath)) {
+                    unlink($oldImagePath);
+                }
+            }
+
+            // Supprimer la vidéo si elle existe (car on met une image)
+            if ($article->getVideo()) {
+                $oldVideoPath = $this->getParameter('videos_dir') . '/' . $article->getVideo();
+                if (file_exists($oldVideoPath)) {
+                    unlink($oldVideoPath);
+                }
+                $article->setVideo(null);
+            }
+
+            $newFilename = uniqid() . '_' . $imageFile->getClientOriginalName();
             $imageFile->move(
-                $this->getParameter('articles_dir'), 
+                $this->getParameter('articles_dir'),
                 $newFilename
             );
 
-            // Met à jour le nom dans l'entité
             $article->setImage($newFilename);
+        }
+
+        // ---- VIDEO UPLOAD ----
+        if ($videoFile) {
+            $allowedMimeTypes = ['video/mp4', 'video/webm', 'video/ogg'];
+
+            if (!in_array($videoFile->getMimeType(), $allowedMimeTypes)) {
+                $this->addFlash('error', 'Invalid video format');
+                return $this->redirectToRoute('article_edit', ['id' => $article->getId()]);
+            }
+
+            if ($videoFile->getSize() > 50 * 1024 * 1024) {
+                $this->addFlash('error', 'Video is too large (max 50MB)');
+                return $this->redirectToRoute('article_edit', ['id' => $article->getId()]);
+            }
+
+            // Supprimer l'ancienne vidéo si elle existe
+            if ($article->getVideo()) {
+                $oldVideoPath = $this->getParameter('videos_dir') . '/' . $article->getVideo();
+                if (file_exists($oldVideoPath)) {
+                    unlink($oldVideoPath);
+                }
+            }
+
+            // Supprimer l'image si elle existe (car on met une vidéo)
+            if ($article->getImage()) {
+                $oldImagePath = $this->getParameter('articles_dir') . '/' . $article->getImage();
+                if (file_exists($oldImagePath)) {
+                    unlink($oldImagePath);
+                }
+                $article->setImage(null);
+            }
+
+            $videoName = uniqid('video_') . '.' . $videoFile->guessExtension();
+
+            try {
+                $videoFile->move(
+                    $this->getParameter('videos_dir'),
+                    $videoName
+                );
+                $article->setVideo($videoName);
+            } catch (FileException $e) {
+                $this->addFlash('error', 'Video upload error');
+            }
+        }
+
+        // ---- SUPPRESSION MANUELLE (si checkbox cochée) ----
+        if ($request->request->get('remove_image') === '1') {
+            if ($article->getImage()) {
+                $oldImagePath = $this->getParameter('articles_dir') . '/' . $article->getImage();
+                if (file_exists($oldImagePath)) {
+                    unlink($oldImagePath);
+                }
+                $article->setImage(null);
+            }
+        }
+
+        if ($request->request->get('remove_video') === '1') {
+            if ($article->getVideo()) {
+                $oldVideoPath = $this->getParameter('videos_dir') . '/' . $article->getVideo();
+                if (file_exists($oldVideoPath)) {
+                    unlink($oldVideoPath);
+                }
+                $article->setVideo(null);
+            }
         }
 
         $em->flush();
@@ -247,27 +366,34 @@ public function edit(Article $article, Request $request, EntityManagerInterface 
     ]);
 }
 
-
-    #[Route('/{id}/delete', name: 'article_delete')]
-    #[IsGranted('ROLE_USER')]
-    public function delete(Article $article, EntityManagerInterface $em): Response
-    {
-        if ($this->getUser() !== $article->getAuthor()) {
-            throw $this->createAccessDeniedException('You are not allowed to delete this article');
-        }
-
-        // Delete associated image if exists
-        if ($article->getImage()) {
-            $imagePath = $this->getParameter('articles_dir') . '/' . $article->getImage();
-            if (file_exists($imagePath)) {
-                unlink($imagePath);
-            }
-        }
-
-        $em->remove($article);
-        $em->flush();
-
-        $this->addFlash('success', 'Article deleted successfully!');
-        return $this->redirectToRoute('article_feed');
+#[Route('/{id}/delete', name: 'article_delete')]
+#[IsGranted('ROLE_USER')]
+public function delete(Article $article, EntityManagerInterface $em): Response
+{
+    if ($this->getUser() !== $article->getAuthor()) {
+        throw $this->createAccessDeniedException('You are not allowed to delete this article');
     }
+
+    // Delete associated image if exists
+    if ($article->getImage()) {
+        $imagePath = $this->getParameter('articles_dir') . '/' . $article->getImage();
+        if (file_exists($imagePath)) {
+            unlink($imagePath);
+        }
+    }
+
+    // Delete associated video if exists
+    if ($article->getVideo()) {
+        $videoPath = $this->getParameter('videos_dir') . '/' . $article->getVideo();
+        if (file_exists($videoPath)) {
+            unlink($videoPath);
+        }
+    }
+
+    $em->remove($article);
+    $em->flush();
+
+    $this->addFlash('success', 'Article deleted successfully!');
+    return $this->redirectToRoute('article_feed');
+}
 }

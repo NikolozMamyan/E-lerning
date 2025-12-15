@@ -4,8 +4,6 @@
     <div class="article-header">
         <div class="user-info">
             <div class="user-avatar">
-
-              <img class="user-avatar"
  <img class="user-avatar"
      src="{{ asset(article.author.avatar ? 'uploads/avatars/' ~ article.author.avatar : 'images/User.svg') }}">
 
@@ -59,6 +57,13 @@
              alt="{{ article.titre }}"
              loading="lazy">
     {% endif %}
+    {% if article.video %}
+    <video controls style="max-width:100%; border-radius:10px;">
+        <source src="{{ asset('uploads/videos/' ~ article.video) }}" type="video/mp4">
+        Your browser does not support video.
+    </video>
+{% endif %}
+
 
     {# ACTIONS #}
     <div class="article-actions">

@@ -5,6 +5,7 @@
 parameters:
     uploads_directory: '%kernel.project_dir%/public/uploads/avatars'
     articles_dir: '%kernel.project_dir%/public/uploads/articles'
+    videos_dir: '%kernel.project_dir%/public/uploads/videos'
 
 services:
     # default configuration for services in *this* file

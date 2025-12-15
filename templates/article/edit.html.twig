@@ -8,7 +8,6 @@
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
 {% endblock %}
 
-
 {% block body %}
 
 <style>
@@ -81,12 +80,76 @@ h2 {
     border-radius: 0 0 var(--radius-sm) var(--radius-sm);
 }
 
-/* Image preview */
-#image-preview {
+/* Media preview */
+.media-preview-wrapper {
+    position: relative;
+    display: inline-block;
+    margin-top: 10px;
+    margin-bottom: 15px;
+    max-width: 100%;
+}
+
+.media-preview-wrapper img,
+.media-preview-wrapper video {
     max-width: 100%;
     border-radius: var(--radius-sm);
-    margin-top: 10px;
     display: block;
+}
+
+.media-preview-wrapper video {
+    max-height: 400px;
+}
+
+.remove-media-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(220, 53, 69, 0.9);
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    z-index: 10;
+}
+
+.remove-media-btn i {
+    color: white;
+    font-size: 16px;
+}
+
+.remove-media-btn:hover {
+    background: rgba(220, 53, 69, 1);
+    transform: scale(1.1);
+}
+
+.media-section {
+    margin-bottom: 20px;
+}
+
+.media-section label {
+    font-weight: 600;
+    color: var(--grey);
+    display: block;
+    margin-bottom: 8px;
+}
+
+.upload-hint {
+    font-size: 12px;
+    color: var(--light-grey);
+    margin-top: 5px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.upload-hint i {
+    font-size: 14px;
+    color: #0066cc;
 }
 
 /* Submit button */
@@ -98,7 +161,7 @@ h2 {
     font-weight: 600;
     border-radius: 24px;
     cursor: pointer;
-    margin-top:20px;
+    margin-top: 20px;
     font-size: 15px;
     transition: var(--transition);
 }
@@ -108,7 +171,6 @@ h2 {
     transform: scale(1.02);
 }
 </style>
-
 
 <div class="edit-container">
 
@@ -121,43 +183,76 @@ h2 {
                name="title"
                value="{{ article.titre }}"
                class="input-field"
-               placeholder="Titre de l’article"
+               placeholder="Titre de l'article"
                required>
-
 
         <!-- DESCRIPTION / QUILL -->
         <div id="editor"></div>
         <textarea id="editor-output" name="description" hidden>{{ article.description|raw }}</textarea>
 
+        <!-- IMAGE SECTION -->
+        <div class="media-section">
+            <label><i class="fa-regular fa-image"></i> Image</label>
+            <input type="file" 
+                   name="image" 
+                   accept="image/*" 
+                   id="img-input" 
+                   class="input-field">
+            
+            {% if article.image %}
+                <div class="media-preview-wrapper" id="current-image">
+                    <img src="{{ asset('uploads/articles/' ~ article.image) }}" alt="Current image">
+                    <button type="button" class="remove-media-btn" id="remove-image-btn">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+                <input type="hidden" name="remove_image" id="remove-image-input" value="0">
+            {% endif %}
 
-        <!-- CONTENT (si tu veux un content séparé de description) -->
+            <div id="image-preview-container"></div>
+        </div>
 
+        <!-- VIDEO SECTION -->
+        <div class="media-section">
+            <label><i class="fa-solid fa-video"></i> Video</label>
+            <input type="file" 
+                   name="video" 
+                   accept="video/mp4,video/webm,video/ogg" 
+                   id="video-input" 
+                   class="input-field">
+            <div class="upload-hint">
+                <i class="fa-solid fa-circle-info"></i>
+                Max video size: 50MB (MP4, WebM, OGG)
+            </div>
+            
+            {% if article.video %}
+                <div class="media-preview-wrapper" id="current-video">
+                    <video controls>
+                        <source src="{{ asset('uploads/videos/' ~ article.video) }}" type="video/{{ article.video|split('.')|last }}">
+                    </video>
+                    <button type="button" class="remove-media-btn" id="remove-video-btn">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+                <input type="hidden" name="remove_video" id="remove-video-input" value="0">
+            {% endif %}
 
-
-        <!-- IMAGE -->
-        <label style="font-weight:600; color:var(--grey);">Image</label>
-        <input type="file" name="image" accept="image/*" id="img-input" class="input-field">
-
-        {% if article.image %}
-            <img id="image-preview" src="/uploads/articles/{{ article.image }}" alt="">
-        {% else %}
-            <img id="image-preview" style="display:none;">
-        {% endif %}
-
+            <div id="video-preview-container"></div>
+        </div>
 
         <!-- SUBMIT -->
         <button type="submit" class="btn-submit">
-            Enregistrer les modifications
+            <i class="fa-solid fa-save"></i> Enregistrer les modifications
         </button>
 
     </form>
 
 </div>
 
-
-
-
 <script>
+/* ========== CONSTANTES ========== */
+const MAX_VIDEO_SIZE = 50 * 1024 * 1024; // 50MB
+
 /* ========== QUILL INIT ========== */
 const quill = new Quill('#editor', {
     theme: 'snow',
@@ -180,17 +275,159 @@ quill.on('text-change', function() {
     document.getElementById("editor-output").value = quill.root.innerHTML;
 });
 
-
-/* ========== IMAGE PREVIEW ========== */
-document.getElementById("img-input").addEventListener("change", function(e) {
-    const file = e.target.files[0];
-    const preview = document.getElementById("image-preview");
-
-    if (file) {
-        preview.src = URL.createObjectURL(file);
-        preview.style.display = "block";
+/* ========== FONCTIONS UTILITAIRES ========== */
+function clearImagePreview() {
+    const container = document.getElementById('image-preview-container');
+    if (container) {
+        container.innerHTML = '';
     }
-});
+}
+
+function clearVideoPreview() {
+    const container = document.getElementById('video-preview-container');
+    if (container) {
+        container.innerHTML = '';
+    }
+}
+
+function hideCurrentImage() {
+    const currentImage = document.getElementById('current-image');
+    if (currentImage) {
+        currentImage.style.display = 'none';
+    }
+}
+
+function hideCurrentVideo() {
+    const currentVideo = document.getElementById('current-video');
+    if (currentVideo) {
+        currentVideo.style.display = 'none';
+    }
+}
+
+/* ========== SUPPRESSION IMAGE EXISTANTE ========== */
+const removeImageBtn = document.getElementById('remove-image-btn');
+if (removeImageBtn) {
+    removeImageBtn.addEventListener('click', function() {
+        if (confirm('Remove this image?')) {
+            document.getElementById('remove-image-input').value = '1';
+            hideCurrentImage();
+        }
+    });
+}
+
+/* ========== SUPPRESSION VIDEO EXISTANTE ========== */
+const removeVideoBtn = document.getElementById('remove-video-btn');
+if (removeVideoBtn) {
+    removeVideoBtn.addEventListener('click', function() {
+        if (confirm('Remove this video?')) {
+            document.getElementById('remove-video-input').value = '1';
+            hideCurrentVideo();
+        }
+    });
+}
+
+/* ========== IMAGE UPLOAD PREVIEW ========== */
+const imgInput = document.getElementById("img-input");
+if (imgInput) {
+    imgInput.addEventListener("change", function(e) {
+        const file = e.target.files[0];
+        
+        if (!file) {
+            clearImagePreview();
+            return;
+        }
+
+        // Cacher/supprimer la vidéo existante et nouveau preview
+        hideCurrentVideo();
+        clearVideoPreview();
+        if (document.getElementById('video-input')) {
+            document.getElementById('video-input').value = '';
+        }
+
+        clearImagePreview();
+
+        const container = document.getElementById('image-preview-container');
+        const wrapper = document.createElement('div');
+        wrapper.className = 'media-preview-wrapper';
+
+        const img = document.createElement('img');
+        img.src = URL.createObjectURL(file);
+
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.className = 'remove-media-btn';
+        removeBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+
+        removeBtn.addEventListener('click', () => {
+            imgInput.value = '';
+            clearImagePreview();
+        });
+
+        wrapper.appendChild(img);
+        wrapper.appendChild(removeBtn);
+        container.appendChild(wrapper);
+    });
+}
+
+/* ========== VIDEO UPLOAD PREVIEW ========== */
+const videoInput = document.getElementById("video-input");
+if (videoInput) {
+    videoInput.addEventListener("change", function(e) {
+        const file = e.target.files[0];
+        
+        if (!file) {
+            clearVideoPreview();
+            return;
+        }
+
+        // Validation de la taille
+        if (file.size > MAX_VIDEO_SIZE) {
+            alert('Video too large! Maximum size is 50MB.');
+            this.value = '';
+            return;
+        }
+
+        // Validation du format
+        const allowedTypes = ['video/mp4', 'video/webm', 'video/ogg'];
+        if (!allowedTypes.includes(file.type)) {
+            alert('Invalid video format. Allowed: MP4, WebM, OGG');
+            this.value = '';
+            return;
+        }
+
+        // Cacher/supprimer l'image existante et nouveau preview
+        hideCurrentImage();
+        clearImagePreview();
+        if (document.getElementById('img-input')) {
+            document.getElementById('img-input').value = '';
+        }
+
+        clearVideoPreview();
+
+        const container = document.getElementById('video-preview-container');
+        const wrapper = document.createElement('div');
+        wrapper.className = 'media-preview-wrapper';
+
+        const video = document.createElement('video');
+        video.src = URL.createObjectURL(file);
+        video.controls = true;
+        video.style.maxWidth = '100%';
+
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.className = 'remove-media-btn';
+        removeBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+
+        removeBtn.addEventListener('click', () => {
+            videoInput.value = '';
+            clearVideoPreview();
+        });
+
+        wrapper.appendChild(video);
+        wrapper.appendChild(removeBtn);
+        container.appendChild(wrapper);
+    });
+}
 </script>
 
 {% endblock %}
