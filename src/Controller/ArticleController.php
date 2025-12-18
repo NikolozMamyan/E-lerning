@@ -177,6 +177,46 @@ public function like(
     ]);
 }
 
+#[Route('/comments/{id}/edit', name: 'comment_edit', methods: ['POST'])]
+#[IsGranted('ROLE_USER')]
+public function editComment(
+    Comment $comment,
+    Request $request,
+    EntityManagerInterface $em
+): JsonResponse {
+    if ($comment->getAuthor() !== $this->getUser()) {
+        return $this->json(['error' => 'Unauthorized'], 403);
+    }
+
+    $content = trim($request->request->get('content', ''));
+    if (!$content) {
+        return $this->json(['error' => 'Content cannot be empty'], 400);
+    }
+
+    $comment->setContent($content);
+    $em->flush();
+
+    return $this->json([
+        'success' => true,
+        'content' => $comment->getContent()
+    ]);
+}
+
+#[Route('/comments/{id}/delete', name: 'comment_delete', methods: ['POST'])]
+#[IsGranted('ROLE_USER')]
+public function deleteComment(
+    Comment $comment,
+    EntityManagerInterface $em
+): JsonResponse {
+    if ($comment->getAuthor() !== $this->getUser()) {
+        return $this->json(['error' => 'Unauthorized'], 403);
+    }
+
+    $em->remove($comment);
+    $em->flush();
+
+    return $this->json(['success' => true]);
+}
 
 
 #[Route('/{id}/comment', name: 'article_comment', methods: ['POST'])]

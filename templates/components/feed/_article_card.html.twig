@@ -60,6 +60,69 @@
     color: #888;
     text-transform: lowercase;
 }
+/* ===============================
+   COMMENT ACTIONS (EDIT / DELETE)
+   =============================== */
+
+.comment-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.comment-actions {
+    display: flex;
+    gap: 6px;
+}
+
+/* Boutons icônes */
+.comment-actions button {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    color: #6b7280; /* gris doux */
+    font-size: 13px;
+
+    transition: background 0.2s ease, color 0.2s ease, transform 0.15s ease;
+}
+
+/* Hover général */
+.comment-actions button:hover {
+    background: #f3f4f6;
+    transform: scale(1.1);
+}
+
+/* Icône edit */
+.edit-comment-btn:hover {
+    color: #2563eb; /* bleu */
+    background: rgba(37, 99, 235, 0.12);
+}
+
+/* Icône delete */
+.delete-comment-btn:hover {
+    color: #dc2626; /* rouge */
+    background: rgba(220, 38, 38, 0.12);
+}
+
+/* Active (clic) */
+.comment-actions button:active {
+    transform: scale(0.95);
+}
+
+/* Responsive (mobile) */
+@media (max-width: 480px) {
+    .comment-actions button {
+        padding: 8px;
+        font-size: 14px;
+    }
+}
 
 </style>
 <article class="article-card" id="article-{{ article.id }}">
@@ -157,7 +220,7 @@
     <div class="comments-section"
          id="comments-{{ article.id }}">
         {% for comment in article.comments %}
-            <div class="comment">
+            <div class="comment" id="comment-{{ comment.id }}">
                 <div class="user-avatar user-avatar--small">
                            <img  src="{{ asset(comment.author.avatar ? 'uploads/avatars/' ~ comment.author.avatar : 'images/User.svg') }}"
            class="user-avatar user-avatar--small"
@@ -166,13 +229,29 @@
                 <div class="comment-content">
                     <div class="comment-header">
                         {# User-{{ comment.createdAt|date('Ymd') }}-{{ comment.author.id }} USER NAME #}
+{% if app.user and app.user == comment.author %}
+    <div class="comment-actions">
+        <button class="edit-comment-btn"
+                data-id="{{ comment.id }}">
+            <i class="fa-solid fa-pen"></i>
+        </button>
+
+        <button class="delete-comment-btn"
+                data-id="{{ comment.id }}">
+            <i class="fa-solid fa-trash"></i>
+        </button>
+    </div>
+{% endif %}
 
                         <span class="date">
                             <i class="fa-regular fa-clock"></i>
                             {{ comment.createdAt|date('m/d/Y') }}
                         </span>
                     </div>
-                    <p>{{ comment.content }}</p>
+                    <p class="comment-text" data-id="{{ comment.id }}">
+    {{ comment.content }}
+</p>
+
                 </div>
             </div>
         {% endfor %}
@@ -245,4 +324,63 @@ document.querySelectorAll('.article-body').forEach(body => {
     });
 });
 </script>
+<script>
+document.addEventListener('click', function (e) {
+
+  /* ✏️ EDIT COMMENT */
+  if (e.target.closest('.edit-comment-btn')) {
+    const btn = e.target.closest('.edit-comment-btn')
+    const id = btn.dataset.id
+    const p = document.querySelector(`.comment-text[data-id="${id}"]`)
+if (!p) return
+
+
+    const input = document.createElement('input')
+    input.type = 'text'
+    input.value = p.textContent
+    input.classList.add('input-field')
+
+    p.replaceWith(input)
+    input.focus()
+
+    input.addEventListener('blur', () => {
+      fetch(`/app/articles/comments/${id}/edit`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `content=${encodeURIComponent(input.value)}`
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          const newP = document.createElement('p')
+          newP.className = 'comment-text'
+          newP.dataset.id = id
+          newP.textContent = data.content
+          input.replaceWith(newP)
+        }
+      })
+    })
+  }
+
+  /* 🗑️ DELETE COMMENT */
+  if (e.target.closest('.delete-comment-btn')) {
+    const btn = e.target.closest('.delete-comment-btn')
+    const id = btn.dataset.id
+
+    if (!confirm('Delete this comment?')) return
+
+    fetch(`/app/articles/comments/${id}/delete`, {
+      method: 'POST'
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        document.getElementById(`comment-${id}`).remove()
+      }
+    })
+  }
+
+})
+</script>
+
 

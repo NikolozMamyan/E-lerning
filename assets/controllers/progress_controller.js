@@ -121,8 +121,7 @@ export default class extends Controller {
     const title = document.createElement("h2")
     title.textContent = "🎉 Congratulations!"
     const text = document.createElement("p")
-    text.textContent = "You successfully completed this lesson."
-
+    text.textContent = "You have completed the video. The quiz button will appear below once you click OK."
     const btn = document.createElement("button")
     btn.textContent = "OK"
     btn.classList.add("popup-btn")

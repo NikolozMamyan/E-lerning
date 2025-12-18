@@ -1200,24 +1200,39 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (!commentsSection) return;
 
                     const commentDiv = document.createElement('div');
-                    commentDiv.classList.add('comment');
-                    commentDiv.innerHTML = `
-                        <div class="user-avatar user-avatar--small">
-                             <img  src="{{ asset(app.user.avatar ? 'uploads/avatars/' ~ app.user.avatar : 'images/User.svg') }}"
-           class="user-avatar user-avatar--small"
+                 commentDiv.id = `comment-${data.id}`
+commentDiv.classList.add('comment')
+
+commentDiv.innerHTML = `
+    <div class="user-avatar user-avatar--small">
+        <img src="{{ asset(app.user.avatar ? 'uploads/avatars/' ~ app.user.avatar : 'images/User.svg') }}"
+             class="user-avatar user-avatar--small"
              alt="Avatar"/>
-                        </div>
-                        <div class="comment-content">
-                            <div class="comment-header">
-                                <span class="username"></span>
-                                <span class="date">
-                                    <i class="fa-regular fa-clock"></i>
-                                    ${data.date}
-                                </span>
-                            </div>
-                            <p>${data.content}</p>
-                        </div>
-                    `;
+    </div>
+
+    <div class="comment-content">
+        <div class="comment-header">
+            <div class="comment-actions">
+                <button class="edit-comment-btn" data-id="${data.id}">
+                    <i class="fa-solid fa-pen"></i>
+                </button>
+
+                <button class="delete-comment-btn" data-id="${data.id}">
+                    <i class="fa-solid fa-trash"></i>
+                </button>
+            </div>
+
+            <span class="date">
+                <i class="fa-regular fa-clock"></i>
+                ${data.date}
+            </span>
+        </div>
+
+        <p class="comment-text" data-id="${data.id}">
+            ${data.content}
+        </p>
+    </div>
+`;
 
                     commentsSection.insertBefore(commentDiv, this);
 
