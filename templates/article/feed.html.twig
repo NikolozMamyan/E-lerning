@@ -386,14 +386,28 @@ body {
 .comments-section {
     background: var(--bg);
     max-height: 0;
+    position: relative;
     overflow: hidden;
     transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), padding 0.4s;
     padding: 0 20px;
 }
 
+
+.comments-section .comment-form{
+  position: sticky;
+  bottom: 0;
+  background: var(--bg);           /* évite la transparence */
+  padding: 12px 0 0;               /* espace au-dessus */
+  margin-top: 12px;
+  z-index: 5;
+  border-top: 1px solid #e0e0e0;   /* petite séparation */
+}
+
+
 .comments-section.expanded {
-    max-height: 2000px;
-    padding: 16px 20px 20px;
+    max-height: 420px;        /* 🔽 hauteur réduite */
+    overflow-y: auto;
+    padding:15px 15px 0;
 }
 
 .comment {
@@ -855,10 +869,6 @@ body {
 {# Scripts en bas de page #}
 <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
 <script>
-// public/assets/js/feed.js
-
-// public/assets/js/feed.js
-
 document.addEventListener('DOMContentLoaded', () => {
     const modal = document.getElementById('create-modal');
     const articleTitleInput = document.getElementById('article-title');
@@ -1171,85 +1181,103 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // ========== AJAX COMMENT SUBMISSION ==========
+   // ========== AJAX COMMENT SUBMISSION ==========
 
-    document.querySelectorAll('.comment-form').forEach(form => {
-        form.addEventListener('submit', function (e) {
-            e.preventDefault();
+document.querySelectorAll('.comment-form').forEach(form => {
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
 
-            const articleId = this.dataset.articleId;
-            if (!articleId) return;
+        const articleId = this.dataset.articleId;
+        if (!articleId) return;
 
-            const input = this.querySelector('.input-field');
-            if (!input) return;
+        const input = this.querySelector('.input-field');
+        if (!input) return;
 
-            const content = input.value.trim();
-            if (!content) return;
+        const content = input.value.trim();
+        if (!content) return;
 
-            fetch(`/app/articles/${articleId}/comment`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: new URLSearchParams({ comment: content })
-            })
-                .then(response => response.json())
-                .then(data => {
-                    const commentsSection = document.getElementById(`comments-${articleId}`);
-                    if (!commentsSection) return;
+        // ✅ Validation côté client (150 caractères max)
+        if (content.length > 220) {
+            alert('⚠️ Your comment is too long! Maximum 220 characters allowed.');
+            return;
+        }
 
-                    const commentDiv = document.createElement('div');
-                 commentDiv.id = `comment-${data.id}`
-commentDiv.classList.add('comment')
+        fetch(`/app/articles/${articleId}/comment`, {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'X-Requested-With': 'XMLHttpRequest'
+    },
+    body: new URLSearchParams({ comment: content })
+})
+    .then(response => {
+        // ✅ IMPORTANT : Vérifier si la réponse est OK AVANT de parser le JSON
+        if (!response.ok) {
+            return response.json().then(data => {
+                throw new Error(data.error || 'An error occurred');
+            });
+        }
+        return response.json();
+    })
+    .then(data => {
+        // ✅ Cette partie ne s'exécute QUE si response.ok === true
+        const commentsSection = document.getElementById(`comments-${articleId}`);
+        if (!commentsSection) return;
 
-commentDiv.innerHTML = `
-    <div class="user-avatar user-avatar--small">
-        <img src="{{ asset(app.user.avatar ? 'uploads/avatars/' ~ app.user.avatar : 'images/User.svg') }}"
-             class="user-avatar user-avatar--small"
-             alt="Avatar"/>
-    </div>
+        const commentDiv = document.createElement('div');
+        commentDiv.id = `comment-${data.id}`;
+        commentDiv.classList.add('comment');
 
-    <div class="comment-content">
-        <div class="comment-header">
-            <div class="comment-actions">
-                <button class="edit-comment-btn" data-id="${data.id}">
-                    <i class="fa-solid fa-pen"></i>
-                </button>
-
-                <button class="delete-comment-btn" data-id="${data.id}">
-                    <i class="fa-solid fa-trash"></i>
-                </button>
+        commentDiv.innerHTML = `
+            <div class="user-avatar user-avatar--small">
+                <img src="{{ asset(app.user.avatar ? 'uploads/avatars/' ~ app.user.avatar : 'images/User.svg') }}"
+                     class="user-avatar user-avatar--small"
+                     alt="Avatar"/>
             </div>
 
-            <span class="date">
-                <i class="fa-regular fa-clock"></i>
-                ${data.date}
-            </span>
-        </div>
+            <div class="comment-content">
+                <div class="comment-header">
+                    <div class="comment-actions">
+                        <button class="edit-comment-btn" data-id="${data.id}">
+                            <i class="fa-solid fa-pen"></i>
+                        </button>
 
-        <p class="comment-text" data-id="${data.id}">
-            ${data.content}
-        </p>
-    </div>
-`;
+                        <button class="delete-comment-btn" data-id="${data.id}">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
 
-                    commentsSection.insertBefore(commentDiv, this);
+                    <span class="date">
+                        <i class="fa-regular fa-clock"></i>
+                        ${data.date}
+                    </span>
+                </div>
 
-                    const countSpan = document.querySelector(
-                        `.comment-btn[data-article-id="${articleId}"] .count`
-                    );
-                    if (countSpan) {
-                        countSpan.textContent = parseInt(countSpan.textContent, 10) + 1;
-                    }
+                <p class="comment-text" data-id="${data.id}">
+                    ${data.content}
+                </p>
+            </div>
+        `;
 
-                    input.value = '';
-                })
-                .catch(err => {
-                    console.error('Error adding comment:', err);
-                });
-        });
+        commentsSection.insertBefore(commentDiv, this);
+
+        const countSpan = document.querySelector(
+            `.comment-btn[data-article-id="${articleId}"] .count`
+        );
+        if (countSpan) {
+            countSpan.textContent = parseInt(countSpan.textContent, 10) + 1;
+        }
+
+        input.value = '';
+    })
+    .catch(err => {
+        // ✅ Affiche maintenant correctement l'erreur du serveur
+        console.error('Error adding comment:', err);
+        alert(`❌ Error: ${err.message}`);
     });
+    });
+});
+
     document.addEventListener('click', function (e) {
 
   /* ✏️ EDIT COMMENT */

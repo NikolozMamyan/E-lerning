@@ -229,9 +229,13 @@ public function addComment(
 ): Response {
     $content = trim($request->request->get('comment', ''));
 
-    if (!$content) {
-        return $this->json(['error' => 'Comment cannot be empty'], 400);
-    }
+if (empty($content)) {
+    return $this->json(['error' => 'Comment cannot be empty'], 400);
+}
+if (mb_strlen($content) > 220) {
+    return $this->json(['error' => 'Comment is too long'], 400);
+}
+
 
     $user = $this->getUser();
     $author = $article->getAuthor();
@@ -260,7 +264,6 @@ public function addComment(
             actionUrl: "/app/articles#article-" . $article->getId(),
         );
     }
-
     return $this->json([
         'id' => $comment->getId(),
         'author' => "User-" . $comment->getCreatedAt()->format('Ymd') . "-" . $user->getId(),
