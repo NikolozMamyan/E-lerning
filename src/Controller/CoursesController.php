@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Course;
 use App\Repository\VideoRepository;
 use App\Repository\CourseRepository;
+use App\Repository\CategoryRepository;
 use App\Repository\ProgressRepository;
 use App\Repository\EnrollmentRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -19,13 +20,18 @@ class CoursesController extends AbstractController
 public function index(
     CourseRepository $courseRepo,
     ProgressRepository $progressRepo,
-    EnrollmentRepository $enrollmentRepo
+    EnrollmentRepository $enrollmentRepo,
+    CategoryRepository $categoryRepo
 ): Response {
     $user = $this->getUser();
     $courses = $courseRepo->findAll();
 
+    // ✅ Récupérer les catégories pour le filtre (ordre alphabétique)
+    $categories = $categoryRepo->findBy([], ['name' => 'ASC']);
+
     // Préparer tableau des accès
-    $subscription =$user->hasActiveSubscription();
+    $subscription = $user ? $user->hasActiveSubscription() : false;
+
     $access = [];
     if ($user) {
         foreach ($courses as $course) {
@@ -48,11 +54,11 @@ public function index(
 
     return $this->render('courses/index.html.twig', [
         'courses' => $courses,
+        'categories' => $categories, // ✅ AJOUT
         'progress' => $progress,
         'access' => $access
     ]);
 }
-
 
 
 

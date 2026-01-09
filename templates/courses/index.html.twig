@@ -4,24 +4,114 @@
 
 {% block body %}
   <section class="course-section">
-    <h2 class="section-title">Available Courses</h2>
-    <div class="course-grid">
+    <div class="course-header">
+      <div class="header-content">
+        <h2 class="section-title">Available Courses</h2>
+        <p class="section-subtitle">Find the right course faster with search and filters.</p>
+      </div>
+    </div>
+
+    {# ===== Toolbar intelligent & responsive ===== #}
+    <div class="course-toolbar">
+      <div class="toolbar-left">
+        <div class="search-box">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input 
+            type="text" 
+            id="course-search"
+            placeholder="Search courses..." 
+            aria-label="Search courses"
+          >
+          <button type="button" class="clear-search" id="clear-search" style="display: none;">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+<div class="filters">
+  <button type="button" class="filter-pill" id="category-filter">
+    <i class="fa-solid fa-filter"></i>
+    <span>Category</span>
+    <i class="fa-solid fa-chevron-down"></i>
+  </button>
+
+  <div class="filter-dropdown" id="category-dropdown">
+    <label class="filter-option">
+      <input type="checkbox" name="category" value="all" checked>
+      <span>All Categories</span>
+    </label>
+
+    {% for cat in categories %}
+      <label class="filter-option">
+        <input type="checkbox" name="category" value="{{ cat.slug }}">
+        <span>{{ cat.name }}</span>
+      </label>
+    {% endfor %}
+  </div>
+</div>
+
+
+        <div class="active-filters" id="active-filters"></div>
+      </div>
+
+      <div class="toolbar-right">
+        <div class="results-count">
+          <i class="fa-solid fa-graduation-cap"></i>
+          <span id="results-count">{{ courses|length }} course{{ courses|length > 1 ? 's' : '' }}</span>
+        </div>
+
+        <div class="sort-box">
+          <label for="sort-select" class="sort-label">Sort:</label>
+          <select id="sort-select" class="sort-select">
+            <option value="recent">Most Recent</option>
+            <option value="title">Title (A-Z)</option>
+            <option value="title-desc">Title (Z-A)</option>
+            <option value="duration">Duration</option>
+          </select>
+        </div>
+
+        <div class="view-toggle" role="group" aria-label="View toggle">
+          <button type="button" class="view-btn active" id="view-grid" title="Grid view">
+            <i class="fa-solid fa-grip"></i>
+          </button>
+          <button type="button" class="view-btn" id="view-list" title="List view">
+            <i class="fa-solid fa-list"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    {# ===== Message si aucun résultat ===== #}
+    <div class="no-results" id="no-results" style="display: none;">
+      <div class="no-results-icon">
+        <i class="fa-solid fa-search"></i>
+      </div>
+      <h3>No courses found</h3>
+      <p>Try adjusting your search or filters to find what you're looking for.</p>
+      <button type="button" class="reset-filters-btn" id="reset-filters">
+        <i class="fa-solid fa-rotate-right"></i>
+        Reset Filters
+      </button>
+    </div>
+
+    {# ===== Courses Grid ===== #}
+    <div class="course-grid" id="course-container">
       {% for course in courses %}
-        <div class="course-card">
-          <div class="course-thumbnail bg-aml">
+<div class="course-card" data-category="{{ course.category ? course.category.slug : 'training' }}">
+  <div class="course-thumbnail {{ course.category ? 'bg-' ~ course.category.slug : 'bg-training' }}">
+
             {% if access[course.id] is defined and access[course.id] %}
               <img src="{{ asset('uploads/courses/' ~ course.thumb) }}" alt="{{ course.title }}">
             {% else %}
               <div class="lock-overlay">
                 <div class="lock-icon">
                   <svg viewBox="0 0 24 24">
-                    <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 
-                      1.1.9 2 2 2h12c1.1 0 2-.9 
-                      2-2V10c0-1.1-.9-2-2-2zm-6 
-                      9c-1.1 0-2-.9-2-2s.9-2 
-                      2-2 2 .9 2 2-.9 2-2 
-                      2zm3.1-9H8.9V6c0-1.71 
-                      1.39-3.1 3.1-3.1 1.71 0 
+                    <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0
+                      1.1.9 2 2 2h12c1.1 0 2-.9
+                      2-2V10c0-1.1-.9-2-2-2zm-6
+                      9c-1.1 0-2-.9-2-2s.9-2
+                      2-2 2 .9 2 2-.9 2-2
+                      2zm3.1-9H8.9V6c0-1.71
+                      1.39-3.1 3.1-3.1 1.71 0
                       3.1 1.39 3.1 3.1v2z"/>
                   </svg>
                 </div>
@@ -29,49 +119,298 @@
               <img src="{{ asset('uploads/courses/' ~ course.thumb) }}" alt="{{ course.title }}">
             {% endif %}
 
-            {# Badge durée dans un coin de l'image #}
             {% if course.videos|length > 0 %}
               <span class="duration-badge">
-                {{ (course.videos|first.duration / 60)|round(0, 'floor') }}:
-                {{ '%02d'|format(course.videos|first.duration % 60) }}
+                <i class="fa-solid fa-clock"></i>
+                {{ (course.videos|first.duration / 60)|round(0, 'floor') }}:{{ '%02d'|format(course.videos|first.duration % 60) }}
               </span>
             {% endif %}
+
+{% if course.category %}
+  <span class="category-badge">{{ course.category.name }}</span>
+{% endif %}
+
           </div>
 
           <div class="course-info">
-            <h3 class="course-title">{{ course.title }}</h3>
+            <div class="course-meta">
+              <span class="video-count">
+                <i class="fa-solid fa-play-circle"></i>
+                {{ course.videos|length }} video{{ course.videos|length > 1 ? 's' : '' }}
+              </span>
+              {% if access[course.id] is defined and access[course.id] %}
+                <span class="access-badge unlocked">
+                  <i class="fa-solid fa-check-circle"></i>
+                  Unlocked
+                </span>
+              {% else %}
+                <span class="access-badge locked">
+                  <i class="fa-solid fa-lock"></i>
+                  Locked
+                </span>
+              {% endif %}
+            </div>
 
-            {# Limiter la description à 120 caractères #}
+            <h3 class="course-title">{{ course.title }}</h3>
             <p class="course-subtitle">
               {{ course.description|slice(0, 120) }}{% if course.description|length > 120 %}...{% endif %}
             </p>
 
             <div class="course-footer">
-              <a href="{{ path('app_course_show', {id: course.id}) }}" class="see-course-btn">See Course</a>
+              {% if course.planPdf %}
+                <a class="pdf-btn" href="{{ asset('uploads/course_plans/' ~ course.planPdf) }}" target="_blank" download title="Download Syllabus">
+                  <i class="fa-solid fa-file-pdf"></i>
+                </a>
+              {% endif %}
+
+              <a href="{{ path('app_course_show', {id: course.id}) }}" class="see-course-btn">
+                See Course
+                <i class="fa-solid fa-arrow-right"></i>
+              </a>
             </div>
           </div>
         </div>
       {% endfor %}
     </div>
   </section>
-{% endblock %}
 
-{% block stylesheets %}
-<style>
-.duration-badge {
-  position: absolute;
-  bottom: 8px;
-  right: 8px;
-  background: rgba(7, 23, 23, 0.75); /* noir semi-transparent */
-  color: #fff;
-  font-size: 0.8rem;
-  font-weight: 600;
-  padding: 2px 6px;
-  border-radius: 6px;
-}
-.course-thumbnail {
-  position: relative;
-  overflow: hidden;
-}
-</style>
+  <script>
+document.addEventListener('DOMContentLoaded', () => {
+  const container = document.getElementById('course-container');
+  const btnGrid = document.getElementById('view-grid');
+  const btnList = document.getElementById('view-list');
+  const searchInput = document.getElementById('course-search');
+  const clearSearch = document.getElementById('clear-search');
+  const sortSelect = document.getElementById('sort-select');
+  const categoryFilter = document.getElementById('category-filter');
+  const categoryDropdown = document.getElementById('category-dropdown');
+  const resultsCount = document.getElementById('results-count');
+  const noResults = document.getElementById('no-results');
+  const resetFiltersBtn = document.getElementById('reset-filters');
+  const activeFiltersContainer = document.getElementById('active-filters');
+  
+  const courses = Array.from(container.querySelectorAll('.course-card'));
+  let activeCategories = new Set(['all']);
+
+  // View Toggle
+  function setActive(btnOn, btnOff) {
+    btnOn.classList.add('active');
+    btnOff.classList.remove('active');
+  }
+
+  btnGrid?.addEventListener('click', () => {
+    container.classList.remove('is-list');
+    setActive(btnGrid, btnList);
+    localStorage.setItem('courseView', 'grid');
+  });
+
+  btnList?.addEventListener('click', () => {
+    container.classList.add('is-list');
+    setActive(btnList, btnGrid);
+    localStorage.setItem('courseView', 'list');
+  });
+
+  // Restore saved view
+  const savedView = localStorage.getItem('courseView');
+  if (savedView === 'list') {
+    btnList?.click();
+  }
+
+  // Search functionality
+  searchInput?.addEventListener('input', (e) => {
+    const searchTerm = e.target.value.toLowerCase();
+    clearSearch.style.display = searchTerm ? 'block' : 'none';
+    filterCourses();
+  });
+
+  clearSearch?.addEventListener('click', () => {
+    searchInput.value = '';
+    clearSearch.style.display = 'none';
+    filterCourses();
+  });
+
+  // Category filter dropdown
+  categoryFilter?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    categoryDropdown.classList.toggle('show');
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.filters')) {
+      categoryDropdown?.classList.remove('show');
+    }
+  });
+
+  // Category filter logic
+  const categoryCheckboxes = document.querySelectorAll('input[name="category"]');
+  categoryCheckboxes.forEach(checkbox => {
+    checkbox.addEventListener('change', (e) => {
+      const value = e.target.value;
+      
+      if (value === 'all') {
+        if (e.target.checked) {
+          activeCategories.clear();
+          activeCategories.add('all');
+          categoryCheckboxes.forEach(cb => {
+            if (cb.value !== 'all') cb.checked = false;
+          });
+        }
+      } else {
+        const allCheckbox = document.querySelector('input[value="all"]');
+        if (allCheckbox) allCheckbox.checked = false;
+        activeCategories.delete('all');
+        
+        if (e.target.checked) {
+          activeCategories.add(value);
+        } else {
+          activeCategories.delete(value);
+        }
+        
+        if (activeCategories.size === 0) {
+          activeCategories.add('all');
+          if (allCheckbox) allCheckbox.checked = true;
+        }
+      }
+      
+      updateActiveFilters();
+      filterCourses();
+      
+      // Update filter button state
+      if (activeCategories.has('all') || activeCategories.size === 0) {
+        categoryFilter.classList.remove('active');
+      } else {
+        categoryFilter.classList.add('active');
+      }
+    });
+  });
+
+  // Update active filters display
+  function updateActiveFilters() {
+    activeFiltersContainer.innerHTML = '';
+    
+    if (!activeCategories.has('all') && activeCategories.size > 0) {
+      activeCategories.forEach(category => {
+        const tag = document.createElement('div');
+        tag.className = 'active-filter-tag';
+        tag.innerHTML = `
+          <span>${category.toUpperCase()}</span>
+          <button type="button" data-category="${category}">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        `;
+        
+        tag.querySelector('button').addEventListener('click', () => {
+          const checkbox = document.querySelector(`input[value="${category}"]`);
+          if (checkbox) {
+            checkbox.checked = false;
+            checkbox.dispatchEvent(new Event('change'));
+          }
+        });
+        
+        activeFiltersContainer.appendChild(tag);
+      });
+    }
+  }
+
+  // Sort functionality
+  sortSelect?.addEventListener('change', (e) => {
+    sortCourses(e.target.value);
+  });
+
+  function sortCourses(criteria) {
+    const sortedCourses = [...courses].sort((a, b) => {
+      const titleA = a.querySelector('.course-title')?.textContent.toLowerCase();
+      const titleB = b.querySelector('.course-title')?.textContent.toLowerCase();
+      
+      switch(criteria) {
+        case 'title':
+          return titleA.localeCompare(titleB);
+        case 'title-desc':
+          return titleB.localeCompare(titleA);
+        case 'duration':
+          const durationA = parseInt(a.querySelector('.duration-badge')?.textContent.replace(/\D/g, '') || 0);
+          const durationB = parseInt(b.querySelector('.duration-badge')?.textContent.replace(/\D/g, '') || 0);
+          return durationB - durationA;
+        default:
+          return 0;
+      }
+    });
+    
+    sortedCourses.forEach(course => container.appendChild(course));
+  }
+
+  // Filter courses
+  function filterCourses() {
+    const searchTerm = searchInput?.value.toLowerCase() || '';
+    let visibleCount = 0;
+    
+    courses.forEach(course => {
+      const title = course.querySelector('.course-title')?.textContent.toLowerCase() || '';
+      const description = course.querySelector('.course-subtitle')?.textContent.toLowerCase() || '';
+      const category = course.dataset.category || 'training';
+      
+      const matchesSearch = title.includes(searchTerm) || description.includes(searchTerm);
+      const matchesCategory = activeCategories.has('all') || activeCategories.has(category);
+      
+      if (matchesSearch && matchesCategory) {
+        course.style.display = '';
+        visibleCount++;
+      } else {
+        course.style.display = 'none';
+      }
+    });
+    
+    // Update results count
+    if (resultsCount) {
+      const icon = resultsCount.querySelector('i');
+      resultsCount.innerHTML = '';
+      if (icon) resultsCount.appendChild(icon.cloneNode(true));
+      const text = document.createTextNode(` ${visibleCount} course${visibleCount !== 1 ? 's' : ''}`);
+      resultsCount.appendChild(text);
+    }
+    
+    // Show/hide no results message
+    if (visibleCount === 0) {
+      noResults.style.display = 'flex';
+      container.style.display = 'none';
+    } else {
+      noResults.style.display = 'none';
+      container.style.display = '';
+    }
+  }
+
+  // Reset filters
+  resetFiltersBtn?.addEventListener('click', () => {
+    searchInput.value = '';
+    clearSearch.style.display = 'none';
+    
+    categoryCheckboxes.forEach(cb => {
+      cb.checked = cb.value === 'all';
+    });
+    
+    activeCategories.clear();
+    activeCategories.add('all');
+    categoryFilter.classList.remove('active');
+    
+    updateActiveFilters();
+    filterCourses();
+    
+    sortSelect.value = 'recent';
+  });
+
+  // Keyboard shortcuts
+  document.addEventListener('keydown', (e) => {
+    // Ctrl/Cmd + K to focus search
+    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+      e.preventDefault();
+      searchInput?.focus();
+    }
+    
+    // Escape to clear search
+    if (e.key === 'Escape' && searchInput === document.activeElement) {
+      clearSearch?.click();
+    }
+  });
+});
+  </script>
 {% endblock %}

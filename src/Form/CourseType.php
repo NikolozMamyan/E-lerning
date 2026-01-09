@@ -6,6 +6,8 @@ use App\Entity\Course;
 use Symfony\Component\Form\AbstractType;
 use Vich\UploaderBundle\Form\Type\VichFileType;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
+use App\Entity\Category;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
@@ -24,11 +26,25 @@ $builder
         'label' => 'Description',
         'required' => false,
     ])
+    ->add('category', EntityType::class, [
+    'class' => Category::class,
+    'choice_label' => 'name',
+    'required' => false,
+    'placeholder' => 'Select a category',
+    'label' => 'Category',
+])
+
      ->add('thumbFile', VichFileType::class, [
         'required' => false,
         'label' => 'Miniature (image)',
         'download_uri' => false,
     ])
+    ->add('planPdfFile', VichFileType::class, [
+    'required' => false,
+    'label' => 'Plan de formation (PDF)',
+    'download_uri' => false,
+    'allow_delete' => true,
+])
     ->add('coursePrices', CollectionType::class, [
         'entry_type' => CoursePriceType::class,
         'allow_add' => true,

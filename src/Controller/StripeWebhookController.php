@@ -196,8 +196,8 @@ class StripeWebhookController extends AbstractController
                     $amount = $amountCents / 100;
 
                     $mailer->send(
-                        //'pruffin@les-consultants.lu',
-                        'nika.mamian@gmail.com',
+                        'pruffin@les-consultants.lu',
+                        // 'nika.mamian@gmail.com',
                         'COPIE CACHER dabonnement E-Learning Les Consultants (12 mois)',
                         'emails/subscription_invoice.html.twig',
                         [
@@ -383,8 +383,8 @@ class StripeWebhookController extends AbstractController
 
                 try {
                     $mailer->send(
-                        //'pruffin@les-consultants.lu'
-                         'nika.mamian@gmail.com',
+                        'pruffin@les-consultants.lu',
+                        //  'nika.mamian@gmail.com',
                         'COPIE CACHER de la facture de ' . $user->getEmail(),
                         'emails/invoice.html.twig',
                         [

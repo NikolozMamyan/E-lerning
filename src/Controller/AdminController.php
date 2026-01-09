@@ -9,9 +9,11 @@ use App\Entity\Video;
 use App\Entity\Course;
 use App\Entity\Article;
 use App\Entity\Comment;
+use App\Entity\Category;
 use App\Form\CourseType;
 use App\Entity\Enrollment;
 use App\Entity\QuizAnswer;
+use App\Form\CategoryType;
 use App\Entity\QuizQuestion;
 use App\Entity\Subscription;
 use App\Repository\UserRepository;
@@ -545,5 +547,30 @@ public function importUsers(
         $this->addFlash('success', 'Article deleted.');
 
         return $this->redirectToRoute('admin_articles');
+    }
+    #[Route('/categories/new', name: 'category_new')]
+    public function newCategorie(
+        Request $request,
+        EntityManagerInterface $em
+    ): Response {
+        $category = new Category();
+
+        $form = $this->createForm(CategoryType::class, $category);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+
+            $em->persist($category);
+            $em->flush();
+
+            $this->addFlash('success', 'Category created successfully ✅');
+
+            return $this->redirectToRoute('admin_category_new');
+            // ou vers une liste si tu veux plus tard
+        }
+
+        return $this->render('admin/category/new.html.twig', [
+            'form' => $form,
+        ]);
     }
 }

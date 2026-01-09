@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\CommentRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: CommentRepository::class)]
@@ -29,6 +31,16 @@ class Comment
 
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $updatedAt = null;
+
+    // ✅ Like system like Article
+    #[ORM\ManyToMany(targetEntity: User::class)]
+    private Collection $likedBy;
+
+    public function __construct()
+    {
+        $this->createdAt = new \DateTimeImmutable();
+        $this->likedBy = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -88,5 +100,41 @@ class Comment
     {
         $this->updatedAt = $updatedAt;
         return $this;
+    }
+
+    // ==========================
+    // ✅ Likes helpers like Article
+    // ==========================
+
+    /**
+     * @return Collection<int, User>
+     */
+    public function getLikedBy(): Collection
+    {
+        return $this->likedBy;
+    }
+
+    public function isLikedByUser(User $user): bool
+    {
+        return $this->likedBy->contains($user);
+    }
+
+    public function addLikedBy(User $user): static
+    {
+        if (!$this->likedBy->contains($user)) {
+            $this->likedBy->add($user);
+        }
+        return $this;
+    }
+
+    public function removeLikedBy(User $user): static
+    {
+        $this->likedBy->removeElement($user);
+        return $this;
+    }
+
+    public function getLikesCount(): int
+    {
+        return $this->likedBy->count();
     }
 }

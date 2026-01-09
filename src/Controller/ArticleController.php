@@ -4,16 +4,18 @@ namespace App\Controller;
 
 use App\Entity\Article;
 use App\Entity\Comment;
+use App\Entity\Notification;
 use App\Service\MailerService;
+use App\Service\LinkPreviewService;
 use App\Service\NotificationService;
 use App\Repository\ArticleRepository;
 use App\Repository\CommentRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\HttpFoundation\JsonResponse;
-use App\Service\LinkPreviewService;
+use App\Repository\NotificationRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
@@ -410,6 +412,81 @@ public function edit(Article $article, Request $request, EntityManagerInterface 
         'article' => $article
     ]);
 }
+
+
+#[Route('/comment/{id}/like', name: 'app_comment_like', methods: ['POST'])]
+public function Commentlike(
+    int $id,
+    CommentRepository $commentRepo,
+    EntityManagerInterface $em,
+    NotificationService $notificationService,
+    NotificationRepository $notificationRepo
+
+    
+): JsonResponse {
+    $user = $this->getUser();
+    if (!$user) {
+        return new JsonResponse(['error' => 'Unauthorized'], 401);
+    }
+
+    $comment = $commentRepo->find($id);
+    if (!$comment) {
+        return new JsonResponse(['error' => 'Comment not found'], 404);
+    }
+
+    // Toggle UNLIKE
+    if ($comment->isLikedByUser($user)) {
+        $comment->removeLikedBy($user);
+        $em->flush();
+
+        return new JsonResponse([
+            'liked' => false,
+            'count' => $comment->getLikesCount(),
+        ]);
+    }
+
+    // LIKE
+    $comment->addLikedBy($user);
+    $em->flush();
+
+    // ✅ NOTIFICATION (sans mentionner le user)
+    try {
+    $commentAuthor = $comment->getAuthor();
+
+    if ($commentAuthor && $commentAuthor->getId() !== $user->getId()) {
+
+        // Vérifie si une notif "comment-like" existe déjà pour CE commentaire
+        $alreadyNotified = $notificationRepo->findOneBy([
+            'user' => $commentAuthor,
+            'relatedEntityId' => $comment->getId(),
+            'relatedEntityType' => get_class($comment),
+            'icon' => 'comment-like',
+        ]);
+
+        if (!$alreadyNotified) {
+            $notificationService->createEntityNotification(
+                $commentAuthor,
+                '❤️ Nouveau like',
+                $comment,
+                'Vous avez reçu un like sur votre commentaire.',
+                Notification::TYPE_INFO,
+                // ✅ ton feed utilise #article-ID (pas /app/articles/{id})
+                $comment->getArticle() ? '/app/articles#article-' . $comment->getArticle()->getId() : null,
+                'comment-like',
+                Notification::PRIORITY_NORMAL
+            );
+        }
+    }
+}catch (\Throwable $e) {
+        // On ne bloque jamais le like si notif fail
+    }
+
+    return new JsonResponse([
+        'liked' => true,
+        'count' => $comment->getLikesCount(),
+    ]);
+}
+
 
 #[Route('/{id}/delete', name: 'article_delete')]
 #[IsGranted('ROLE_USER')]

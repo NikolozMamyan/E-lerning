@@ -360,6 +360,13 @@ textarea.form-control {
     margin-bottom: 0.5rem;
     display: block;
 }
+select.form-control, select {
+  width: 100%;
+  padding: 0.6rem;
+  border-radius: var(--radius);
+  border: 1px solid #ddd;
+}
+
 </style>
 {{ form_start(form, {'attr': {'class': 'course-form'}}) }}
 
@@ -368,10 +375,15 @@ textarea.form-control {
         <h2>New course</h2>
         <p>Basic details about your course</p>
     </div>
-    <div class="form-grid">
-        {{ form_row(form.title) }}
-        {{ form_row(form.description) }}
-    </div>
+<div class="form-grid">
+    {{ form_row(form.title) }}
+    {{ form_row(form.category) }}
+</div>
+
+<div class="form-grid">
+    {{ form_row(form.description) }}
+</div>
+
 </div>
 <div class="form-section">
     <div class="section-header">
@@ -387,6 +399,32 @@ textarea.form-control {
         {% endif %}
     </div>
 </div>
+<div class="form-section">
+    <div class="section-header">
+        <h2>Plan de formation (PDF)</h2>
+        <p>Upload le plan de formation au format PDF</p>
+    </div>
+
+    <div class="form-grid">
+        {{ form_row(form.planPdfFile) }}
+
+        {% if course is defined and course.planPdf %}
+            <div>
+                <a class="btn btn-secondary btn-small"
+                   href="{{ asset('uploads/course_plans/' ~ course.planPdf) }}"
+                   target="_blank"
+                   download>
+                    <span class="btn-icon">⬇</span> Télécharger le PDF actuel
+                </a>
+
+                <div style="margin-top:8px; color: var(--grey); font-size: 12px;">
+                    Fichier actuel : {{ course.planPdf }}
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
 <div class="divider"></div>
 
 <div class="form-section">

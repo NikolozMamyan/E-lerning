@@ -66,4 +66,13 @@ public function deleteAll(NotificationService $notificationService): Response
     return $this->redirectToRoute('app_notifications');
 }
 
+#[Route('/notifications/mark-all-read', name: 'app_notifications_mark_all_read', methods: ['POST'])]
+public function markAllRead(NotificationService $notificationService): JsonResponse
+{
+    $user = $this->getUser();
+    $notificationService->markAllAsRead($user);
+
+    return $this->json(['success' => true]);
+}
+
 }

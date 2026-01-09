@@ -885,6 +885,35 @@ document.addEventListener('DOMContentLoaded', () => {
     // Constantes
     const MAX_VIDEO_SIZE = 50 * 1024 * 1024; // 50MB
 
+    document.addEventListener('click', async (e) => {
+  const btn = e.target.closest('.comment-like-btn');
+  if (!btn) return;
+  if (btn.disabled) return;
+
+  const commentId = btn.dataset.commentId;
+
+  const res = await fetch(`/app/articles/comment/${commentId}/like`, {
+    method: 'POST',
+    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+  });
+
+  if (!res.ok) return;
+
+  const data = await res.json();
+
+  // Update count
+  const countEl = document.getElementById(`comment-like-count-${commentId}`);
+  if (countEl) countEl.textContent = data.count;
+
+  // Toggle state + icon
+  btn.classList.toggle('active', data.liked);
+
+  const icon = btn.querySelector('i');
+  if (icon) {
+    icon.classList.toggle('fa-solid', data.liked);
+    icon.classList.toggle('fa-regular', !data.liked);
+  }
+});
     // ========== FONCTIONS UTILITAIRES ==========
 
     function clearImageUpload() {

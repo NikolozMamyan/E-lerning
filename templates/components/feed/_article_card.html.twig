@@ -123,6 +123,51 @@
         font-size: 14px;
     }
 }
+/* ===============================
+   COMMENT LIKE (heart + count)
+   =============================== */
+.comment-like-row{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 6px;
+    justify-content:flex-end;
+}
+
+.comment-like-btn{
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #6b7280;
+    transition: background 0.2s ease, transform 0.15s ease, color 0.2s ease;
+    font-size: 14px;
+}
+
+.comment-like-btn:hover{
+    background: #f3f4f6;
+    transform: scale(1.08);
+}
+
+.comment-like-btn.active{
+    color: #e11d48; /* rose/rouge */
+}
+
+.comment-like-btn:disabled{
+    cursor: not-allowed;
+    opacity: .5;
+    transform: none;
+}
+
+.comment-like-count{
+    font-size: 12px;
+    color: #6b7280;
+    min-width: 10px;
+}
 
 </style>
 <article class="article-card" id="article-{{ article.id }}">
@@ -251,7 +296,18 @@
                     <p class="comment-text" data-id="{{ comment.id }}">
     {{ comment.content }}
 </p>
+      <div class="comment-like-row">
+        <button class="comment-like-btn {{ app.user and comment.isLikedByUser(app.user) ? 'active' : '' }}"
+                type="button"
+                data-comment-id="{{ comment.id }}"
+                {% if not app.user %}disabled{% endif %}>
+          <i class="{{ app.user and comment.isLikedByUser(app.user) ? 'fa-solid' : 'fa-regular' }} fa-heart"></i>
+        </button>
 
+        <span class="comment-like-count" id="comment-like-count-{{ comment.id }}">
+          {{ comment.likesCount }}
+        </span>
+      </div>
                 </div>
             </div>
         {% endfor %}

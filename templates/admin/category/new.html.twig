@@ -1,0 +1,155 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}New Category{% endblock %}
+
+{% block body %}
+<style>
+/* ===============================
+   CATEGORY FORM (ADMIN)
+   =============================== */
+
+.course-form {
+    max-width: 520px;
+    margin: 3rem auto;
+    padding: 2.5rem;
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    border: 1px solid #eef2f2;
+}
+
+/* Header */
+.page-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.page-header h1 {
+    font-size: 1.6rem;
+    color: var(--green);
+    margin-bottom: 0.3rem;
+}
+
+.page-header .subtitle {
+    font-size: 0.95rem;
+    color: var(--grey);
+}
+
+/* Form fields */
+.course-form .form-group {
+    margin-bottom: 1.4rem;
+}
+
+.course-form label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+    color: var(--black);
+}
+
+.course-form input {
+    width: 100%;
+    padding: 0.65rem 0.75rem;
+    border-radius: var(--radius);
+    border: 1px solid #dcdfe3;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+}
+
+.course-form input:focus {
+    outline: none;
+    border-color: var(--teal);
+    box-shadow: 0 0 0 2px rgba(26, 188, 156, 0.15);
+}
+
+/* Slug hint */
+.slug-hint {
+    font-size: 0.75rem;
+    color: #888;
+    margin-top: 4px;
+}
+
+/* Actions */
+.form-actions {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.form-actions .btn {
+    min-width: 150px;
+}
+
+/* Success flash */
+.flash-success {
+    background: rgba(46, 204, 113, 0.12);
+    border-left: 4px solid #2ecc71;
+    padding: 0.9rem 1rem;
+    border-radius: var(--radius);
+    color: #1e8449;
+    margin-bottom: 1.5rem;
+    font-weight: 500;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .course-form {
+        margin: 1.5rem;
+        padding: 1.5rem;
+    }
+
+    .form-actions {
+        flex-direction: column;
+    }
+
+    .form-actions .btn {
+        width: 100%;
+    }
+}
+.btn{
+    display: inline-flex;
+align-items: center;
+gap: 0.5rem;
+background: var(--green);
+color: white;
+border: none;
+padding: 0.75rem 1.5rem;
+border-radius: var(--radius);
+font-weight: 600;
+font-size: 0.9rem;
+cursor: pointer;
+transition: var(--transition-smooth);
+text-decoration: none;
+flex-shrink: 0;
+box-shadow: 0 2px 8px rgba(26, 109, 85, 0.25);
+}
+</style>
+<section class="course-form">
+    <div class="page-header">
+        <h1>Create a new category</h1>
+        <p class="subtitle">Used to organize courses and filters</p>
+    </div>
+
+    {{ form_start(form) }}
+
+        {{ form_row(form.name) }}
+ {{ form_row(form.slug) }}
+<div class="slug-hint">
+    Example: <strong>aml-compliance</strong>
+</div>
+
+
+        <div class="form-actions">
+            <button class="btn btn-success btn-large">
+                <span class="btn-icon">✓</span> Create category
+            </button>
+
+            <a href="{{ path('admin_course_index') }}" class="btn btn-secondary">
+                ← Back
+            </a>
+        </div>
+
+    {{ form_end(form) }}
+</section>
+{% endblock %}

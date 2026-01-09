@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\HttpFoundation\File\File;
 use Vich\UploaderBundle\Mapping\Annotation as Vich;
 use Doctrine\ORM\Mapping as ORM;
@@ -55,7 +56,21 @@ class Course
 
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $updatedAt = null;
-    
+#[ORM\Column(length: 255, nullable: true)]
+private ?string $planPdf = null;
+
+#[Vich\UploadableField(mapping: 'course_plans', fileNameProperty: 'planPdf')]
+#[Assert\File(
+    maxSize: '10M',
+    mimeTypes: ['application/pdf'],
+    mimeTypesMessage: 'Veuillez uploader un fichier PDF valide.'
+)]
+private ?File $planPdfFile = null;
+
+#[ORM\ManyToOne(targetEntity: Category::class, inversedBy: 'courses')]
+#[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+private ?Category $category = null;
+
 
     public function __construct()
     {
@@ -209,4 +224,41 @@ class Course
         $this->updatedAt = $updatedAt;
         return $this;
     }
+    public function getPlanPdf(): ?string
+{
+    return $this->planPdf;
+}
+
+public function setPlanPdf(?string $planPdf): static
+{
+    $this->planPdf = $planPdf;
+    return $this;
+}
+
+public function setPlanPdfFile(?File $file = null): void
+{
+    $this->planPdfFile = $file;
+
+    if ($file) {
+        $this->updatedAt = new \DateTimeImmutable();
+    }
+}
+
+public function getPlanPdfFile(): ?File
+{
+    return $this->planPdfFile;
+}
+
+public function getCategory(): ?Category
+{
+    return $this->category;
+}
+
+public function setCategory(?Category $category): static
+{
+    $this->category = $category;
+    return $this;
+}
+
+
 }

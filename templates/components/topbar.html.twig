@@ -258,6 +258,40 @@
     margin-left: 0; /* pas de sidebar collée */
   }
 }
+/* Actions en haut/bas du dropdown */
+.notification-dropdown-actions{
+  padding: 10px 12px;
+  border-top: 1px solid #f0f0f0;
+  background: #fff;
+  position: sticky;
+  bottom: 0;
+}
+
+.mark-all-read-btn{
+  width: 100%;
+  background: #f8f9fa;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 10px 12px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+  color: #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.mark-all-read-btn:hover{
+  background: #eef2ff;
+}
+
+.mark-all-read-btn:active{
+  transform: scale(0.98);
+}
+
 </style>
 
 <header class="header">
@@ -286,6 +320,12 @@
 
         
         {% if recentNotifications|length > 0 %}
+<div class="notification-dropdown-actions">
+  <button type="button" class="mark-all-read-btn" id="mark-all-read-btn">
+    <i class="fa-solid fa-check-double"></i>
+    Mark all as read
+  </button>
+</div>
 
 {% for notification in recentNotifications %}
     <a 
@@ -416,4 +456,25 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 });
+
+const markAllReadBtn = document.getElementById('mark-all-read-btn');
+
+if (markAllReadBtn) {
+  markAllReadBtn.addEventListener('click', async (e) => {
+    e.preventDefault();
+
+    markAllReadBtn.disabled = true;
+
+    try {
+      await fetch('/notifications/mark-all-read', {
+        method: 'POST',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+      });
+    } finally {
+      // ✅ recharge pour que le badge cloche soit recalculé serveur
+      window.location.reload();
+    }
+  });
+}
+
 </script>
