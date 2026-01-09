@@ -50,177 +50,206 @@ class StripeWebhookController extends AbstractController
             return new Response('Invalid signature', 400);
         }
 
-        // Log pour savoir quel type d’événement Stripe arrive
         $logger->info('Stripe webhook received', ['type' => $event->type]);
 
         /* ==============================================================
          * 🧾 1. Gestion des abonnements (invoice.payment_succeeded)
          * ============================================================== */
-if ($event->type === 'invoice.payment_succeeded') {
-    $invoice = $event->data->object;
-    $customerId = $invoice->customer ?? null;
-    $subscriptionId = $invoice->subscription ?? null;
+        if ($event->type === 'invoice.payment_succeeded') {
+            $invoice = $event->data->object;
+            $customerId = $invoice->customer ?? null;
+            $subscriptionId = $invoice->subscription ?? null;
 
-    $logger->info('🔍 DEBUT invoice.payment_succeeded', [
-        'customerId' => $customerId,
-        'subscriptionId' => $subscriptionId,
-        'invoice_id' => $invoice->id ?? null
-    ]);
+            $logger->info('🔍 DEBUT invoice.payment_succeeded', [
+                'customerId' => $customerId,
+                'subscriptionId' => $subscriptionId,
+                'invoice_id' => $invoice->id ?? null
+            ]);
 
-    if (!$customerId) {
-        $logger->warning('❌ Stripe invoice without customer ID');
-        return new Response('Missing customer', 200);
-    }
+            if (!$customerId) {
+                $logger->warning('❌ Stripe invoice without customer ID');
+                return new Response('Missing customer', 200);
+            }
 
-    try {
-        $stripe = new \Stripe\StripeClient($_ENV['STRIPE_SECRET_KEY']);
-        $customer = $stripe->customers->retrieve($customerId);
-        
-        $customerEmail = $customer->email ?? null;
-        
-        $logger->info('📧 Customer Stripe récupéré', [
-            'email' => $customerEmail,
-            'customerId' => $customerId
-        ]);
+            try {
+                $stripe = new \Stripe\StripeClient($_ENV['STRIPE_SECRET_KEY'] ?? $_SERVER['STRIPE_SECRET_KEY']);
+                $customer = $stripe->customers->retrieve($customerId);
 
-        if (!$customerEmail) {
-            $logger->warning('❌ Customer Stripe sans email');
-            return new Response('Customer has no email', 200);
+                $customerEmail = $customer->email ?? null;
+
+                $logger->info('📧 Customer Stripe récupéré', [
+                    'email' => $customerEmail,
+                    'customerId' => $customerId
+                ]);
+
+                if (!$customerEmail) {
+                    $logger->warning('❌ Customer Stripe sans email');
+                    return new Response('Customer has no email', 200);
+                }
+
+                $user = $userRepo->findOneBy(['email' => $customerEmail]);
+
+                if (!$user) {
+                    $logger->warning('❌ User not found in database', ['email' => $customerEmail]);
+                    return new Response('User not found', 200);
+                }
+
+                $logger->info('✅ User trouvé', [
+                    'userId' => $user->getId(),
+                    'email' => $user->getEmail()
+                ]);
+
+                $subscription = $subscriptionRepo->findOneBy(['user' => $user]);
+
+                if (!$subscription) {
+                    $logger->info('➕ Création nouvelle subscription');
+                    $subscription = new Subscription();
+                    $subscription->setUser($user);
+                } else {
+                    $logger->info('🔄 Mise à jour subscription existante', ['id' => $subscription->getId()]);
+                }
+
+                // 👇 Abonnement mensuel avec engagement 1 an
+                $subscription->setStartDate(new \DateTime());
+                $subscription->setEndDate((new \DateTime())->modify('+1 year')); // Engagement 1 an
+                $subscription->setType('monthly');
+                $subscription->setIsActive(true);
+
+                $logger->info('💾 Avant persist/flush', [
+                    'type' => 'monthly',
+                    'startDate' => $subscription->getStartDate()->format('Y-m-d H:i:s'),
+                    'endDate' => $subscription->getEndDate()->format('Y-m-d H:i:s'),
+                ]);
+
+                $em->persist($subscription);
+                $em->flush(); // pour garantir ID
+
+                /* ============================================================
+                 * ✅ NOUVELLE LOGIQUE FACTURE (persistée en BDD)
+                 * ============================================================ */
+                $invoiceDate = new \DateTime();
+                $currency = strtoupper($invoice->currency ?? 'EUR');
+                $amountCents = isset($invoice->amount_paid) ? (int) $invoice->amount_paid : 2990;
+
+                // Numéro stable (identique email / transactions)
+                // Tu peux garder ton format 2025-0001 si tu veux : ici je garde le tien en remplaçant 2025 par l'année courante
+                $invoiceNumber = date('Y') . '-' . str_pad((string) $subscription->getId(), 4, '0', STR_PAD_LEFT);
+
+                // On n'écrase pas si déjà défini (ex: retry webhook)
+                if (method_exists($subscription, 'getInvoiceNumber') && !$subscription->getInvoiceNumber()) {
+                    $subscription->setInvoiceNumber($invoiceNumber);
+                } else {
+                    // si déjà défini, on réutilise le même
+                    $invoiceNumber = method_exists($subscription, 'getInvoiceNumber') && $subscription->getInvoiceNumber()
+                        ? $subscription->getInvoiceNumber()
+                        : $invoiceNumber;
+                }
+
+                if (method_exists($subscription, 'setInvoiceDate')) {
+                    $subscription->setInvoiceDate($invoiceDate);
+                }
+                if (method_exists($subscription, 'setInvoiceCurrency')) {
+                    $subscription->setInvoiceCurrency($currency);
+                }
+                if (method_exists($subscription, 'setInvoiceAmountCents')) {
+                    $subscription->setInvoiceAmountCents($amountCents);
+                }
+
+                $em->flush();
+
+                /* ============================================================
+                 * 💌 Envoi de la facture PDF par email
+                 * ============================================================ */
+                try {
+                    $amount = $amountCents / 100;
+
+                    $mailer->send(
+                        $user->getEmail(),
+                        'Votre facture – Abonnement E-Learning Les Consultants (12 mois)',
+                        'emails/subscription_invoice.html.twig',
+                        [
+                            'user'           => $user,
+                            'subscription'   => $subscription,
+                            'invoice_number' => $invoiceNumber,
+                            'tva'            => 17,
+                            'amount'         => $amount,
+                            'currency'       => $currency,
+                            'invoice_date'   => $invoiceDate,
+                            'dashboard_url'  => $this->generateUrl('app_dashboard', [], UrlGeneratorInterface::ABSOLUTE_URL),
+                        ],
+                        'pdf/subscription_invoice.html.twig',
+                        'facture-abonnement-' . $invoiceNumber . '.pdf'
+                    );
+
+                    $logger->info('📧 Email de facture abonnement envoyé', [
+                        'email' => $user->getEmail(),
+                        'invoice' => $invoiceNumber
+                    ]);
+                } catch (\Throwable $e) {
+                    $logger->error('❌ Erreur lors de l’envoi de l’email de facture abonnement', [
+                        'error' => $e->getMessage(),
+                        'email' => $user->getEmail(),
+                    ]);
+                }
+
+                try {
+                    $amount = $amountCents / 100;
+
+                    $mailer->send(
+                        'pruffin@les-consultants.lu',
+                        'COPIE CACHER dabonnement E-Learning Les Consultants (12 mois)',
+                        'emails/subscription_invoice.html.twig',
+                        [
+                            'user'           => $user,
+                            'subscription'   => $subscription,
+                            'invoice_number' => $invoiceNumber,
+                            'tva'            => 17,
+                            'amount'         => $amount,
+                            'currency'       => $currency,
+                            'invoice_date'   => $invoiceDate,
+                            'dashboard_url'  => $this->generateUrl('app_dashboard', [], UrlGeneratorInterface::ABSOLUTE_URL),
+                        ],
+                        'pdf/subscription_invoice.html.twig',
+                        'facture-abonnement-' . $invoiceNumber . '.pdf'
+                    );
+
+                    $logger->info('📧 Copie facture abonnement envoyée', [
+                        'invoice' => $invoiceNumber,
+                    ]);
+                } catch (\Throwable $e) {
+                    $logger->error('❌ Erreur envoi copie facture abonnement', [
+                        'error' => $e->getMessage(),
+                        'user'  => $user->getEmail(),
+                    ]);
+                }
+
+                $logger->info('✅✅✅ Subscription SAVED successfully', [
+                    'user' => $user->getEmail(),
+                    'type' => 'monthly',
+                    'engagement' => '1 year',
+                    'invoiceNumber' => $invoiceNumber,
+                    'amountCents' => $amountCents,
+                    'currency' => $currency,
+                ]);
+
+                return new Response('Subscription updated', 200);
+
+            } catch (\Stripe\Exception\ApiErrorException $e) {
+                $logger->error('❌ Stripe API error', [
+                    'error' => $e->getMessage(),
+                    'code' => $e->getStripeCode()
+                ]);
+                return new Response('Stripe API error', 500);
+            } catch (\Exception $e) {
+                $logger->error('❌ Exception générale', [
+                    'error' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'trace' => $e->getTraceAsString()
+                ]);
+                return new Response('Error', 500);
+            }
         }
-
-        $user = $userRepo->findOneBy(['email' => $customerEmail]);
-        
-        if (!$user) {
-            $logger->warning('❌ User not found in database', ['email' => $customerEmail]);
-            return new Response('User not found', 200);
-        }
-
-        $logger->info('✅ User trouvé', [
-            'userId' => $user->getId(),
-            'email' => $user->getEmail()
-        ]);
-
-        $subscription = $subscriptionRepo->findOneBy(['user' => $user]);
-        
-        if (!$subscription) {
-            $logger->info('➕ Création nouvelle subscription');
-            $subscription = new Subscription();
-            $subscription->setUser($user);
-        } else {
-            $logger->info('🔄 Mise à jour subscription existante', ['id' => $subscription->getId()]);
-        }
-
-        // 👇 Abonnement mensuel avec engagement 1 an
-        $subscription->setStartDate(new \DateTime());
-        $subscription->setEndDate((new \DateTime())->modify('+1 year')); // Engagement 1 an
-        $subscription->setType('monthly');
-        $subscription->setIsActive(true);
-
-        $logger->info('💾 Avant persist/flush', [
-            'type' => 'monthly',
-            'startDate' => $subscription->getStartDate()->format('Y-m-d H:i:s'),
-            'endDate' => $subscription->getEndDate()->format('Y-m-d H:i:s'),
-        ]);
-
-        $em->persist($subscription);
-        $em->flush();
-
-         /* ============================================================
- * 💌 Envoi de la facture PDF par email (comme les autres branches)
- * ============================================================ */
-try {
-    $invoiceNumber = '2025-' . str_pad((string) $subscription->getId(), 4, '0', STR_PAD_LEFT);
-    $invoiceDate = new \DateTime();
-    $currency = 'EUR';
-
-    // ✅ Récupère le vrai montant depuis Stripe si possible
-    $amount = isset($invoice->amount_paid)
-        ? $invoice->amount_paid / 100
-        : 29.90; // valeur de secours par défaut
-
-    $mailer->send(
-        $user->getEmail(),
-        'Votre facture – Abonnement E-Learning Les Consultants (12 mois)',
-        'emails/subscription_invoice.html.twig',
-        [
-            'user'           => $user,
-            'subscription'   => $subscription,
-            'invoice_number' => $invoiceNumber,
-            'tva'            => 17,
-            'amount'         => $amount, // ✅ ajouté
-            'currency'       => $currency,
-            'invoice_date'   => $invoiceDate,
-            'dashboard_url'  => $this->generateUrl('app_dashboard', [], UrlGeneratorInterface::ABSOLUTE_URL),
-        ],
-        'pdf/subscription_invoice.html.twig',
-        'facture-abonnement-' . $invoiceNumber . '.pdf'
-    );
-
-    $logger->info('📧 Email de facture abonnement envoyé', [
-        'email' => $user->getEmail(),
-        'invoice' => $invoiceNumber
-    ]);
-} catch (\Throwable $e) {
-    $logger->error('❌ Erreur lors de l’envoi de l’email de facture abonnement', [
-        'error' => $e->getMessage(),
-        'email' => $user->getEmail(),
-    ]);
-}
-
-try {
-  $mailer->send(
-        'pruffin@les-consultants.lu',
-        'COPIE CACHER dabonnement E-Learning Les Consultants (12 mois)',
-        'emails/subscription_invoice.html.twig',
-        [
-            'user'           => $user,
-            'subscription'   => $subscription,
-            'invoice_number' => $invoiceNumber,
-            'tva'            => 17,
-            'amount'         => $amount, // ✅ ajouté
-            'currency'       => $currency,
-            'invoice_date'   => $invoiceDate,
-            'dashboard_url'  => $this->generateUrl('app_dashboard', [], UrlGeneratorInterface::ABSOLUTE_URL),
-        ],
-        'pdf/subscription_invoice.html.twig',
-        'facture-abonnement-' . $invoiceNumber . '.pdf'
-    );
-
-    $logger->info('📧 Email facture enrollment envoyé', [
-        'email'   => $user->getEmail(),
-        'invoice' => $invoiceNumber,
-    ]);
-} catch (\Throwable $e) {
-    $logger->error('❌ Erreur envoi email facture enrollment', [
-        'error' => $e->getMessage(),
-        'user'  => $user->getEmail(),
-    ]);
-}
-        $logger->info('✅✅✅ Subscription SAVED successfully', [
-            'user' => $user->getEmail(),
-            'type' => 'monthly',
-            'engagement' => '1 year',
-        ]);
-     
-
-        return new Response('Subscription updated', 200);
-        
-    } catch (\Stripe\Exception\ApiErrorException $e) {
-        $logger->error('❌ Stripe API error', [
-            'error' => $e->getMessage(),
-            'code' => $e->getStripeCode()
-        ]);
-        return new Response('Stripe API error', 500);
-    } catch (\Exception $e) {
-        $logger->error('❌ Exception générale', [
-            'error' => $e->getMessage(),
-            'file' => $e->getFile(),
-            'line' => $e->getLine(),
-            'trace' => $e->getTraceAsString()
-        ]);
-        return new Response('Error', 500);
-    }
-}
 
         /* ==============================================================
          * 💳 2. Gestion des paiements uniques (checkout.session.completed)
@@ -251,8 +280,9 @@ try {
                 return new Response('Course not found', 200);
             }
 
-            $amount   = isset($session->amount_total) ? $session->amount_total / 100 : null;
-            $currency = strtoupper($session->currency ?? 'EUR');
+            $amountCents = isset($session->amount_total) ? (int) $session->amount_total : 0;
+            $amount      = $amountCents ? $amountCents / 100 : null;
+            $currency    = strtoupper($session->currency ?? 'EUR');
 
             // === Branche 1 : achat employé ===
             if ($context === 'employee_purchase') {
@@ -288,75 +318,95 @@ try {
                 }
 
                 $em->persist($enrollment);
+                $em->flush(); // pour avoir l'ID
+
+                /* ============================================================
+                 * ✅ NOUVELLE LOGIQUE FACTURE (persistée en BDD) - Enrollment
+                 * ============================================================ */
+                $invoiceDate = new \DateTime();
+
+                $invoiceNumber = date('Y')
+                    . '-'
+                    . str_pad((string)$enrollment->getId(), 4, '0', STR_PAD_LEFT);
+
+                // On n'écrase pas si déjà défini (retry webhook)
+                if (method_exists($enrollment, 'getInvoiceNumber') && !$enrollment->getInvoiceNumber()) {
+                    $enrollment->setInvoiceNumber($invoiceNumber);
+                } else {
+                    $invoiceNumber = method_exists($enrollment, 'getInvoiceNumber') && $enrollment->getInvoiceNumber()
+                        ? $enrollment->getInvoiceNumber()
+                        : $invoiceNumber;
+                }
+
+                if (method_exists($enrollment, 'setInvoiceDate')) {
+                    $enrollment->setInvoiceDate($invoiceDate);
+                }
+                if (method_exists($enrollment, 'setInvoiceCurrency')) {
+                    $enrollment->setInvoiceCurrency($currency);
+                }
+                if (method_exists($enrollment, 'setInvoiceAmountCents')) {
+                    $enrollment->setInvoiceAmountCents($amountCents);
+                }
+
                 $em->flush();
 
-                // Envoi facture
-$invoiceNumber = date('Y') 
-    . '-' 
-    . str_pad((string)$enrollment->getId(), 4, '0', STR_PAD_LEFT) 
-    . '-' 
-    . str_pad((string)random_int(0, 9999), 4, '0', STR_PAD_LEFT);
+                // Envoi facture (email)
+                try {
+                    $mailer->send(
+                        $user->getEmail(),
+                        'Votre facture - ' . $course->getTitle(),
+                        'emails/invoice.html.twig',
+                        [
+                            'user'           => $user,
+                            'course'         => $course,
+                            'amount'         => $amount,
+                            'tva'            => 17,
+                            'date'           => $invoiceDate,
+                            'currency'       => $currency,
+                            'invoice_number' => $invoiceNumber,
+                        ],
+                        'pdf/invoice.html.twig',
+                        'facture-' . $invoiceNumber . '.pdf'
+                    );
 
-$invoiceDate = new \DateTime();
+                    $logger->info('📧 Email facture enrollment envoyé', [
+                        'email'   => $user->getEmail(),
+                        'invoice' => $invoiceNumber,
+                    ]);
+                } catch (\Throwable $e) {
+                    $logger->error('❌ Erreur envoi email facture enrollment', [
+                        'error' => $e->getMessage(),
+                        'user'  => $user->getEmail(),
+                    ]);
+                }
 
-try {
-    $mailer->send(
-        $user->getEmail(),
-        'Votre facture - ' . $course->getTitle(),
-        'emails/invoice.html.twig',
-        [
-            'user'           => $user,
-            'course'         => $course,
-            'amount'         => $amount,
-            'tva'            => 17,
-            'date'           => $invoiceDate,
-            'currency'       => $currency,
-            'invoice_number' => $invoiceNumber,
-        ],
-        'pdf/invoice.html.twig',
-        'facture-' . $invoiceNumber . '.pdf'
-    );
+                try {
+                    $mailer->send(
+                        'pruffin@les-consultants.lu',
+                        'COPIE CACHER de la facture de ' . $user->getEmail(),
+                        'emails/invoice.html.twig',
+                        [
+                            'user'           => $user,
+                            'course'         => $course,
+                            'amount'         => $amount,
+                            'tva'            => 17,
+                            'date'           => $invoiceDate,
+                            'currency'       => $currency,
+                            'invoice_number' => $invoiceNumber,
+                        ],
+                        'pdf/invoice.html.twig',
+                        'facture-' . $invoiceNumber . '.pdf'
+                    );
 
-    $logger->info('📧 Email facture enrollment envoyé', [
-        'email'   => $user->getEmail(),
-        'invoice' => $invoiceNumber,
-    ]);
-} catch (\Throwable $e) {
-    $logger->error('❌ Erreur envoi email facture enrollment', [
-        'error' => $e->getMessage(),
-        'user'  => $user->getEmail(),
-    ]);
-}
-
-try {
-    $mailer->send(
-        'pruffin@les-consultants.lu',
-        'COPIE CACHER de la facture de ' . $user->getEmail(),
-        'emails/invoice.html.twig',
-        [
-            'user'           => $user,
-            'course'         => $course,
-            'amount'         => $amount,
-            'tva'            => 17,
-            'date'           => $invoiceDate,
-            'currency'       => $currency,
-            'invoice_number' => $invoiceNumber,
-        ],
-        'pdf/invoice.html.twig',
-        'facture-' . $invoiceNumber . '.pdf'
-    );
-
-    $logger->info('📧 Email facture enrollment envoyé', [
-        'email'   => $user->getEmail(),
-        'invoice' => $invoiceNumber,
-    ]);
-} catch (\Throwable $e) {
-    $logger->error('❌ Erreur envoi email facture enrollment', [
-        'error' => $e->getMessage(),
-        'user'  => $user->getEmail(),
-    ]);
-}
-
+                    $logger->info('📧 Copie facture enrollment envoyée', [
+                        'invoice' => $invoiceNumber,
+                    ]);
+                } catch (\Throwable $e) {
+                    $logger->error('❌ Erreur envoi copie facture enrollment', [
+                        'error' => $e->getMessage(),
+                        'user'  => $user->getEmail(),
+                    ]);
+                }
 
                 // Notification
                 try {
@@ -377,115 +427,114 @@ try {
                 return new Response('Enrollment created', 200);
             }
 
-          // === Branche 2 : achat entreprise (1 place) ===
-if ($context === 'company_single_seat') {
-    $targetEmail = $metadata->target_email ?? null;
-    if (!$targetEmail) {
-        $logger->warning('company_single_seat: target_email missing');
-        return new Response('Missing target_email', 200);
-    }
+            // === Branche 2 : achat entreprise (1 place) ===
+            if ($context === 'company_single_seat') {
+                $targetEmail = $metadata->target_email ?? null;
+                if (!$targetEmail) {
+                    $logger->warning('company_single_seat: target_email missing');
+                    return new Response('Missing target_email', 200);
+                }
 
-    $employee = $userRepo->findOneBy(['email' => $targetEmail]);
-    $buyerEmail = $session->customer_details->email ?? $session->customer_email ?? null;
-    $user = $buyerEmail ? $userRepo->findOneBy(['email' => $buyerEmail]) : null;
+                $employee = $userRepo->findOneBy(['email' => $targetEmail]);
+                $buyerEmail = $session->customer_details->email ?? $session->customer_email ?? null;
+                $user = $buyerEmail ? $userRepo->findOneBy(['email' => $buyerEmail]) : null;
 
-    // Log pour diagnostic
-    $logger->info('🏢 Company single seat purchase', [
-        'employee' => $targetEmail,
-        'buyerEmail' => $buyerEmail,
-        'courseId' => $course->getId(),
-        'buyerUserId' => $user?->getId(),
-    ]);
+                $logger->info('🏢 Company single seat purchase', [
+                    'employee' => $targetEmail,
+                    'buyerEmail' => $buyerEmail,
+                    'courseId' => $course->getId(),
+                    'buyerUserId' => $user?->getId(),
+                ]);
 
-    // 1️⃣ Si l’employé existe déjà dans la plateforme
-    if ($employee) {
-        // Éviter les doublons
-        if (!$enrollmentRepo->findOneBy(['user' => $employee, 'course' => $course])) {
-            // Inscription employé
-            $employeeEnrollment = new Enrollment();
-            $employeeEnrollment->setUser($employee);
-            $employeeEnrollment->setCourse($course);
-            $em->persist($employeeEnrollment);
+                // 1️⃣ Si l’employé existe déjà dans la plateforme
+                if ($employee) {
+                    // Éviter les doublons
+                    if (!$enrollmentRepo->findOneBy(['user' => $employee, 'course' => $course])) {
+                        // Inscription employé
+                        $employeeEnrollment = new Enrollment();
+                        $employeeEnrollment->setUser($employee);
+                        $employeeEnrollment->setCourse($course);
+                        $em->persist($employeeEnrollment);
 
-            // Inscription company (acheteur)
-            if ($user) {
-                $companyEnrollment = new Enrollment();
-                $companyEnrollment->setUser($user);
-                $companyEnrollment->setCourse($course);
-                $em->persist($companyEnrollment);
+                        // Inscription company (acheteur)
+                        if ($user) {
+                            $companyEnrollment = new Enrollment();
+                            $companyEnrollment->setUser($user);
+                            $companyEnrollment->setCourse($course);
+                            $em->persist($companyEnrollment);
+                        }
+
+                        $em->flush();
+
+                        // ✅ Notification pour l’employé
+                        try {
+                            $notificationService->createEntityNotification(
+                                $employee,
+                                '👋 You’ve been enrolled',
+                                $employeeEnrollment,
+                                "Your company has assigned you the course \"{$course->getTitle()}\".",
+                                Notification::TYPE_INFO,
+                                '/app/course/' . $course->getId(),
+                                'company-enrollment',
+                                Notification::PRIORITY_NORMAL
+                            );
+                            $mailer->send(
+                                $employee->getEmail(),
+                                $course->getTitle(),
+                                'emails/enrolled.html.twig',
+                                [
+                                    'user'   => $user,
+                                    'course' => $course,
+                                ]
+                            );
+                        } catch (\Throwable $e) {
+                            $logger->error('Notification employee failed', ['error' => $e->getMessage()]);
+                        }
+                    }
+                } else {
+                    // 2️⃣ Si l’employé n’existe pas encore → invitation
+                    $mailer->send(
+                        $targetEmail,
+                        'Your company bought you a course',
+                        'emails/company_invite.html.twig',
+                        [
+                            'course' => $course,
+                            'signup_url' => $this->generateUrl(
+                                'show_register',
+                                [],
+                                UrlGeneratorInterface::ABSOLUTE_URL
+                            ),
+                        ]
+                    );
+                }
+
+                // 3️⃣ Envoi facture à l’acheteur (toujours)
+                if ($buyerEmail) {
+                    $mailer->send(
+                        $buyerEmail,
+                        'Votre facture - ' . $course->getTitle(),
+                        'emails/invoice_company.html.twig',
+                        [
+                            'amount'   => $amount,
+                            'currency' => $currency,
+                            'date'     => new \DateTime(),
+                            'course'   => $course,
+                            'target'   => $targetEmail,
+                        ]
+                    );
+
+                    $logger->info('📧 Invoice email sent to company', [
+                        'buyerEmail' => $buyerEmail,
+                        'courseId' => $course->getId(),
+                    ]);
+                } else {
+                    $logger->warning('⚠️ No buyer email found to send invoice', [
+                        'sessionId' => $session->id ?? null,
+                    ]);
+                }
+
+                return new Response('Processed company_single_seat', 200);
             }
-
-            $em->flush();
-
-            // ✅ Notification pour l’employé
-            try {
-                $notificationService->createEntityNotification(
-                    $employee,
-                    '👋 You’ve been enrolled',
-                    $employeeEnrollment,
-                    "Your company has assigned you the course \"{$course->getTitle()}\".",
-                    Notification::TYPE_INFO,
-                    '/app/course/' . $course->getId(),
-                    'company-enrollment',
-                    Notification::PRIORITY_NORMAL
-                );
-                 $mailer->send(
-        $employee->getEmail(),
-        $course->getTitle(),
-        'emails/enrolled.html.twig',
-        [
-            'user'           => $user,
-            'course'         => $course,
-        ]
-    );
-            } catch (\Throwable $e) {
-                $logger->error('Notification employee failed', ['error' => $e->getMessage()]);
-            }
-        }
-    } else {
-        // 2️⃣ Si l’employé n’existe pas encore → invitation
-        $mailer->send(
-            $targetEmail,
-            'Your company bought you a course',
-            'emails/company_invite.html.twig',
-            [
-                'course' => $course,
-                'signup_url' => $this->generateUrl(
-                    'show_register',
-                    [],
-                    \Symfony\Component\Routing\Generator\UrlGeneratorInterface::ABSOLUTE_URL
-                ),
-            ]
-        );
-    }
-
-    // 3️⃣ Envoi facture à l’acheteur (toujours)
-    if ($buyerEmail) {
-        $mailer->send(
-            $buyerEmail,
-            'Votre facture - ' . $course->getTitle(),
-            'emails/invoice_company.html.twig',
-            [
-                'amount'   => $amount,
-                'currency' => $currency,
-                'date'     => new \DateTime(),
-                'course'   => $course,
-                'target'   => $targetEmail,
-            ]
-        );
-
-        $logger->info('📧 Invoice email sent to company', [
-            'buyerEmail' => $buyerEmail,
-            'courseId' => $course->getId(),
-        ]);
-    } else {
-        $logger->warning('⚠️ No buyer email found to send invoice', [
-            'sessionId' => $session->id ?? null,
-        ]);
-    }
-
-    return new Response('Processed company_single_seat', 200);
-}
 
             // === Branche 3 : pack entreprise ===
             if ($context === 'company_pack') {
@@ -496,12 +545,10 @@ if ($context === 'company_single_seat') {
                 return new Response('Processed company_pack', 200);
             }
 
-            // Contexte inconnu
             $logger->warning('Unknown context in checkout', ['context' => $context]);
             return new Response('Unknown context', 200);
         }
 
-        // Si on reçoit un autre event → on l’ignore proprement
         return new Response('Event ignored', 200);
     }
 }

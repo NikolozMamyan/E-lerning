@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use App\Repository\SubscriptionRepository;
+use Doctrine\DBAL\Types\Types;
 
 #[ORM\Entity(repositoryClass: SubscriptionRepository::class)]
 class Subscription
@@ -28,6 +29,18 @@ class Subscription
 
     #[ORM\Column(type: 'boolean')]
     private bool $isActive = true;
+
+    #[ORM\Column(length: 50, nullable: true)]
+private ?string $invoiceNumber = null;
+
+#[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+private ?\DateTimeInterface $invoiceDate = null;
+
+#[ORM\Column(nullable: true)]
+private ?int $invoiceAmountCents = null;
+
+#[ORM\Column(length: 3, nullable: true)]
+private ?string $invoiceCurrency = null;
 
     public function getId(): ?int
     {
@@ -92,4 +105,16 @@ public function getIsActive(): bool
         $this->isActive = $isActive;
         return $this;
     }
+
+    public function getInvoiceNumber(): ?string { return $this->invoiceNumber; }
+public function setInvoiceNumber(?string $invoiceNumber): static { $this->invoiceNumber = $invoiceNumber; return $this; }
+
+public function getInvoiceDate(): ?\DateTimeInterface { return $this->invoiceDate; }
+public function setInvoiceDate(?\DateTimeInterface $invoiceDate): static { $this->invoiceDate = $invoiceDate; return $this; }
+
+public function getInvoiceAmountCents(): ?int { return $this->invoiceAmountCents; }
+public function setInvoiceAmountCents(?int $cents): static { $this->invoiceAmountCents = $cents; return $this; }
+
+public function getInvoiceCurrency(): ?string { return $this->invoiceCurrency; }
+public function setInvoiceCurrency(?string $currency): static { $this->invoiceCurrency = $currency; return $this; }
 }
