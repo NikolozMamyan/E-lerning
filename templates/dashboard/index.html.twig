@@ -344,25 +344,103 @@
 
 
 /* Mode escalier : uniquement sur les grands écrans avec 3 colonnes */
-@media (min-width: 1201px) {
-    .articles-grid--staggered .article-link-wrapper {
-        transition: margin-top 0.3s ease;
-    }
+/* ------- Articles Section / Feeds (MOBILE FIRST) ------- */
 
-    /* Colonne 1 : pas de décalage */
-    .articles-grid--staggered .article-link-wrapper:nth-child(3n + 1) {
-        margin-top: 0;
-    }
+/* Header empilé sur mobile */
+.articles-section .section-header{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:.75rem;
+}
 
-    /* Colonne 2 : léger décalage */
-    .articles-grid--staggered .article-link-wrapper:nth-child(3n + 2) {
-        margin-top: 3rem;
-    }
+/* Grid mobile: 1 colonne */
+.articles-grid{
+  display:grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin-bottom: 20px;
+}
 
-    /* Colonne 3 : plus gros décalage */
-    .articles-grid--staggered .article-link-wrapper:nth-child(3n + 3) {
-        margin-top: 6rem;
-    }
+/* Card un peu plus compacte sur mobile */
+.article-content{
+  padding: 1rem;
+}
+
+/* Images un peu moins hautes sur mobile */
+.article-image,
+.article-image-placeholder{
+  height: 160px;
+}
+
+/* Clamp (coupe proprement sans overflow) */
+.article-title,
+.article-description{
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+}
+
+.article-title{
+  font-size: 1rem;
+  line-height: 1.35;
+  -webkit-line-clamp: 2; /* 2 lignes max */
+  margin-bottom: .6rem;
+}
+
+.article-description{
+  font-size: .9rem;
+  line-height: 1.5;
+  -webkit-line-clamp: 3; /* 3 lignes max */
+  margin-bottom: .8rem;
+}
+
+/* Meta qui wrap si besoin */
+.article-meta{
+  flex-wrap: wrap;
+  gap: .5rem 1rem;
+}
+
+/* Tablette : 2 colonnes */
+@media (min-width: 768px){
+  .articles-section .section-header{
+    flex-direction:row;
+    align-items:center;
+    justify-content:space-between;
+  }
+
+  .articles-grid{
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+
+  .article-image,
+  .article-image-placeholder{
+    height: 180px;
+  }
+
+  .article-title{ font-size: 1.05rem; }
+}
+
+/* Desktop : 3 colonnes */
+@media (min-width: 1200px){
+  .articles-grid{
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+  }
+
+  /* Mode escalier uniquement sur grands écrans */
+  .articles-grid--staggered .article-link-wrapper:nth-child(3n + 2){ margin-top: 3rem; }
+  .articles-grid--staggered .article-link-wrapper:nth-child(3n + 3){ margin-top: 6rem; }
+  .articles-grid--staggered .article-link-wrapper:nth-child(3n + 1){ margin-top: 0; }
+}
+
+/* Bonus: le lien wrapper prend toute la hauteur */
+.article-link-wrapper{
+  text-decoration:none;
+  color:inherit;
+  display:block;
+  height:100%;
 }
 
 
@@ -462,12 +540,17 @@
                 {% endif %}
                 
                 <div class="article-content">
-                    <h3 class="article-title">{{ article.titre }}</h3>
+                    <h3 class="article-title">
+  {{ article.titre|striptags|length > 60
+      ? article.titre|striptags|slice(0, 60) ~ '…'
+      : article.titre|striptags
+  }}
+</h3>
 <p class="article-description">
-    {{ article.description|striptags|length > 120 
-        ? article.description|striptags|slice(0, 120) ~ '...' 
-        : article.description|striptags 
-    }}
+  {{ article.description|striptags|length > 120
+      ? article.description|striptags|slice(0, 120) ~ '…'
+      : article.description|striptags
+  }}
 </p>
 
                     

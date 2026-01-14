@@ -713,7 +713,7 @@ gap: 1.5rem;
 flex-direction: row;
 }
 .course-grid.is-list .course-thumbnail {
-width: 320px;
+width: 420px;
 height: 100%;
 flex-shrink: 0;
 }

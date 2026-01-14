@@ -115,11 +115,6 @@
     border-radius: 50%;
     object-fit: cover;
         }
-/* ------- Main Content ------- */
-  .main-content {
-    
-    overflow-x: auto;
-  }
 
   .header {
     display: flex;
