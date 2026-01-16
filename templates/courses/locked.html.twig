@@ -160,6 +160,8 @@
  {# Convert price from "30,00" → 30.00 #}
     {% set euro = (euroPrice|replace({',': '.'}) + 0) %}
     {% set priceHT = (euro / 1.17)|round(2, 'ceil') %}
+    {% set tva = (euro - priceHT)|round(2, 'ceil') %}
+
 <div class="payment-layout">
     <!-- MAIN CONTENT -->
     <div class="main-content">
@@ -269,6 +271,13 @@
         <span>
             €{{ priceHT|number_format(2, ',', ' ') }}
             <small>(excl. VAT)</small>
+        </span>
+    </div>
+        <div class="summary-line total">
+        <span>VAT </span>
+        <span>
+            €{{ tva|number_format(2, ',', ' ') }}
+            <small></small>
         </span>
     </div>
 

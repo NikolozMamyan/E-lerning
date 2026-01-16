@@ -127,7 +127,7 @@ public function generateCertificate(
         // Date
         $pdf->SetFont('Arial', '', 14);
         $pdf->SetXY(100, 178);
-        $pdf->Cell(40, 10, (new \DateTime())->format('d/m/Y'), 0, 0, 'L');
+        $pdf->Cell(40, 10, ($userAttempt->getCreatedAt())->format('d/m/Y'), 0, 0, 'L');
 
         // Ref du certificat
         $pdf->SetFont('Arial', 'I', 10);
