@@ -208,7 +208,13 @@
             <li>No videos available yet.</li>
         {% endfor %}
     </ul>
-    
+                      {% if course.planPdf %}
+                      <h3>Training Plan</h3>
+                <a class="pdf-btn" href="{{ asset('uploads/course_plans/' ~ course.planPdf) }}" target="_blank" download title="Download Syllabus">
+                  <i class="fa-solid fa-file-pdf"></i>
+                </a>
+
+              {% endif %}
     <h3>Requirements</h3>
     <p>No specific requirements. This course is suitable for both beginners and professionals who want to deepen their knowledge.</p>
 </div>

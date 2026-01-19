@@ -391,6 +391,7 @@
     {% set nextVideo = hasNext ? videos[currentIndex + 1] : null %}
 
 <div class="lesson-nav">
+
   <div>
     {% if hasPrev %}
       <a href="{{ path('app_course_show', { id: course.id, videoId: prevVideo.id }) }}">
@@ -429,7 +430,9 @@
         </svg>
       </a>
     {% endif %}
+
   </div>
+  
 </div>
 
 
@@ -437,7 +440,15 @@
     <!-- Lesson Info -->
     <div class="lesson-info">
       <h2 class="lesson-title">{{ course.title }}</h2>
+      
       <p class="lesson-description">{{ course.description }}</p>
+       {% if course.planPdf %}
+                      <h3>Training Plan</h3>
+                <a class="pdf-btn" href="{{ asset('uploads/course_plans/' ~ course.planPdf) }}" target="_blank" download title="Download Syllabus">
+                  <i class="fa-solid fa-file-pdf"></i>
+                </a>
+
+              {% endif %}
     </div>
   </div>
 

@@ -3,6 +3,16 @@
 {% block title %}Available Courses{% endblock %}
 
 {% block body %}
+<style>
+.updated-at {
+  font-size: 0.75rem;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+</style>
   <section class="course-section">
     <div class="course-header">
       <div class="header-content">
@@ -96,6 +106,7 @@
     {# ===== Courses Grid ===== #}
     <div class="course-grid" id="course-container">
       {% for course in courses %}
+
 <div class="course-card" data-category="{{ course.category ? course.category.slug : 'training' }}">
   <div class="course-thumbnail {{ course.category ? 'bg-' ~ course.category.slug : 'bg-training' }}">
 
@@ -138,6 +149,11 @@
                 <i class="fa-solid fa-play-circle"></i>
                 {{ course.videos|length }} video{{ course.videos|length > 1 ? 's' : '' }}
               </span>
+                <span class="updated-at">
+<i class="fa-solid fa-calendar-days"></i>
+
+    date {{ course.updatedAt|date('d M Y') }}
+  </span>
               {% if access[course.id] is defined and access[course.id] %}
                 <span class="access-badge unlocked">
                   <i class="fa-solid fa-check-circle"></i>
@@ -157,11 +173,7 @@
             </p>
 
             <div class="course-footer">
-              {% if course.planPdf %}
-                <a class="pdf-btn" href="{{ asset('uploads/course_plans/' ~ course.planPdf) }}" target="_blank" download title="Download Syllabus">
-                  <i class="fa-solid fa-file-pdf"></i>
-                </a>
-              {% endif %}
+
 
               <a href="{{ path('app_course_show', {id: course.id}) }}" class="see-course-btn">
                 See Course
