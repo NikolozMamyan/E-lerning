@@ -851,13 +851,20 @@ body {
     {% endif %}
 
     {# LISTE DES ARTICLES #}
-    <section class="articles-list">
-        {% for article in articles %}
-            {% include 'components/feed/_article_card.html.twig' with { article: article } %}
-        {% else %}
-            <p class="text-muted">Aucun article pour le moment.</p>
-        {% endfor %}
-    </section>
+<section class="articles-list" id="articles-list">
+  {% for article in articles %}
+    {% include 'components/feed/_article_card.html.twig' with { article: article } %}
+  {% else %}
+    <p class="text-muted">Aucun article pour le moment.</p>
+  {% endfor %}
+</section>
+
+<div id="feed-loader" style="display:none; text-align:center; padding:16px; color:#666;">
+  <i class="fa-solid fa-spinner fa-spin"></i> Chargement...
+</div>
+
+<div id="feed-sentinel"></div>
+
 
     {# MODAL CRÉATION ARTICLE #}
     {% if is_granted('ROLE_USER') %}
@@ -870,442 +877,518 @@ body {
 <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    const modal = document.getElementById('create-modal');
-    const articleTitleInput = document.getElementById('article-title');
-    const editorOutput = document.getElementById('editor-output');
-    const publishBtn = document.getElementById('publish-btn');
-    const fileInput = document.getElementById('modal-image-input');
-    const imageBtn = document.getElementById('image-btn');
-    const imagePreviewContainer = document.getElementById('image-preview-container');
-    const videoInput = document.getElementById('modal-video-input');
-    const videoPreviewContainer = document.getElementById('video-preview-container');
-    const videoBtnModal = document.getElementById('video-btn-modal');
-    const videoBtnComposer = document.getElementById('video-btn');
+  // =========================
+  // ELEMENTS MODAL / COMPOSER
+  // =========================
+  const modal = document.getElementById('create-modal');
+  const articleTitleInput = document.getElementById('article-title');
+  const editorOutput = document.getElementById('editor-output');
+  const publishBtn = document.getElementById('publish-btn');
+  const fileInput = document.getElementById('modal-image-input');
+  const imageBtn = document.getElementById('image-btn');
+  const imagePreviewContainer = document.getElementById('image-preview-container');
+  const videoInput = document.getElementById('modal-video-input');
+  const videoPreviewContainer = document.getElementById('video-preview-container');
+  const videoBtnModal = document.getElementById('video-btn-modal');
+  const videoBtnComposer = document.getElementById('video-btn');
 
-    // Constantes
-    const MAX_VIDEO_SIZE = 50 * 1024 * 1024; // 50MB
+  const MAX_VIDEO_SIZE = 50 * 1024 * 1024; // 50MB
 
-    document.addEventListener('click', async (e) => {
-  const btn = e.target.closest('.comment-like-btn');
-  if (!btn) return;
-
-  if (btn.dataset.loading === "1") return;
-  btn.dataset.loading = "1";
-
-  const commentId = btn.dataset.commentId;
-  const countEl = document.getElementById(`comment-like-count-${commentId}`);
-  const icon = btn.querySelector('i');
-
-  const wasLiked = btn.classList.contains('active');
-  const currentCount = countEl ? parseInt(countEl.textContent || "0", 10) : 0;
-
-  // optimistic
-  const nextLiked = !wasLiked;
-  const nextCount = Math.max(0, currentCount + (nextLiked ? 1 : -1));
-
-  if (countEl) countEl.textContent = nextCount;
-  btn.classList.toggle('active', nextLiked);
-  if (icon) {
-    icon.classList.toggle('fa-solid', nextLiked);
-    icon.classList.toggle('fa-regular', !nextLiked);
+  // =========================
+  // HELPERS
+  // =========================
+  function clearImageUpload() {
+    if (fileInput) fileInput.value = '';
+    if (imagePreviewContainer) {
+      imagePreviewContainer.innerHTML = '';
+      imagePreviewContainer.classList.remove('has-image');
+    }
+    if (imageBtn) imageBtn.classList.remove('active');
   }
 
-  try {
-    const res = await fetch(`/app/articles/comment/${commentId}/like`, {
-      method: 'POST',
-      headers: { 'X-Requested-With': 'XMLHttpRequest' }
+  function clearVideoUpload() {
+    if (videoInput) videoInput.value = '';
+    if (videoPreviewContainer) videoPreviewContainer.innerHTML = '';
+  }
+
+  function openModal() {
+    if (!modal) return;
+    modal.classList.add('is-open');
+    modal.setAttribute('aria-hidden', 'false');
+  }
+
+  function openModalWithImage() {
+    openModal();
+    if (fileInput) setTimeout(() => fileInput.click(), 100);
+  }
+
+  function resetModal() {
+    clearVideoUpload();
+    clearImageUpload();
+
+    if (articleTitleInput) articleTitleInput.value = '';
+    if (quill) {
+      quill.setContents([]);
+      if (editorOutput) editorOutput.value = '';
+    }
+    updatePublishButton();
+  }
+
+  function closeModal() {
+    if (!modal) return;
+    modal.classList.remove('is-open');
+    modal.setAttribute('aria-hidden', 'true');
+    resetModal();
+  }
+
+  // =========================
+  // MODAL BINDINGS
+  // =========================
+  document.querySelectorAll('.js-open-modal').forEach(el => el.addEventListener('click', openModal));
+  document.querySelectorAll('.js-open-modal-with-image').forEach(el => el.addEventListener('click', openModalWithImage));
+  document.querySelectorAll('.js-close-modal').forEach(el => el.addEventListener('click', closeModal));
+
+  if (modal) {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeModal();
+    });
+  }
+
+  if (videoBtnComposer) {
+    videoBtnComposer.addEventListener('click', () => {
+      openModal();
+      if (videoInput) setTimeout(() => videoInput.click(), 100);
+    });
+  }
+
+  if (videoBtnModal && videoInput) {
+    videoBtnModal.addEventListener('click', () => videoInput.click());
+  }
+
+  // =========================
+  // QUILL
+  // =========================
+  let quill = null;
+  const editorEl = document.getElementById('editor');
+
+  if (editorEl) {
+    quill = new Quill('#editor', {
+      theme: 'snow',
+      placeholder: 'Share your thoughts...',
+      modules: {
+        toolbar: [
+          ['bold', 'italic', 'underline'],
+          [{ header: [2, 3, false] }],
+          [{ list: 'ordered' }, { list: 'bullet' }],
+          ['link']
+        ]
+      }
     });
 
-    if (!res.ok) throw new Error('HTTP error');
-
-    const data = await res.json();
-
-    // sync serveur
-    if (countEl) countEl.textContent = data.count;
-    btn.classList.toggle('active', data.liked);
-    if (icon) {
-      icon.classList.toggle('fa-solid', data.liked);
-      icon.classList.toggle('fa-regular', !data.liked);
-    }
-
-  } catch (err) {
-    // rollback
-    if (countEl) countEl.textContent = currentCount;
-    btn.classList.toggle('active', wasLiked);
-    if (icon) {
-      icon.classList.toggle('fa-solid', wasLiked);
-      icon.classList.toggle('fa-regular', !wasLiked);
-    }
-    console.error(err);
-  } finally {
-    btn.dataset.loading = "0";
+    quill.on('text-change', () => {
+      const html = quill.root.innerHTML;
+      if (editorOutput) editorOutput.value = html;
+      updatePublishButton();
+    });
   }
-});
 
-    // ========== FONCTIONS UTILITAIRES ==========
+  function updatePublishButton() {
+    if (!publishBtn) return;
+    const hasTitle = articleTitleInput && articleTitleInput.value.trim().length > 0;
+    const hasText = quill && quill.getText().trim().length > 0;
+    const enabled = hasTitle && hasText;
 
-    function clearImageUpload() {
-        if (fileInput) {
-            fileInput.value = '';
-        }
-        if (imagePreviewContainer) {
-            imagePreviewContainer.innerHTML = '';
-            imagePreviewContainer.classList.remove('has-image');
-        }
-        if (imageBtn) {
-            imageBtn.classList.remove('active');
-        }
-    }
+    publishBtn.disabled = !enabled;
+    publishBtn.classList.toggle('enabled', enabled);
+  }
 
-    function clearVideoUpload() {
-        if (videoInput) {
-            videoInput.value = '';
-        }
-        if (videoPreviewContainer) {
-            videoPreviewContainer.innerHTML = '';
-        }
-    }
+  if (articleTitleInput) articleTitleInput.addEventListener('input', updatePublishButton);
 
-    // ========== MODAL ==========
+  // =========================
+  // IMAGE PREVIEW
+  // =========================
+  if (fileInput && imagePreviewContainer && imageBtn) {
+    imageBtn.addEventListener('click', () => fileInput.click());
 
-    function openModal() {
-        if (!modal) return;
-        modal.classList.add('is-open');
-        modal.setAttribute('aria-hidden', 'false');
-    }
-
-    function openModalWithImage() {
-        openModal();
-        if (fileInput) {
-            setTimeout(() => fileInput.click(), 100);
-        }
-    }
-
-    function resetModal() {
-        clearVideoUpload();
+    fileInput.addEventListener('change', function () {
+      const file = this.files[0];
+      if (!file) {
         clearImageUpload();
+        return;
+      }
 
-        if (articleTitleInput) {
-            articleTitleInput.value = '';
-        }
-        if (quill) {
-            quill.setContents([]);
-            editorOutput.value = '';
-        }
-        updatePublishButton();
-    }
+      clearVideoUpload();
 
-    function closeModal() {
-        if (!modal) return;
-        modal.classList.remove('is-open');
-        modal.setAttribute('aria-hidden', 'true');
-        resetModal();
-    }
+      imagePreviewContainer.innerHTML = '';
+      imagePreviewContainer.classList.add('has-image');
+      imageBtn.classList.add('active');
 
-    // Bind open / close triggers
-    document.querySelectorAll('.js-open-modal').forEach(el => {
-        el.addEventListener('click', openModal);
+      const wrapper = document.createElement('div');
+      wrapper.className = 'image-preview-wrapper';
+
+      const img = document.createElement('img');
+      img.src = URL.createObjectURL(file);
+
+      const removeBtn = document.createElement('button');
+      removeBtn.className = 'remove-image-btn';
+      removeBtn.type = 'button';
+      removeBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+      removeBtn.title = 'Remove image';
+
+      removeBtn.addEventListener('click', () => clearImageUpload());
+
+      wrapper.appendChild(img);
+      wrapper.appendChild(removeBtn);
+      imagePreviewContainer.appendChild(wrapper);
     });
+  }
 
-    document.querySelectorAll('.js-open-modal-with-image').forEach(el => {
-        el.addEventListener('click', openModalWithImage);
+  // =========================
+  // VIDEO PREVIEW
+  // =========================
+  if (videoInput && videoPreviewContainer) {
+    videoInput.addEventListener('change', function () {
+      const file = this.files[0];
+      if (!file) {
+        clearVideoUpload();
+        return;
+      }
+
+      if (file.size > MAX_VIDEO_SIZE) {
+        alert('Video too large! Maximum size is 50MB.');
+        this.value = '';
+        return;
+      }
+
+      const allowedTypes = ['video/mp4', 'video/webm', 'video/ogg'];
+      if (!allowedTypes.includes(file.type)) {
+        alert('Invalid video format. Allowed: MP4, WebM, OGG');
+        this.value = '';
+        return;
+      }
+
+      clearImageUpload();
+      videoPreviewContainer.innerHTML = '';
+
+      const wrapper = document.createElement('div');
+      wrapper.className = 'video-preview-wrapper';
+
+      const video = document.createElement('video');
+      video.src = URL.createObjectURL(file);
+      video.controls = true;
+      video.style.maxWidth = '100%';
+
+      const removeBtn = document.createElement('button');
+      removeBtn.type = 'button';
+      removeBtn.className = 'remove-image-btn';
+      removeBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+      removeBtn.title = 'Remove video';
+
+      removeBtn.addEventListener('click', () => clearVideoUpload());
+
+      wrapper.appendChild(video);
+      wrapper.appendChild(removeBtn);
+      videoPreviewContainer.appendChild(wrapper);
     });
+  }
 
-    document.querySelectorAll('.js-close-modal').forEach(el => {
-        el.addEventListener('click', closeModal);
-    });
+  // =========================
+  // LINK PREVIEW (GLOBAL)
+  // =========================
+  function initLinkPreviews(scopeCards = null) {
+    const bodies = scopeCards
+      ? Array.from(scopeCards).map(card => card.querySelector('.article-body')).filter(Boolean)
+      : Array.from(document.querySelectorAll('.article-body'));
 
-    if (modal) {
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                closeModal();
-            }
-        });
-    }
+    bodies.forEach(body => {
+      if (body.dataset.previewDone === "1") return;
 
-    // Video button from composer
-    if (videoBtnComposer) {
-        videoBtnComposer.addEventListener('click', () => {
-            openModal();
-            setTimeout(() => videoInput.click(), 100);
-        });
-    }
+      let url = null;
+      const quillLink = body.querySelector('a[href^="http://"], a[href^="https://"]');
+      if (quillLink) url = quillLink.getAttribute('href');
 
-    // Video button from modal
-    if (videoBtnModal && videoInput) {
-        videoBtnModal.addEventListener('click', () => {
-            videoInput.click();
-        });
-    }
+      if (!url) {
+        const match = body.textContent.match(/https?:\/\/[^\s<]+/);
+        if (match) url = match[0];
+      }
 
-    // ========== QUILL EDITOR ==========
+      if (!url) return;
 
-    let quill = null;
-    const editorEl = document.getElementById('editor');
+      const articleId = body.id.replace('article-body-', '');
+      body.dataset.previewDone = "1";
 
-    if (editorEl) {
-        quill = new Quill('#editor', {
-            theme: 'snow',
-            placeholder: 'Share your thoughts...',
-            modules: {
-                toolbar: [
-                    ['bold', 'italic', 'underline'],
-                    [{ header: [2, 3, false] }],
-                    [{ list: 'ordered' }, { list: 'bullet' }],
-                    ['link']
-                ]
-            }
-        });
-
-        quill.on('text-change', () => {
-            const html = quill.root.innerHTML;
-            if (editorOutput) {
-                editorOutput.value = html;
-            }
-            updatePublishButton();
-        });
-    }
-
-    function updatePublishButton() {
-        if (!publishBtn) return;
-
-        const hasTitle = articleTitleInput && articleTitleInput.value.trim().length > 0;
-        const hasText = quill && quill.getText().trim().length > 0;
-
-        const enabled = hasTitle && hasText;
-
-        publishBtn.disabled = !enabled;
-        publishBtn.classList.toggle('enabled', enabled);
-    }
-
-    if (articleTitleInput) {
-        articleTitleInput.addEventListener('input', updatePublishButton);
-    }
-
-    // ========== IMAGE PREVIEW ==========
-
-    if (fileInput && imagePreviewContainer && imageBtn) {
-        imageBtn.addEventListener('click', () => fileInput.click());
-
-        fileInput.addEventListener('change', function () {
-            const file = this.files[0];
-            
-            if (!file) {
-                clearImageUpload();
-                return;
-            }
-
-            // ❌ Supprimer vidéo si image
-            clearVideoUpload();
-
-            imagePreviewContainer.innerHTML = '';
-            imagePreviewContainer.classList.add('has-image');
-            imageBtn.classList.add('active');
-
-            const wrapper = document.createElement('div');
-            wrapper.className = 'image-preview-wrapper';
-
-            const img = document.createElement('img');
-            img.src = URL.createObjectURL(file);
-
-            const removeBtn = document.createElement('button');
-            removeBtn.className = 'remove-image-btn';
-            removeBtn.type = 'button';
-            removeBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
-            removeBtn.title = 'Remove image';
-
-            removeBtn.addEventListener('click', () => {
-                clearImageUpload();
-            });
-
-            wrapper.appendChild(img);
-            wrapper.appendChild(removeBtn);
-            imagePreviewContainer.appendChild(wrapper);
-        });
-    }
-
-    // ========== VIDEO PREVIEW ==========
-
-    if (videoInput && videoPreviewContainer) {
-        videoInput.addEventListener('change', function () {
-            const file = this.files[0];
-            
-            if (!file) {
-                clearVideoUpload();
-                return;
-            }
-
-            // ✅ Validation de la taille AVANT preview
-            if (file.size > MAX_VIDEO_SIZE) {
-                alert('Video too large! Maximum size is 50MB.');
-                this.value = '';
-                return;
-            }
-
-            // ✅ Validation du format
-            const allowedTypes = ['video/mp4', 'video/webm', 'video/ogg'];
-            if (!allowedTypes.includes(file.type)) {
-                alert('Invalid video format. Allowed: MP4, WebM, OGG');
-                this.value = '';
-                return;
-            }
-
-            // ❌ Supprimer image si vidéo
-            clearImageUpload();
-
-            videoPreviewContainer.innerHTML = '';
-
-            const wrapper = document.createElement('div');
-            wrapper.className = 'video-preview-wrapper';
-
-            const video = document.createElement('video');
-            video.src = URL.createObjectURL(file);
-            video.controls = true;
-            video.style.maxWidth = '100%';
-
-            const removeBtn = document.createElement('button');
-            removeBtn.type = 'button';
-            removeBtn.className = 'remove-image-btn';
-            removeBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
-            removeBtn.title = 'Remove video';
-
-            removeBtn.addEventListener('click', () => {
-                clearVideoUpload();
-            });
-
-            wrapper.appendChild(video);
-            wrapper.appendChild(removeBtn);
-            videoPreviewContainer.appendChild(wrapper);
-        });
-    }
-// ========== LIKE BUTTONS (optimistic UI) ==========
-
-document.querySelectorAll('.like-btn').forEach(btn => {
-  btn.addEventListener('click', async function () {
-    const articleId = this.dataset.articleId;
-    if (!articleId) return;
-
-    // éviter le spam click
-    if (this.dataset.loading === "1") return;
-    this.dataset.loading = "1";
-
-    const icon = this.querySelector('i');
-    const likeCountEl = document.getElementById(`like-count-${articleId}`);
-
-    // ---- état actuel dans le DOM
-    const wasLiked = this.classList.contains('active');
-    const currentCount = likeCountEl ? parseInt(likeCountEl.textContent || "0", 10) : 0;
-
-    // ---- optimistic update (instant)
-    const nextLiked = !wasLiked;
-    const nextCount = Math.max(0, currentCount + (nextLiked ? 1 : -1));
-
-    if (likeCountEl) likeCountEl.textContent = nextCount;
-
-    this.classList.toggle('active', nextLiked);
-    if (icon) {
-      icon.classList.toggle('fa-solid', nextLiked);
-      icon.classList.toggle('fa-regular', !nextLiked);
-    }
-
-    try {
-      const res = await fetch(`/app/articles/${articleId}/like`, {
+      fetch('/app/articles/link-preview', {
         method: 'POST',
-        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url })
+      })
+        .then(r => r.json())
+        .then(data => {
+          if (data.error) return;
+          const target = document.getElementById('link-preview-' + articleId);
+          if (!target) return;
+
+          target.innerHTML = `
+            <a href="${url}" target="_blank" class="preview-card">
+              ${data.image ? `<img src="${data.image}" alt="preview">` : ''}
+              <div class="preview-content">
+                <strong>${data.title || data.site || ''}</strong>
+                <p>${data.description || ''}</p>
+                <small title="${url}">${data.site || ''}</small>
+              </div>
+            </a>
+          `;
+        })
+        .catch(() => {});
+    });
+  }
+
+  // =========================
+  // SEE MORE INIT (hide button if not needed)
+  // =========================
+  function initSeeMoreForCards(cards) {
+    cards.forEach(card => {
+      const btn = card.querySelector('.see-more-btn');
+      const body = card.querySelector('.article-body');
+      if (!btn || !body) return;
+
+      const visibleHeight = 180;
+      const fullHeight = body.scrollHeight;
+      if (fullHeight <= visibleHeight + 10) btn.style.display = "none";
+    });
+  }
+
+  // =========================
+  // EVENT DELEGATION (ALL CLICKS)
+  // =========================
+  document.addEventListener('click', async (e) => {
+
+    // ---- COMMENT LIKE (optimistic)
+    const commentLikeBtn = e.target.closest('.comment-like-btn');
+    if (commentLikeBtn) {
+      if (commentLikeBtn.dataset.loading === "1") return;
+      commentLikeBtn.dataset.loading = "1";
+
+      const commentId = commentLikeBtn.dataset.commentId;
+      const countEl = document.getElementById(`comment-like-count-${commentId}`);
+      const icon = commentLikeBtn.querySelector('i');
+
+      const wasLiked = commentLikeBtn.classList.contains('active');
+      const currentCount = countEl ? parseInt(countEl.textContent || "0", 10) : 0;
+
+      const nextLiked = !wasLiked;
+      const nextCount = Math.max(0, currentCount + (nextLiked ? 1 : -1));
+
+      if (countEl) countEl.textContent = nextCount;
+      commentLikeBtn.classList.toggle('active', nextLiked);
+      if (icon) {
+        icon.classList.toggle('fa-solid', nextLiked);
+        icon.classList.toggle('fa-regular', !nextLiked);
+      }
+
+      try {
+        const res = await fetch(`/app/articles/comment/${commentId}/like`, {
+          method: 'POST',
+          headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        });
+
+        if (!res.ok) throw new Error('HTTP error');
+        const data = await res.json();
+
+        if (countEl) countEl.textContent = data.count;
+        commentLikeBtn.classList.toggle('active', data.liked);
+        if (icon) {
+          icon.classList.toggle('fa-solid', data.liked);
+          icon.classList.toggle('fa-regular', !data.liked);
+        }
+      } catch (err) {
+        if (countEl) countEl.textContent = currentCount;
+        commentLikeBtn.classList.toggle('active', wasLiked);
+        if (icon) {
+          icon.classList.toggle('fa-solid', wasLiked);
+          icon.classList.toggle('fa-regular', !wasLiked);
+        }
+        console.error(err);
+      } finally {
+        commentLikeBtn.dataset.loading = "0";
+      }
+      return;
+    }
+
+    // ---- ARTICLE LIKE (optimistic)
+    const likeBtn = e.target.closest('.like-btn');
+    if (likeBtn) {
+      const articleId = likeBtn.dataset.articleId;
+      if (!articleId) return;
+
+      if (likeBtn.dataset.loading === "1") return;
+      likeBtn.dataset.loading = "1";
+
+      const icon = likeBtn.querySelector('i');
+      const likeCountEl = document.getElementById(`like-count-${articleId}`);
+
+      const wasLiked = likeBtn.classList.contains('active');
+      const currentCount = likeCountEl ? parseInt(likeCountEl.textContent || "0", 10) : 0;
+
+      const nextLiked = !wasLiked;
+      const nextCount = Math.max(0, currentCount + (nextLiked ? 1 : -1));
+
+      if (likeCountEl) likeCountEl.textContent = nextCount;
+      likeBtn.classList.toggle('active', nextLiked);
+      if (icon) {
+        icon.classList.toggle('fa-solid', nextLiked);
+        icon.classList.toggle('fa-regular', !nextLiked);
+      }
+
+      try {
+        const res = await fetch(`/app/articles/${articleId}/like`, {
+          method: 'POST',
+          headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        });
+        if (!res.ok) throw new Error('HTTP error');
+
+        const data = await res.json();
+        if (likeCountEl) likeCountEl.textContent = data.likes;
+        likeBtn.classList.toggle('active', data.liked);
+        if (icon) {
+          icon.classList.toggle('fa-solid', data.liked);
+          icon.classList.toggle('fa-regular', !data.liked);
+        }
+      } catch (err) {
+        if (likeCountEl) likeCountEl.textContent = currentCount;
+        likeBtn.classList.toggle('active', wasLiked);
+        if (icon) {
+          icon.classList.toggle('fa-solid', wasLiked);
+          icon.classList.toggle('fa-regular', !wasLiked);
+        }
+        console.error(err);
+      } finally {
+        likeBtn.dataset.loading = "0";
+      }
+      return;
+    }
+
+    // ---- TOGGLE COMMENTS SECTION
+    const commentBtn = e.target.closest('.comment-btn');
+    if (commentBtn) {
+      const articleId = commentBtn.dataset.articleId;
+      if (!articleId) return;
+
+      const commentsSection = document.getElementById(`comments-${articleId}`);
+      if (!commentsSection) return;
+
+      commentsSection.classList.toggle('expanded');
+
+      if (commentsSection.classList.contains('expanded')) {
+        const input = commentsSection.querySelector('.comment-form .input-field');
+        if (input) setTimeout(() => input.focus(), 300);
+      }
+      return;
+    }
+
+    // ---- SEE MORE
+    const seeMoreBtn = e.target.closest('.see-more-btn');
+    if (seeMoreBtn) {
+      const id = seeMoreBtn.dataset.id;
+      const body = document.getElementById(`article-body-${id}`);
+      if (!body) return;
+
+      body.classList.toggle('expanded');
+      seeMoreBtn.textContent = body.classList.contains('expanded') ? "See less" : "See more";
+      return;
+    }
+
+    // ---- EDIT COMMENT
+    const editBtn = e.target.closest('.edit-comment-btn');
+    if (editBtn) {
+      const id = editBtn.dataset.id;
+      const p = document.querySelector(`.comment-text[data-id="${id}"]`);
+      if (!p) return;
+
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.value = p.textContent;
+      input.classList.add('input-field');
+
+      p.replaceWith(input);
+      input.focus();
+
+      input.addEventListener('blur', async () => {
+        try {
+          const res = await fetch(`/app/articles/comments/${id}/edit`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `content=${encodeURIComponent(input.value)}`
+          });
+          const data = await res.json();
+          if (data.success) {
+            const newP = document.createElement('p');
+            newP.className = 'comment-text';
+            newP.dataset.id = id;
+            newP.textContent = data.content;
+            input.replaceWith(newP);
+          }
+        } catch (err) {
+          console.error(err);
+        }
       });
+      return;
+    }
 
-      if (!res.ok) throw new Error('HTTP error');
+    // ---- DELETE COMMENT
+    const deleteBtn = e.target.closest('.delete-comment-btn');
+    if (deleteBtn) {
+      const id = deleteBtn.dataset.id;
+      if (!confirm('Delete this comment?')) return;
 
-      const data = await res.json();
-
-      // sync avec la vérité serveur (au cas où)
-      if (likeCountEl) likeCountEl.textContent = data.likes;
-      this.classList.toggle('active', data.liked);
-
-      if (icon) {
-        icon.classList.toggle('fa-solid', data.liked);
-        icon.classList.toggle('fa-regular', !data.liked);
-      }
-
-    } catch (err) {
-      // ---- rollback si erreur
-      if (likeCountEl) likeCountEl.textContent = currentCount;
-
-      this.classList.toggle('active', wasLiked);
-      if (icon) {
-        icon.classList.toggle('fa-solid', wasLiked);
-        icon.classList.toggle('fa-regular', !wasLiked);
-      }
-
-      console.error('Error updating like:', err);
-    } finally {
-      this.dataset.loading = "0";
+      fetch(`/app/articles/comments/${id}/delete`, { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+          if (data.success) document.getElementById(`comment-${id}`)?.remove();
+        })
+        .catch(err => console.error(err));
+      return;
     }
   });
-});
 
+  // =========================
+  // AJAX COMMENT SUBMISSION (delegation)
+  // =========================
+  document.addEventListener('submit', (e) => {
+    const form = e.target.closest('.comment-form');
+    if (!form) return;
 
-    // ========== TOGGLE COMMENTS SECTION ==========
+    e.preventDefault();
 
-    document.querySelectorAll('.comment-btn').forEach(btn => {
-        btn.addEventListener('click', function () {
-            const articleId = this.dataset.articleId;
-            if (!articleId) return;
+    const articleId = form.dataset.articleId;
+    if (!articleId) return;
 
-            const commentsSection = document.getElementById(`comments-${articleId}`);
-            if (!commentsSection) return;
+    const input = form.querySelector('.input-field');
+    if (!input) return;
 
-            commentsSection.classList.toggle('expanded');
+    const content = input.value.trim();
+    if (!content) return;
 
-            if (commentsSection.classList.contains('expanded')) {
-                const input = commentsSection.querySelector('.comment-form .input-field');
-                if (input) {
-                    setTimeout(() => input.focus(), 300);
-                }
-            }
-        });
-    });
+    if (content.length > 220) {
+      alert('⚠️ Your comment is too long! Maximum 220 characters allowed.');
+      return;
+    }
 
-   // ========== AJAX COMMENT SUBMISSION ==========
-
-document.querySelectorAll('.comment-form').forEach(form => {
-    form.addEventListener('submit', function (e) {
-        e.preventDefault();
-
-        const articleId = this.dataset.articleId;
-        if (!articleId) return;
-
-        const input = this.querySelector('.input-field');
-        if (!input) return;
-
-        const content = input.value.trim();
-        if (!content) return;
-
-        // ✅ Validation côté client (150 caractères max)
-        if (content.length > 220) {
-            alert('⚠️ Your comment is too long! Maximum 220 characters allowed.');
-            return;
-        }
-
-        fetch(`/app/articles/${articleId}/comment`, {
-    method: 'POST',
-    headers: {
+    fetch(`/app/articles/${articleId}/comment`, {
+      method: 'POST',
+      headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
         'X-Requested-With': 'XMLHttpRequest'
-    },
-    body: new URLSearchParams({ comment: content })
-})
-    .then(response => {
-        // ✅ IMPORTANT : Vérifier si la réponse est OK AVANT de parser le JSON
+      },
+      body: new URLSearchParams({ comment: content })
+    })
+      .then(response => {
         if (!response.ok) {
-            return response.json().then(data => {
-                throw new Error(data.error || 'An error occurred');
-            });
+          return response.json().then(data => { throw new Error(data.error || 'An error occurred'); });
         }
         return response.json();
-    })
-    .then(data => {
-        // ✅ Cette partie ne s'exécute QUE si response.ok === true
+      })
+      .then(data => {
         const commentsSection = document.getElementById(`comments-${articleId}`);
         if (!commentsSection) return;
 
@@ -1313,143 +1396,116 @@ document.querySelectorAll('.comment-form').forEach(form => {
         commentDiv.id = `comment-${data.id}`;
         commentDiv.classList.add('comment');
 
+        // ⚠️ Ici on garde ton avatar via Twig dans la string (ok car ce JS est dans Twig)
         commentDiv.innerHTML = `
-            <div class="user-avatar user-avatar--small">
-                <img src="{{ asset(app.user.avatar ? 'uploads/avatars/' ~ app.user.avatar : 'images/User.svg') }}"
-                     class="user-avatar user-avatar--small"
-                     alt="Avatar"/>
+          <div class="user-avatar user-avatar--small">
+            <img src="{{ asset(app.user.avatar ? 'uploads/avatars/' ~ app.user.avatar : 'images/User.svg') }}"
+                 class="user-avatar user-avatar--small"
+                 alt="Avatar"/>
+          </div>
+
+          <div class="comment-content">
+            <div class="comment-header">
+              <div class="comment-actions">
+                <button class="edit-comment-btn" data-id="${data.id}">
+                  <i class="fa-solid fa-pen"></i>
+                </button>
+                <button class="delete-comment-btn" data-id="${data.id}">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              </div>
+
+              <span class="date">
+                <i class="fa-regular fa-clock"></i>
+                ${data.date}
+              </span>
             </div>
 
-            <div class="comment-content">
-                <div class="comment-header">
-                    <div class="comment-actions">
-                        <button class="edit-comment-btn" data-id="${data.id}">
-                            <i class="fa-solid fa-pen"></i>
-                        </button>
-
-                        <button class="delete-comment-btn" data-id="${data.id}">
-                            <i class="fa-solid fa-trash"></i>
-                        </button>
-                    </div>
-
-                    <span class="date">
-                        <i class="fa-regular fa-clock"></i>
-                        ${data.date}
-                    </span>
-                </div>
-
-                <p class="comment-text" data-id="${data.id}">
-                    ${data.content}
-                </p>
-            </div>
+            <p class="comment-text" data-id="${data.id}">${data.content}</p>
+          </div>
         `;
 
-        commentsSection.insertBefore(commentDiv, this);
+        commentsSection.insertBefore(commentDiv, form);
 
-        const countSpan = document.querySelector(
-            `.comment-btn[data-article-id="${articleId}"] .count`
-        );
-        if (countSpan) {
-            countSpan.textContent = parseInt(countSpan.textContent, 10) + 1;
-        }
+        const countSpan = document.querySelector(`.comment-btn[data-article-id="${articleId}"] .count`);
+        if (countSpan) countSpan.textContent = (parseInt(countSpan.textContent || "0", 10) + 1).toString();
 
         input.value = '';
-    })
-    .catch(err => {
-        // ✅ Affiche maintenant correctement l'erreur du serveur
+      })
+      .catch(err => {
         console.error('Error adding comment:', err);
         alert(`❌ Error: ${err.message}`);
-    });
-    });
-});
+      });
+  });
 
-    document.addEventListener('click', function (e) {
+  // =========================
+  // INFINITE SCROLL (5 par 5)
+  // =========================
+  const listEl = document.getElementById('articles-list');
+  const loaderEl = document.getElementById('feed-loader');
+  const sentinelEl = document.getElementById('feed-sentinel');
 
-  /* ✏️ EDIT COMMENT */
-  if (e.target.closest('.edit-comment-btn')) {
-    const btn = e.target.closest('.edit-comment-btn')
-    const id = btn.dataset.id
-    const p = document.querySelector(`.comment-text[data-id="${id}"]`)
-if (!p) return
+  let limit = 5;
+  let offset = listEl ? listEl.querySelectorAll('.article-card').length : 0;
+  let loadingMore = false;
+  let noMore = false;
 
+  async function loadMoreArticles() {
+    if (loadingMore || noMore || !listEl) return;
+    loadingMore = true;
+    if (loaderEl) loaderEl.style.display = 'block';
 
-    const input = document.createElement('input')
-    input.type = 'text'
-    input.value = p.textContent
-    input.classList.add('input-field')
+    try {
+      const res = await fetch(`/app/articles/load-more?limit=${limit}&offset=${offset}`, {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+      });
+      if (!res.ok) throw new Error('HTTP error');
 
-    p.replaceWith(input)
-    input.focus()
-
-    input.addEventListener('blur', () => {
-      fetch(`/app/articles/comments/${id}/edit`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `content=${encodeURIComponent(input.value)}`
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          const newP = document.createElement('p')
-          newP.className = 'comment-text'
-          newP.dataset.id = id
-          newP.textContent = data.content
-          input.replaceWith(newP)
-        }
-      })
-    })
-  }
-
-  /* 🗑️ DELETE COMMENT */
-  if (e.target.closest('.delete-comment-btn')) {
-    const btn = e.target.closest('.delete-comment-btn')
-    const id = btn.dataset.id
-
-    if (!confirm('Delete this comment?')) return
-
-    fetch(`/app/articles/comments/${id}/delete`, {
-      method: 'POST'
-    })
-    .then(res => res.json())
-    .then(data => {
-      if (data.success) {
-        document.getElementById(`comment-${id}`).remove()
+      const html = (await res.text()).trim();
+      if (!html) {
+        noMore = true;
+        sentinelEl?.remove();
+        return;
       }
-    })
+
+      const temp = document.createElement('div');
+      temp.innerHTML = html;
+
+      const newCards = temp.querySelectorAll('.article-card');
+      newCards.forEach(card => listEl.appendChild(card));
+
+      offset += newCards.length;
+
+      // init features on new cards
+      initLinkPreviews(newCards);
+      initSeeMoreForCards(Array.from(newCards));
+
+      if (newCards.length < limit) {
+        noMore = true;
+        sentinelEl?.remove();
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      loadingMore = false;
+      if (loaderEl) loaderEl.style.display = 'none';
+    }
   }
 
-})
+  if (sentinelEl) {
+    const io = new IntersectionObserver((entries) => {
+      if (entries.some(en => en.isIntersecting)) loadMoreArticles();
+    }, { rootMargin: '300px' });
 
-    // ========== SEE MORE / AUTO HIDE ==========
+    io.observe(sentinelEl);
+  }
 
-    document.querySelectorAll('.see-more-btn').forEach(btn => {
-        const id = btn.dataset.id;
-        const body = document.getElementById(`article-body-${id}`);
-
-        if (!body) return;
-
-        // Si le texte est trop court → cacher le bouton
-        const visibleHeight = 180; // même valeur que le CSS
-        const fullHeight = body.scrollHeight;
-
-        if (fullHeight <= visibleHeight + 10) { // +10 pour sécurité
-            btn.style.display = "none";
-            return;
-        }
-
-        // Sinon → gérer le toggle
-        btn.addEventListener('click', function () {
-            body.classList.toggle('expanded');
-
-            if (body.classList.contains('expanded')) {
-                btn.textContent = "See less";
-            } else {
-                btn.textContent = "See more";
-            }
-        });
-    });
+  // =========================
+  // INIT initial page
+  // =========================
+  initLinkPreviews();
+  initSeeMoreForCards(Array.from(document.querySelectorAll('.article-card')));
 });
 </script>
-
 
 {% endblock %}

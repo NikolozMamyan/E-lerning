@@ -26,10 +26,30 @@ class ArticleController extends AbstractController
     #[Route('', name: 'article_feed', methods: ['GET'])]
     public function index(ArticleRepository $articleRepository): Response
     {
-        return $this->render('article/feed.html.twig', [
-            'articles' => $articleRepository->findBy([], ['createdAt' => 'DESC']),
-        ]);
+    $limit = 5;
+    $offset = 0;
+
+    $articles = $articleRepository->findBy([], ['createdAt' => 'DESC'], $limit, $offset);
+
+    return $this->render('article/feed.html.twig', [
+        'articles' => $articles,
+        'limit' => $limit,
+        'offset' => $offset,
+    ]);
     }
+    #[Route('/load-more', name: 'article_feed_load_more', methods: ['GET'])]
+public function loadMore(Request $request, ArticleRepository $articleRepository): Response
+{
+    $limit = (int) $request->query->get('limit', 5);
+    $offset = (int) $request->query->get('offset', 0);
+
+    $articles = $articleRepository->findBy([], ['createdAt' => 'DESC'], $limit, $offset);
+
+    return $this->render('components/feed/_articles_chunk.html.twig', [
+        'articles' => $articles
+    ]);
+}
+
 
     #[Route('/create', name: 'article_create', methods: ['POST'])]
     #[IsGranted('ROLE_USER')]
