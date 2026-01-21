@@ -440,6 +440,11 @@
     <!-- Lesson Info -->
     <div class="lesson-info">
       <h2 class="lesson-title">{{ course.title }}</h2>
+                      <span class="updated-at">
+<i class="fa-solid fa-calendar-days"></i>
+
+    date {{ course.updatedAt|date('d M Y') }}
+  </span>
       
       <p class="lesson-description">{{ course.description }}</p>
        {% if course.planPdf %}

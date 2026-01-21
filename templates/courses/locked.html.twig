@@ -177,6 +177,11 @@
                 
                 <div class="course-details">
                     <h1>{{ course.title }}</h1>
+                                    <span class="updated-at">
+<i class="fa-solid fa-calendar-days"></i>
+
+    date {{ course.updatedAt|date('d M Y') }}
+  </span>
                     
 <div class="course-price">
     <strong>€{{ euro|number_format(2, ',', ' ') }}</strong> <span>(incl. VAT)</span>

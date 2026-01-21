@@ -888,32 +888,60 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('click', async (e) => {
   const btn = e.target.closest('.comment-like-btn');
   if (!btn) return;
-  if (btn.disabled) return;
+
+  if (btn.dataset.loading === "1") return;
+  btn.dataset.loading = "1";
 
   const commentId = btn.dataset.commentId;
-
-  const res = await fetch(`/app/articles/comment/${commentId}/like`, {
-    method: 'POST',
-    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-  });
-
-  if (!res.ok) return;
-
-  const data = await res.json();
-
-  // Update count
   const countEl = document.getElementById(`comment-like-count-${commentId}`);
-  if (countEl) countEl.textContent = data.count;
-
-  // Toggle state + icon
-  btn.classList.toggle('active', data.liked);
-
   const icon = btn.querySelector('i');
+
+  const wasLiked = btn.classList.contains('active');
+  const currentCount = countEl ? parseInt(countEl.textContent || "0", 10) : 0;
+
+  // optimistic
+  const nextLiked = !wasLiked;
+  const nextCount = Math.max(0, currentCount + (nextLiked ? 1 : -1));
+
+  if (countEl) countEl.textContent = nextCount;
+  btn.classList.toggle('active', nextLiked);
   if (icon) {
-    icon.classList.toggle('fa-solid', data.liked);
-    icon.classList.toggle('fa-regular', !data.liked);
+    icon.classList.toggle('fa-solid', nextLiked);
+    icon.classList.toggle('fa-regular', !nextLiked);
+  }
+
+  try {
+    const res = await fetch(`/app/articles/comment/${commentId}/like`, {
+      method: 'POST',
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    });
+
+    if (!res.ok) throw new Error('HTTP error');
+
+    const data = await res.json();
+
+    // sync serveur
+    if (countEl) countEl.textContent = data.count;
+    btn.classList.toggle('active', data.liked);
+    if (icon) {
+      icon.classList.toggle('fa-solid', data.liked);
+      icon.classList.toggle('fa-regular', !data.liked);
+    }
+
+  } catch (err) {
+    // rollback
+    if (countEl) countEl.textContent = currentCount;
+    btn.classList.toggle('active', wasLiked);
+    if (icon) {
+      icon.classList.toggle('fa-solid', wasLiked);
+      icon.classList.toggle('fa-regular', !wasLiked);
+    }
+    console.error(err);
+  } finally {
+    btn.dataset.loading = "0";
   }
 });
+
     // ========== FONCTIONS UTILITAIRES ==========
 
     function clearImageUpload() {
@@ -1150,44 +1178,72 @@ document.addEventListener('DOMContentLoaded', () => {
             videoPreviewContainer.appendChild(wrapper);
         });
     }
+// ========== LIKE BUTTONS (optimistic UI) ==========
 
-    // ========== LIKE BUTTONS ==========
+document.querySelectorAll('.like-btn').forEach(btn => {
+  btn.addEventListener('click', async function () {
+    const articleId = this.dataset.articleId;
+    if (!articleId) return;
 
-    document.querySelectorAll('.like-btn').forEach(btn => {
-        btn.addEventListener('click', function () {
-            const articleId = this.dataset.articleId;
-            if (!articleId) return;
+    // éviter le spam click
+    if (this.dataset.loading === "1") return;
+    this.dataset.loading = "1";
 
-            const icon = this.querySelector('i');
+    const icon = this.querySelector('i');
+    const likeCountEl = document.getElementById(`like-count-${articleId}`);
 
-            fetch(`/app/articles/${articleId}/like`, {
-                method: 'POST',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-                .then(response => response.json())
-                .then(data => {
-                    const likeCountEl = document.getElementById(`like-count-${articleId}`);
-                    if (likeCountEl) {
-                        likeCountEl.textContent = data.likes;
-                    }
+    // ---- état actuel dans le DOM
+    const wasLiked = this.classList.contains('active');
+    const currentCount = likeCountEl ? parseInt(likeCountEl.textContent || "0", 10) : 0;
 
-                    if (data.liked === true) {
-                        icon.classList.remove('fa-regular');
-                        icon.classList.add('fa-solid');
-                        this.classList.add('active');
-                    } else {
-                        icon.classList.remove('fa-solid');
-                        icon.classList.add('fa-regular');
-                        this.classList.remove('active');
-                    }
-                })
-                .catch(err => {
-                    console.error('Error updating like:', err);
-                });
-        });
-    });
+    // ---- optimistic update (instant)
+    const nextLiked = !wasLiked;
+    const nextCount = Math.max(0, currentCount + (nextLiked ? 1 : -1));
+
+    if (likeCountEl) likeCountEl.textContent = nextCount;
+
+    this.classList.toggle('active', nextLiked);
+    if (icon) {
+      icon.classList.toggle('fa-solid', nextLiked);
+      icon.classList.toggle('fa-regular', !nextLiked);
+    }
+
+    try {
+      const res = await fetch(`/app/articles/${articleId}/like`, {
+        method: 'POST',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+      });
+
+      if (!res.ok) throw new Error('HTTP error');
+
+      const data = await res.json();
+
+      // sync avec la vérité serveur (au cas où)
+      if (likeCountEl) likeCountEl.textContent = data.likes;
+      this.classList.toggle('active', data.liked);
+
+      if (icon) {
+        icon.classList.toggle('fa-solid', data.liked);
+        icon.classList.toggle('fa-regular', !data.liked);
+      }
+
+    } catch (err) {
+      // ---- rollback si erreur
+      if (likeCountEl) likeCountEl.textContent = currentCount;
+
+      this.classList.toggle('active', wasLiked);
+      if (icon) {
+        icon.classList.toggle('fa-solid', wasLiked);
+        icon.classList.toggle('fa-regular', !wasLiked);
+      }
+
+      console.error('Error updating like:', err);
+    } finally {
+      this.dataset.loading = "0";
+    }
+  });
+});
+
 
     // ========== TOGGLE COMMENTS SECTION ==========
 
