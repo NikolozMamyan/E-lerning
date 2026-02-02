@@ -106,32 +106,36 @@ export default class extends Controller {
       .catch(err => console.error("Progress error:", err))
   }
 
-  showPopup() {
-    const overlay = document.createElement("div")
-    overlay.classList.add("progress-popup-overlay")
+ showPopup() {
+  const overlay = document.createElement("div")
+  overlay.classList.add("progress-popup-overlay")
 
-    const popup = document.createElement("div")
-    popup.classList.add("progress-popup")
+  const popup = document.createElement("div")
+  popup.classList.add("progress-popup")
 
-    const img = document.createElement("img")
-    img.src = this.popupImageValue
-    img.style.width = "120px"
-    img.style.marginBottom = "1rem"
+  const img = document.createElement("img")
+  img.src = this.popupImageValue
+  img.alt = "Congratulations"
+  img.width = 120
 
-    const title = document.createElement("h2")
-    title.textContent = "🎉 Congratulations!"
-    const text = document.createElement("p")
-    text.textContent = "You have completed the video. The quiz button will appear below once you click OK."
-    const btn = document.createElement("button")
-    btn.textContent = "OK"
-    btn.classList.add("popup-btn")
-    btn.addEventListener("click", () => window.location.reload())
+  const title = document.createElement("h2")
+  title.textContent = "🎉 Congratulations!"
 
-    popup.appendChild(img)
-    popup.appendChild(title)
-    popup.appendChild(text)
-    popup.appendChild(btn)
-    overlay.appendChild(popup)
-    document.body.appendChild(overlay)
-  }
+  const text = document.createElement("p")
+  text.textContent = "You successfully completed this lesson."
+
+  const btn = document.createElement("button")
+  btn.textContent = "OK"
+  btn.classList.add("popup-btn")
+  btn.addEventListener("click", () => overlay.remove())
+
+  popup.append(img, title, text, btn)
+  overlay.appendChild(popup)
+
+  // ✅ IMPORTANT : append dans le wrapper video-container (pas dans l'iframe)
+  const container = this.element.closest(".video-container")
+  if (container) container.appendChild(overlay)
+  else document.body.appendChild(overlay) // fallback
+}
+
 }
