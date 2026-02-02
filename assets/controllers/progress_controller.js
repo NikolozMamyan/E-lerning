@@ -122,12 +122,12 @@ export default class extends Controller {
   title.textContent = "🎉 Congratulations!"
 
   const text = document.createElement("p")
-  text.textContent = "You successfully completed this lesson."
+  text.textContent = "You have completed the video. The quiz button will appear below once you click OK"
 
   const btn = document.createElement("button")
   btn.textContent = "OK"
   btn.classList.add("popup-btn")
-  btn.addEventListener("click", () => overlay.remove())
+  btn.addEventListener("click", () => window.location.reload())
 
   popup.append(img, title, text, btn)
   overlay.appendChild(popup)
