@@ -1,17 +1,17 @@
 import { Controller } from "@hotwired/stimulus"
 
+
 // Connects to data-controller="progress"
 export default class extends Controller {
   static values = {
     videoId: Number,
     expectedDuration: Number,
     updateUrl: String,
-    popupImage: String // chemin vers ton image de congratulations
+    popupImage: String
   }
-
   connect() {
-    this.video = this.element
-    if (!this.video) return
+    // l'iframe est l'élément du controller
+ this.player = new Vimeo.Player(this.element)
 
     this.realDuration = 0
     this.completedSent = false
@@ -24,72 +24,66 @@ export default class extends Controller {
   }
 
   initEvents() {
-    this.video.addEventListener("loadedmetadata", () => {
-      if (Number.isFinite(this.video.duration) && this.video.duration > 0) {
-        this.realDuration = this.video.duration
-      }
+    // récupérer la durée de la vidéo
+    this.player.getDuration().then(duration => {
+      this.realDuration = duration
     })
 
-    setInterval(() => {
-      if (!this.completedSent) this.sendProgress(this.video.currentTime)
+    // envoyer régulièrement la progression
+    setInterval(async () => {
+      if (!this.completedSent) {
+        const seconds = await this.player.getCurrentTime()
+        this.sendProgress(seconds)
+      }
     }, this.UPDATE_INTERVAL_MS)
 
-    this.video.addEventListener("pause", () => {
-      if (!this.completedSent) this.sendProgress(this.video.currentTime)
-    })
-
-    this.video.addEventListener("timeupdate", () => {
-      if (!this.completedSent && this.shouldComplete()) {
+    // écouter l'avancement
+    this.player.on("timeupdate", (data) => {
+      if (!this.completedSent && this.shouldComplete(data)) {
         this.completedSent = true
-        this.sendProgress(this.effectiveDuration(), false, true) // 👈 envoie completed: true
+        this.sendProgress(this.realDuration, false, true)
         this.showPopup()
       }
     })
 
-    this.video.addEventListener("ended", () => {
+    // fin de la vidéo
+    this.player.on("ended", () => {
       if (!this.completedSent) {
         this.completedSent = true
-        this.sendProgress(this.effectiveDuration(), false, true) // 👈 envoie completed: true
+        this.sendProgress(this.realDuration, false, true)
         this.showPopup()
       }
     })
 
-    document.addEventListener("visibilitychange", () => {
+    // quand on change d’onglet ou ferme la page
+    document.addEventListener("visibilitychange", async () => {
       if (document.visibilityState === "hidden" && !this.completedSent) {
-        this.sendProgress(this.video.currentTime, true)
+        const seconds = await this.player.getCurrentTime()
+        this.sendProgress(seconds, true)
       }
     })
-    window.addEventListener("beforeunload", () => {
-      if (!this.completedSent) this.sendProgress(this.video.currentTime, true)
+    window.addEventListener("beforeunload", async () => {
+      if (!this.completedSent) {
+        const seconds = await this.player.getCurrentTime()
+        this.sendProgress(seconds, true)
+      }
     })
   }
 
-  effectiveDuration() {
-    if (Number.isFinite(this.realDuration) && this.realDuration > 0) {
-      return Math.floor(this.realDuration)
-    }
-    if (this.video.seekable && this.video.seekable.length > 0) {
-      try {
-        return Math.floor(this.video.seekable.end(this.video.seekable.length - 1))
-      } catch (e) {}
-    }
-    return this.expectedDurationValue || 0
-  }
-
-  shouldComplete() {
-    const dur = this.effectiveDuration()
+  shouldComplete(data) {
+    const dur = this.realDuration
     if (!dur) return false
-    return this.video.ended || (this.video.currentTime >= dur * this.COMPLETE_THRESHOLD)
+    return data.percent >= this.COMPLETE_THRESHOLD
   }
 
   sendProgress(seconds, useBeacon = false, forceComplete = false) {
-    const sec = Math.max(0, Math.floor(seconds || this.video.currentTime || 0))
+    const sec = Math.max(0, Math.floor(seconds || 0))
     if (!useBeacon && sec === this.lastSent && !forceComplete) return
     this.lastSent = sec
 
     const payload = JSON.stringify({
       watched: sec,
-      completed: forceComplete // 👈 envoie le flag si besoin
+      completed: forceComplete
     })
 
     if (useBeacon && navigator.sendBeacon) {
@@ -113,10 +107,8 @@ export default class extends Controller {
   }
 
   showPopup() {
-    console.log("🎉 showPopup called!") // Debug
-
     const overlay = document.createElement("div")
-    overlay.classList.add("progress-popup-overlay") // plus propre pour CSS
+    overlay.classList.add("progress-popup-overlay")
 
     const popup = document.createElement("div")
     popup.classList.add("progress-popup")
@@ -128,11 +120,8 @@ export default class extends Controller {
 
     const title = document.createElement("h2")
     title.textContent = "🎉 Congratulations!"
-    title.style.marginBottom = "0.5rem"
-
     const text = document.createElement("p")
-    text.textContent = "You successfully completed this lesson."
-
+    text.textContent = "You have completed the video. The quiz button will appear below once you click OK."
     const btn = document.createElement("button")
     btn.textContent = "OK"
     btn.classList.add("popup-btn")
@@ -142,7 +131,6 @@ export default class extends Controller {
     popup.appendChild(title)
     popup.appendChild(text)
     popup.appendChild(btn)
-
     overlay.appendChild(popup)
     document.body.appendChild(overlay)
   }
