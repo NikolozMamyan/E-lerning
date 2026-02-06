@@ -30,8 +30,7 @@ class CoursesApiController extends AbstractController
 
         // Vérifier l'abonnement
         $subscription = $user ? $user->hasActiveSubscription() : false;
-
-        // Préparer les données de cours
+                // Préparer les données de cours
         $coursesData = [];
         foreach ($courses as $course) {
             $hasAccess = false;
@@ -46,6 +45,18 @@ class CoursesApiController extends AbstractController
 
             // Calculer la progression du cours
             $videos = $course->getVideos();
+            $totalSeconds = 0;
+
+foreach ($videos as $video) {
+    $totalSeconds += (int) $video->getDuration();
+}
+
+$minutes = intdiv($totalSeconds, 60);
+$seconds = $totalSeconds % 60;
+
+$formattedDuration = sprintf('%02d:%02d', $minutes, $seconds);
+
+
             $completedCount = 0;
             
             if ($user && count($videos) > 0) {
@@ -78,6 +89,8 @@ class CoursesApiController extends AbstractController
                     'name' => $course->getCategory()->getName(),
                 ] : null,
                 'videosCount' => count($videos),
+                'courseDuration' => $formattedDuration,
+                'updatedAt' => $course->getUpdatedAt()?->format('d/m/Y'),
                 'hasAccess' => $hasAccess,
                 'progressPercent' => $progressPercent,
                 'price' => $euroPrice,

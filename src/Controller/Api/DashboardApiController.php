@@ -188,7 +188,8 @@ final class DashboardApiController extends AbstractController
         foreach ($latestArticlesEntities as $article) {
             $latestArticles[] = [
                 'id' => $article->getId(),
-                'title' => method_exists($article, 'getTitle') ? $article->getTitle() : null,
+                'image'=> method_exists($article, 'getImage') ? $article->getImage() : null,
+                'title' => method_exists($article, 'getTitre') ? $article->getTitre() : null,
                 'createdAt' => method_exists($article, 'getCreatedAt') && $article->getCreatedAt()
                     ? $article->getCreatedAt()->format(DATE_ATOM)
                     : null,
