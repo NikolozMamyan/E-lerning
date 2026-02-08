@@ -20,6 +20,7 @@ use App\Repository\UserRepository;
 use App\Repository\CourseRepository;
 use App\Repository\ArticleRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use App\Repository\CertificateRepository;
 use App\Repository\SubscriptionRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -573,4 +574,66 @@ public function importUsers(
             'form' => $form,
         ]);
     }
+#[Route('/certificate/list', name: 'certificate_list')]
+public function certificateList(
+    Request $request,
+    CertificateRepository $certificateRepo
+): Response {
+    $preset = $request->query->get('preset'); // week | month | this_month
+    $startStr = $request->query->get('start'); // YYYY-MM-DD
+    $endStr = $request->query->get('end');     // YYYY-MM-DD
+
+    $now = new \DateTimeImmutable('now');
+    $start = null;
+    $end = null;
+
+    if ($preset === 'week') {
+        $start = $now->modify('-7 days')->setTime(0, 0);
+        $end = $now;
+    } elseif ($preset === 'month') {
+        $start = $now->modify('-30 days')->setTime(0, 0);
+        $end = $now;
+    } elseif ($preset === 'this_month') {
+        $start = $now->modify('first day of this month')->setTime(0, 0);
+        $end = $now->modify('last day of this month')->setTime(23, 59, 59);
+    } else {
+        if ($startStr) {
+            $start = \DateTimeImmutable::createFromFormat('Y-m-d', $startStr)?->setTime(0, 0);
+        }
+        if ($endStr) {
+            $end = \DateTimeImmutable::createFromFormat('Y-m-d', $endStr)?->setTime(0, 0);
+        }
+
+        // défaut = mois en cours
+        if (!$start && !$end) {
+            $start = $now->modify('first day of this month')->setTime(0, 0);
+            $end = $now->modify('last day of this month')->setTime(23, 59, 59);
+        }
+    }
+
+    $rows = $certificateRepo->findForListWithPassedAt($start, $end);
+
+    // group par mois basé sur passedAt
+    $grouped = [];
+    foreach ($rows as $row) {
+        $passedAt = $row['passedAt'];
+        $key = $passedAt ? : 'unknown';
+        $grouped[$key][] = $row;
+    }
+
+    // option: mettre "unknown" à la fin
+    if (isset($grouped['unknown'])) {
+        $unknown = $grouped['unknown'];
+        unset($grouped['unknown']);
+        $grouped['unknown'] = $unknown;
+    }
+
+    return $this->render('admin/certificate/index.html.twig', [
+        'grouped' => $grouped,
+        'start' => $start,
+        'end' => $end,
+        'preset' => $preset,
+    ]);
+}
+
 }

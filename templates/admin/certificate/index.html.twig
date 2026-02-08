@@ -1,0 +1,415 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Certificats{% endblock %}
+
+{% block body %}
+
+
+        {# Filtres #}
+        <div class="filters-card">
+            <h2 class="filters-title">📊 Filtres</h2>
+            
+            {# Boutons rapides #}
+            <div class="quick-filters">
+                <a href="{{ path('admin_certificate_list', { preset: 'week' }) }}" 
+                   class="filter-btn {% if preset == 'week' %}active{% endif %}">
+                    📅 Dernière semaine
+                </a>
+                <a href="{{ path('admin_certificate_list', { preset: 'month' }) }}" 
+                   class="filter-btn {% if preset == 'month' %}active{% endif %}">
+                    📆 30 derniers jours
+                </a>
+                <a href="{{ path('admin_certificate_list', { preset: 'this_month' }) }}" 
+                   class="filter-btn {% if preset == 'this_month' %}active{% endif %}">
+                    📊 Mois en cours
+                </a>
+                <a href="{{ path('admin_certificate_list') }}" 
+                   class="filter-btn reset">
+                    🔄 Réinitialiser
+                </a>
+            </div>
+
+            {# Filtre personnalisé #}
+            <form method="get" action="{{ path('admin_certificate_list') }}" class="custom-filter">
+                <div class="date-inputs">
+                    <div class="input-group">
+                        <label for="start">Du</label>
+                        <input type="date" 
+                               id="start" 
+                               name="start" 
+                               value="{{ start ? start|date('Y-m-d') : '' }}"
+                               class="date-input">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="end">Au</label>
+                        <input type="date" 
+                               id="end" 
+                               name="end" 
+                               value="{{ end ? end|date('Y-m-d') : '' }}"
+                               class="date-input">
+                    </div>
+                    
+                    <button type="submit" class="submit-btn">
+                        🔍 Filtrer
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        {# Résultats #}
+        {% if grouped is empty %}
+            <div class="empty-state">
+                <div class="empty-icon">📭</div>
+                <p class="empty-text">Aucun certificat trouvé pour cette période</p>
+            </div>
+        {% else %}
+            {% for monthKey, items in grouped %}
+                <div class="month-section">
+                    <h2 class="month-title">
+                        {% if monthKey == 'unknown' %}
+                            ❓ Date inconnue
+                        {% else %}
+                            📅 {{ (monthKey ~ '-01')|date('F Y') }}
+                        {% endif %}
+                        <span class="count-badge">{{ items|length }}</span>
+                    </h2>
+
+                    <div class="table-container">
+                        <table class="certificates-table">
+                            <thead>
+                                <tr>
+                                    <th>📆 Date</th>
+                                    <th>🔖 Référence</th>
+                                    <th>🎓 Certificat</th>
+                                    <th>📚 Cours</th>
+                                    <th>👤 Utilisateur</th>
+                                    {# <th>📊 Score</th> #}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in items %}
+                                    {% set c = row.certificate %}
+                                    {% set passedAt = row.passedAt %}
+                                    <tr>
+                                        <td class="date-cell">
+                                            {{ passedAt ? passedAt|date('d/m/Y H:i') : '—' }}
+                                        </td>
+                                        <td class="ref-cell">
+                                            <code>{{ c.ref }}</code>
+                                        </td>
+                                        <td class="title-cell">
+                                            <strong>{{ c.title }}</strong>
+                                        </td>
+                                        <td>{{ c.course ? c.course.title : '—' }}</td>
+                                        <td class="user-cell">
+                                            {{ c.passed ? c.passed.email : '—' }}
+                                        </td>
+                                        {# <td class="score-cell">—</td> #}
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+<style>
+.certificate-page {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 40px 0;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* Header */
+.page-header {
+    text-align: center;
+    margin-bottom: 40px;
+    color: white;
+}
+
+.page-header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+}
+
+.subtitle {
+    font-size: 1.1rem;
+    opacity: 0.9;
+}
+
+/* Filters Card */
+.filters-card {
+    background: white;
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+    margin-bottom: 30px;
+}
+
+.filters-title {
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+    color: #2d3748;
+}
+
+/* Quick Filters */
+.quick-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 25px;
+    padding-bottom: 25px;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.filter-btn {
+    padding: 12px 24px;
+    background: #f7fafc;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    color: #4a5568;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.filter-btn:hover {
+    background: #edf2f7;
+    border-color: #cbd5e0;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.filter-btn.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-color: #667eea;
+    color: white;
+}
+
+.filter-btn.reset {
+    background: #fed7d7;
+    border-color: #fc8181;
+    color: #c53030;
+}
+
+.filter-btn.reset:hover {
+    background: #fc8181;
+    color: white;
+}
+
+/* Custom Filter Form */
+.custom-filter {
+    margin-top: 20px;
+}
+
+.date-inputs {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 16px;
+    align-items: end;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.input-group label {
+    font-weight: 600;
+    color: #4a5568;
+    font-size: 0.9rem;
+}
+
+.date-input {
+    padding: 12px 16px;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.date-input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.submit-btn {
+    padding: 12px 32px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.submit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+}
+
+/* Empty State */
+.empty-state {
+    background: white;
+    border-radius: 16px;
+    padding: 60px 40px;
+    text-align: center;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+}
+
+.empty-icon {
+    font-size: 4rem;
+    margin-bottom: 20px;
+}
+
+.empty-text {
+    font-size: 1.2rem;
+    color: #718096;
+}
+
+/* Month Section */
+.month-section {
+    background: white;
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+    margin-bottom: 30px;
+}
+
+.month-title {
+    font-size: 1.8rem;
+    color: #2d3748;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.count-badge {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+/* Table */
+.table-container {
+    overflow-x: auto;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+}
+
+.certificates-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+}
+
+.certificates-table thead {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.certificates-table th {
+    padding: 16px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.certificates-table tbody tr {
+    border-bottom: 1px solid #e2e8f0;
+    transition: background 0.2s ease;
+}
+
+.certificates-table tbody tr:hover {
+    background: #f7fafc;
+}
+
+.certificates-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.certificates-table td {
+    padding: 16px;
+    color: #4a5568;
+}
+
+.date-cell {
+    font-weight: 500;
+    color: #2d3748;
+    white-space: nowrap;
+}
+
+.ref-cell code {
+    background: #edf2f7;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    color: #667eea;
+    border: 1px solid #e2e8f0;
+}
+
+.title-cell strong {
+    color: #2d3748;
+    font-size: 1rem;
+}
+
+.user-cell {
+    color: #718096;
+    font-size: 0.9rem;
+}
+
+.score-cell {
+    text-align: center;
+    color: #cbd5e0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .date-inputs {
+        grid-template-columns: 1fr;
+    }
+    
+    .quick-filters {
+        flex-direction: column;
+    }
+    
+    .filter-btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .page-header h1 {
+        font-size: 2rem;
+    }
+    
+    .certificates-table {
+        font-size: 0.85rem;
+    }
+    
+    .certificates-table th,
+    .certificates-table td {
+        padding: 12px 8px;
+    }
+}
+</style>
+{% endblock %}

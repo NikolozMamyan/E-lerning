@@ -1,14 +1,14 @@
 <?php
 
+// src/Repository/CertificateRepository.php
+
 namespace App\Repository;
 
 use App\Entity\Certificate;
+use App\Entity\QuizAttempt;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
-/**
- * @extends ServiceEntityRepository<Certificate>
- */
 class CertificateRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
@@ -16,28 +16,34 @@ class CertificateRepository extends ServiceEntityRepository
         parent::__construct($registry, Certificate::class);
     }
 
-    //    /**
-    //     * @return Certificate[] Returns an array of Certificate objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('c')
-    //            ->andWhere('c.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('c.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
+    /**
+     * @return array<int, array{certificate: Certificate, passedAt: \DateTimeInterface|null}>
+     */
+    public function findForListWithPassedAt(?\DateTimeImmutable $start, ?\DateTimeImmutable $end): array
+    {
+        $qb = $this->createQueryBuilder('c')
+            ->select('c AS certificate')
+            ->addSelect('MAX(qa.createdAt) AS passedAt')
+            ->leftJoin(
+                QuizAttempt::class,
+                'qa',
+                'WITH',
+                'qa.user = c.passed AND qa.course = c.course AND qa.passed = true'
+            )
+            ->groupBy('c.id')
+            ->orderBy('passedAt', 'DESC');
 
-    //    public function findOneBySomeField($value): ?Certificate
-    //    {
-    //        return $this->createQueryBuilder('c')
-    //            ->andWhere('c.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+        if ($start) {
+            $qb->andWhere('qa.createdAt >= :start')
+               ->setParameter('start', $start);
+        }
+
+        if ($end) {
+            $qb->andWhere('qa.createdAt <= :end')
+               ->setParameter('end', $end->setTime(23, 59, 59));
+        }
+
+        return $qb->getQuery()->getResult();
+    }
 }
+
