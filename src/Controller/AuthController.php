@@ -186,6 +186,7 @@ public function register(
         return new JsonResponse([
             'id' => $user->getId(),  
             'userName'=>$user->getUserName(),
+            'token'=> $user->getApiToken(),
             'email' => $user->getEmail(),
             'roles' => $user->getRoles(),
         ]);
