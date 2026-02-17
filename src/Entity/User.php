@@ -88,6 +88,12 @@ private Collection $certificates;
 #[ORM\OneToMany(mappedBy: 'user', targetEntity: Notification::class, orphanRemoval: true)]
 private Collection $notifications;
 
+    /**
+     * @var Collection<int, UserSession>
+     */
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: UserSession::class, cascade: ['persist'], orphanRemoval: false)]
+    private Collection $userSessions;
+
 
 #[ORM\OneToMany(mappedBy: 'user', targetEntity: Subscription::class, cascade: ['persist', 'remove'])]
 private Collection $subscriptions;
@@ -106,6 +112,7 @@ public function __construct()
         $this->collaborationsAsCompany = new ArrayCollection();
         $this->collaborationsAsEmployee = new ArrayCollection();
         $this->subscriptions = new ArrayCollection();
+        $this->userSessions = new ArrayCollection();
 }
 
     public function getId(): ?int
@@ -558,5 +565,38 @@ public function removeComment(Comment $comment): static
 
     return $this;
 }
+
+ public function getUserSessions(): Collection
+    {
+        return $this->userSessions;
+    }
+
+    /**
+     * Ajoute une session à l'utilisateur et met à jour la relation inverse.
+     */
+    public function addUserSession(UserSession $session): self
+    {
+        if (!$this->userSessions->contains($session)) {
+            $this->userSessions->add($session);
+            $session->setUser($this); // s'assure que la relation inverse est à jour
+        }
+
+        return $this;
+    }
+
+    /**
+     * Retire une session de l'utilisateur et met à jour la relation inverse.
+     */
+    public function removeUserSession(UserSession $session): self
+    {
+        if ($this->userSessions->removeElement($session)) {
+            // si la session référence encore cet user, on le nullifie
+            if ($session->getUser() === $this) {
+                $session->setUser(null);
+            }
+        }
+
+        return $this;
+    }
 
 }

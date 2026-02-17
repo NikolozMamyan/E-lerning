@@ -2,7 +2,8 @@
 
 namespace App\Security;
 
-use App\Repository\UserRepository;
+use App\Repository\UserSessionRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -17,48 +18,40 @@ use Symfony\Component\Security\Core\Exception\CustomUserMessageAuthenticationExc
 
 class ApiTokenAuthenticator extends AbstractAuthenticator
 {
-    private UserRepository $userRepository;
+    public function __construct(
+        private UserSessionRepository $sessionRepo,
+        private EntityManagerInterface $em
+    ) {}
 
-    public function __construct(UserRepository $userRepository)
+    public function supports(Request $request): ?bool
     {
-        $this->userRepository = $userRepository;
+        $path = $request->getPathInfo();
+
+        if (
+            in_array($path, [
+                '/welcome',
+                '/api/register',
+                '/api/login',
+                '/api/logout',
+                '/api/stripe/webhook',
+                '/reset-password',
+                '/reset-password/check-email',
+                '/google',
+                '/google/callback'
+            ])
+            || str_starts_with($path, '/reset-password/reset')
+        ) {
+            return false;
+        }
+
+        return str_starts_with($path, '/api/')
+            || (str_starts_with($path, '/app/') && $request->cookies->has('AUTH_TOKEN'))
+            || (str_starts_with($path, '/admin/') && $request->cookies->has('AUTH_TOKEN'))
+            || (str_starts_with($path, '/company/') && $request->cookies->has('AUTH_TOKEN'))
+            || (str_starts_with($path, '/settings/') && $request->cookies->has('AUTH_TOKEN'))
+            || (str_starts_with($path, '/notifications/') && $request->cookies->has('AUTH_TOKEN'))
+            || (str_starts_with($path, '/contact/') && $request->cookies->has('AUTH_TOKEN'));
     }
-public function supports(Request $request): ?bool
-{
-    $path = $request->getPathInfo();
-
-    // Routes publiques sans authentification
-    if (
-        in_array($path, [
-            '/welcome',
-            '/api/register',
-            '/api/login',
-            '/api/logout',
-            '/api/stripe/webhook',
-            '/reset-password',
-            '/reset-password/check-email',
-            '/google',
-            '/google/callback'
-        ])
-        || str_starts_with($path, '/reset-password/reset') // exclut toutes les URL avec token
-    ) {
-        return false;
-    }
-
-    // Activer si :
-    // - requête API (/api/)
-    // - ou requête sur une page HTML (/app/) et le cookie est présent
-    
-    return str_starts_with($path, '/api/')
-        || (str_starts_with($path, '/app/') && $request->cookies->has('AUTH_TOKEN'))
-        || (str_starts_with($path, '/admin/') && $request->cookies->has('AUTH_TOKEN'))
-        || (str_starts_with($path, '/company/') && $request->cookies->has('AUTH_TOKEN'))
-        || (str_starts_with($path, '/settings/') && $request->cookies->has('AUTH_TOKEN'))
-        || (str_starts_with($path, '/notifications/') && $request->cookies->has('AUTH_TOKEN'))
-        || (str_starts_with($path, '/contact/') && $request->cookies->has('AUTH_TOKEN'));
-}
-
-    
 
     public function authenticate(Request $request): Passport
     {
@@ -77,35 +70,36 @@ public function supports(Request $request): ?bool
             throw new CustomUserMessageAuthenticationException('No token provided');
         }
 
-        return new SelfValidatingPassport(new UserBadge($token, function (string $token) {
-            $user = $this->userRepository->findOneBy(['apiToken' => $token]);
+        $tokenHash = hash('sha256', $token);
 
-            if (!$user) {
-                throw new CustomUserMessageAuthenticationException('Invalid API Token');
-            }
+        return new SelfValidatingPassport(
+            new UserBadge($tokenHash, function (string $tokenHash) {
+                $session = $this->sessionRepo->findActiveByTokenHash($tokenHash);
 
-            if ($user->getTokenExpiresAt() < new \DateTime()) {
-                throw new CustomUserMessageAuthenticationException('Token expired');
-            }
+                if (!$session) {
+                    throw new CustomUserMessageAuthenticationException('Invalid or expired token');
+                }
 
-            return $user;
-        }));
+                // Optionnel: track usage (attention au flush trop fréquent, mais ok)
+                $session->setLastUsedAt(new \DateTimeImmutable());
+                $this->em->flush();
+
+                return $session->getUser();
+            })
+        );
     }
 
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): ?Response
     {
-        return null; // continue
+        return null;
     }
 
     public function onAuthenticationFailure(Request $request, AuthenticationException $exception): ?Response
     {
-        // Si c'est une requête API, on garde une réponse JSON
         if (str_starts_with($request->getPathInfo(), '/api')) {
             return new JsonResponse(['error' => $exception->getMessage()], 401);
         }
-    
-        // Pour une page HTML, on redirige vers une page sympa
+
         return new RedirectResponse('/login');
     }
-    
 }
