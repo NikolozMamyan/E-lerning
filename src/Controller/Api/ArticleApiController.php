@@ -25,23 +25,29 @@ class ArticleApiController extends AbstractController
     // ------------------------------------------------------------
     // GET /api/articles?limit=5&offset=0
     // ------------------------------------------------------------
-    #[Route('', name: 'api_articles_list', methods: ['GET'])]
-    public function list(Request $request, ArticleRepository $repo): JsonResponse
-    {
-        $limit = max(1, min(50, (int) $request->query->get('limit', 5)));
-        $offset = max(0, (int) $request->query->get('offset', 0));
+#[Route('', name: 'api_articles_list', methods: ['GET'])]
+public function list(Request $request, ArticleRepository $repo): JsonResponse
+{
+    $limit = max(1, min(50, (int) $request->query->get('limit', 5)));
+    $offset = max(0, (int) $request->query->get('offset', 0));
 
-        $articles = $repo->findBy([], ['createdAt' => 'DESC'], $limit, $offset);
+    // items paginés
+    $articles = $repo->findBy([], ['createdAt' => 'DESC'], $limit, $offset);
+    $items = array_map(fn(Article $a) => $this->serializeArticle($a), $articles);
 
-        $data = array_map(fn(Article $a) => $this->serializeArticle($a), $articles);
+    // ✅ total global
+    $total = $repo->count([]);
 
-        return $this->json([
-            'limit' => $limit,
-            'offset' => $offset,
-            'count' => count($data),
-            'items' => $data,
-        ]);
-    }
+    return $this->json([
+        'limit' => $limit,
+        'offset' => $offset,
+        'count' => count($items),   // nb d'items renvoyés dans cette page
+        'total' => $total,          // ✅ nb total en base
+        'pages' => (int) ceil($total / $limit), // pratique côté front
+        'items' => $items,
+        'hasMore' => ($offset + $limit) < $total, // optionnel mais super utile
+    ]);
+}
 
     // ------------------------------------------------------------
     // POST /api/articles  (multipart/form-data)
@@ -509,28 +515,39 @@ class ArticleApiController extends AbstractController
     // Helpers
     // =========================
 
-    private function serializeArticle(Article $a): array
-    {
-        $user = $this->getUser();
+private function serializeArticle(Article $a): array
+{
+    $user = $this->getUser();
 
-        return [
-            'id' => $a->getId(),
-            'title' => $a->getTitre(),
-            'description' => $a->getDescription(),
-            'image' => $a->getImage(),   // côté Flutter tu reconstruis l’URL publique
-            'video' => $a->getVideo(),
-            'createdAt' => $a->getCreatedAt()?->format(DATE_ATOM),
-            'author' => [
-                'id' => $a->getAuthor()?->getId(),
-                'username' => $a->getAuthor()?->getUserIdentifier(),
-            ],
-            'likesCount' => $a->getLikesCount(),
-            'likedByMe' => $user ? $a->isLikedByUser($user) : false,
-            // si tu as une relation comments, tu peux aussi exposer un count
-            // 'commentsCount' => $a->getComments()->count(),
-        ];
-    }
+    // Option : trier les comments en mémoire (si pas déjà triés en DB)
+    $comments = $a->getComments()->toArray();
 
+    usort($comments, function($c1, $c2) {
+        return ($c2->getCreatedAt() <=> $c1->getCreatedAt());
+    });
+
+    // On limite à 3 (ou ce que tu veux)
+    $comments = array_slice($comments, 0, 3);
+
+    return [
+        'id' => $a->getId(),
+        'title' => $a->getTitre(),
+        'description' => $a->getDescription(),
+        'image' => $a->getImage(),
+        'video' => $a->getVideo(),
+        'createdAt' => $a->getCreatedAt()?->format(DATE_ATOM),
+        'author' => [
+            'id' => $a->getAuthor()?->getId(),
+            'username' => $a->getAuthor()?->getUserIdentifier(),
+        ],
+        'likesCount' => $a->getLikesCount(),
+        'likedByMe' => $user ? $a->isLikedByUser($user) : false,
+
+        // ✅ Ajouts
+        'commentsCount' => $a->getComments()->count(),
+        'comments' => array_map(fn(Comment $c) => $this->serializeComment($c), $comments),
+    ];
+}
     private function serializeComment(Comment $c): array
     {
         $u = $c->getAuthor();
