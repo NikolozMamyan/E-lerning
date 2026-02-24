@@ -141,7 +141,7 @@ body {
   font-size: .95rem;
 }
 
-.input-action { cursor: pointer; opacity: .6; }
+
 
 /* Row */
 .row-between {
@@ -241,20 +241,19 @@ body {
         <input id="email" name="email" type="email" placeholder="email" data-auth-target="email" required>
       </div>
 
-      <label for="password">Password</label>
-      <div class="input">
-        <span class="input-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 1a5 5 0 0 0-5 5v3H5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-2V6a5 5 0 0 0-5-5Zm3 8H9V6a3 3 0 0 1 6 0v3Z"/>
-          </svg>
-        </span>
-        <input id="password" name="password" type="password" placeholder="Enter password" data-auth-target="password" required>
-        <span class="input-action" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 5c-5 0-9 5-9 7s4 7 9 7 9-5 9-7-4-7-9-7Zm0 12a5 5 0 1 1 0-10 5 5 0 0 1 0 10Z"/>
-          </svg>
-        </span>
-      </div>
+<label for="password">Password</label>
+<div class="input">
+  <span class="input-icon" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 1a5 5 0 0 0-5 5v3H5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-2V6a5 5 0 0 0-5-5Zm3 8H9V6a3 3 0 0 1 6 0v3Z"/>
+    </svg>
+  </span>
+
+  <input id="password" name="password" type="password"
+         placeholder="Enter password" data-auth-target="password" required>
+
+{% include "components/password_togle.html.twig" %}
+</div>
 
       <div class="row-between">
         <label class="check">
