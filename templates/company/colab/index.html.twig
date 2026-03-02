@@ -72,7 +72,64 @@
       </table>
     </div>
   </div>
+  {# ===========================
+   COURSES RESULTS TABLE
+   =========================== #}
+<div class="card" style="margin-top: 1.5rem;">
+  <div style="padding: 1rem 1rem 0;">
+    <h2 style="font-size: 1.25rem; color: var(--black); font-weight: 600;">
+      Course Results
+    </h2>
+
+    <div class="results-toolbar">
+      <input id="filterUser" class="results-input" type="text" placeholder="Filter by user name or email..." />
+
+      <select id="filterCourse" class="results-input">
+        <option value="">All courses</option>
+      </select>
+
+      <select id="filterPassed" class="results-input">
+        <option value="">All</option>
+        <option value="1">Yes</option>
+        <option value="0">No</option>
+      </select>
+
+      <select id="sortBy" class="results-input">
+        <option value="course_asc">Sort: Course (A→Z)</option>
+        <option value="course_desc">Sort: Course (Z→A)</option>
+        <option value="user_asc">Sort: User (A→Z)</option>
+        <option value="user_desc">Sort: User (Z→A)</option>
+        <option value="passed_desc">Sort: Passed (Yes first)</option>
+        <option value="passed_asc">Sort: Passed (No first)</option>
+        <option value="score_desc">Sort: Score (high→low)</option>
+        <option value="score_asc">Sort: Score (low→high)</option>
+      </select>
+
+      <button class="btn-secondary" id="exportCsvBtn" type="button">Export CSV</button>
+    </div>
+  </div>
+
+  <div class="table-container">
+    <table class="employee-table" id="resultsTable">
+      <thead>
+        <tr>
+          <th>User</th>
+          <th class="hide-tablet">Email</th>
+          <th>Course</th>
+          <th>Score</th>
+          <th>Passed</th>
+        </tr>
+      </thead>
+      <tbody id="resultsTbody">
+        <tr><td colspan="5" class="empty-state">Loading…</td></tr>
+      </tbody>
+    </table>
+  </div>
 </div>
+
+<script>
+  window.__COURSE_RESULTS__ = {{ courseResults|json_encode|raw }};
+</script>
 
 <!-- Modal -->
 <div id="addEmployeeModal" class="modal">
@@ -158,7 +215,34 @@
   transition: all 0.3s ease;
   box-shadow: var(--shadow);
 }
+.results-toolbar{
+  display:flex;
+  gap:.75rem;
+  align-items:center;
+  flex-wrap:wrap;
+  margin:.75rem 0 1rem;
+}
 
+.results-input{
+  padding:.7rem .85rem;
+  border:2px solid var(--mint);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--black);
+  font-size:.95rem;
+  min-width: 180px;
+}
+
+.results-input:focus{
+  outline:none;
+  border-color: var(--green);
+  background: var(--white);
+}
+
+@media (max-width: 768px){
+  .results-input{ min-width: 100%; }
+  .results-toolbar{ align-items: stretch; }
+}
 .btn-primary:hover {
   background: var(--teal);
   transform: translateY(-2px);
@@ -562,5 +646,149 @@ rowCheckboxes.forEach(checkbox => {
     mainCheckbox.indeterminate = someChecked && !allChecked;
   });
 });
+/* ===========================
+   Course results table logic
+   =========================== */
+(function() {
+  const data = Array.isArray(window.__COURSE_RESULTS__) ? window.__COURSE_RESULTS__ : [];
+
+  const tbody = document.getElementById('resultsTbody');
+  const filterUser = document.getElementById('filterUser');
+  const filterCourse = document.getElementById('filterCourse');
+  const filterPassed = document.getElementById('filterPassed');
+  const sortBy = document.getElementById('sortBy');
+  const exportBtn = document.getElementById('exportCsvBtn');
+
+  if (!tbody || !filterUser || !filterCourse || !filterPassed || !sortBy || !exportBtn) return;
+
+  // Course options
+  const uniqueCourses = [...new Set(data.map(r => (r.courseTitle || '').trim()).filter(Boolean))]
+    .sort((a,b) => a.localeCompare(b));
+  uniqueCourses.forEach(title => {
+    const opt = document.createElement('option');
+    opt.value = title;
+    opt.textContent = title;
+    filterCourse.appendChild(opt);
+  });
+
+  function norm(s){ return (s || '').toString().trim().toLowerCase(); }
+  function passedLabel(p){ return p === true ? 'Yes' : 'No'; }
+  function passedRank(p){ return p === true ? 1 : 0; } // Yes > No
+
+  function applySort(rows) {
+    const mode = sortBy.value;
+    const byCourse = (a,b) => norm(a.courseTitle).localeCompare(norm(b.courseTitle));
+    const byUser = (a,b) => norm(a.userName).localeCompare(norm(b.userName));
+    const byPassed = (a,b) => passedRank(a.passed) - passedRank(b.passed);
+    const byScore = (a,b) => (Number(a.score) || 0) - (Number(b.score) || 0);
+
+    const copy = [...rows];
+
+    switch (mode) {
+      case 'course_desc': return copy.sort((a,b) => byCourse(b,a) || byUser(a,b));
+      case 'user_asc':    return copy.sort((a,b) => byUser(a,b) || byCourse(a,b));
+      case 'user_desc':   return copy.sort((a,b) => byUser(b,a) || byCourse(a,b));
+      case 'passed_desc': return copy.sort((a,b) => byPassed(b,a) || byScore(b,a) || byCourse(a,b));
+      case 'passed_asc':  return copy.sort((a,b) => byPassed(a,b) || byScore(b,a) || byCourse(a,b));
+      case 'score_desc':  return copy.sort((a,b) => byScore(b,a) || byPassed(b,a) || byCourse(a,b));
+      case 'score_asc':   return copy.sort((a,b) => byScore(a,b) || byPassed(b,a) || byCourse(a,b));
+      case 'course_asc':
+      default:            return copy.sort((a,b) => byCourse(a,b) || byUser(a,b));
+    }
+  }
+
+  function getFilteredRows() {
+    const userVal = norm(filterUser.value);
+    const courseVal = filterCourse.value;
+    const passedVal = filterPassed.value; // "", "1", "0"
+
+    let rows = data.filter(r => {
+      const matchesUser =
+        !userVal ||
+        norm(r.userName).includes(userVal) ||
+        norm(r.userEmail).includes(userVal);
+
+      const matchesCourse = !courseVal || r.courseTitle === courseVal;
+
+      const matchesPassed =
+        !passedVal ||
+        (passedVal === '1' && r.passed === true) ||
+        (passedVal === '0' && r.passed === false);
+
+      return matchesUser && matchesCourse && matchesPassed;
+    });
+
+    return applySort(rows);
+  }
+
+  function render() {
+    const rows = getFilteredRows();
+
+    if (!rows.length) {
+      tbody.innerHTML = `<tr><td colspan="5" class="empty-state">No results</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = rows.map(r => {
+      const score = (r.score ?? 0);
+      const passed = passedLabel(r.passed);
+      const badgeClass = r.passed ? 'completed' : 'in-learning';
+
+      return `
+        <tr>
+          <td class="name-cell">${r.userName || '—'}</td>
+          <td class="hide-tablet">${r.userEmail || '—'}</td>
+          <td>${r.courseTitle || '—'}</td>
+          <td>${score}%</td>
+          <td><span class="status ${badgeClass}">${passed}</span></td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  function csvCell(v) {
+    const s = (v ?? '').toString().replaceAll('"', '""');
+    return `"${s}"`;
+  }
+
+  function exportCsv() {
+    const rows = getFilteredRows();
+
+    const header = ['User', 'Email', 'Course', 'Score', 'Passed'];
+    const lines = [header.map(csvCell).join(',')];
+
+    rows.forEach(r => {
+      lines.push([
+        r.userName || '',
+        r.userEmail || '',
+        r.courseTitle || '',
+        `${(r.score ?? 0)}%`,
+        passedLabel(r.passed),
+      ].map(csvCell).join(','));
+    });
+
+    const csv = lines.join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `course-results-${new Date().toISOString().slice(0,10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    URL.revokeObjectURL(url);
+  }
+
+  [filterUser, filterCourse, filterPassed, sortBy].forEach(el => {
+    el.addEventListener('input', render);
+    el.addEventListener('change', render);
+  });
+
+  exportBtn.addEventListener('click', exportCsv);
+
+  render();
+})();
 </script>
 {% endblock %}

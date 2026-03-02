@@ -7,6 +7,7 @@ use App\Entity\Notification;
 use App\Entity\Collaboration;
 use App\Service\MailerService;
 use App\Repository\UserRepository;
+use App\Repository\QuizAttemptRepository;
 use App\Service\NotificationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -18,7 +19,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 class CompanyColabController extends AbstractController
 {
     #[Route('company/colab', name: 'company_colab')]
-    public function index(): Response {
+    public function index(QuizAttemptRepository $attemptRepo): Response {
         $user = $this->getUser();
 
         // récupère les employés de l’entreprise
@@ -26,11 +27,38 @@ class CompanyColabController extends AbstractController
                           ->map(fn($c) => $c->getEmployee());
 
 
-         $collaborations = $user->getCollaborationsAsCompany();
+       $collaborations = $user->getCollaborationsAsCompany();
+ 
+
+$employeeIds = [];
+foreach ($collaborations as $collab) {
+    $employeeIds[] = $collab->getEmployee()->getId();
+}
+
+$attempts = $attemptRepo->findLatestByUserIds($employeeIds);
+
+$courseResults = [];
+foreach ($attempts as $qa) {
+    $u = $qa->getUser();
+    $c = $qa->getCourse();
+    if (!$u || !$c) continue;
+
+    $courseResults[] = [
+        'userId' => $u->getId(),
+        'userName' => $u->getUsername(),
+        'userEmail' => $u->getEmail(),
+        'courseTitle' => $c->getTitle(),
+        'score' => $qa->getScore(),
+        'passed' => $qa->isPassed(),
+        'attemptedAt' => $qa->getCreatedAt()->format('Y-m-d H:i:s'),
+    ];
+}
+
 
         return $this->render('company/colab/index.html.twig', [
             'employees' => $employees,
-            'collaborations' => $collaborations
+            'collaborations' => $collaborations,
+            'courseResults' => $courseResults
         ]);
     }
 

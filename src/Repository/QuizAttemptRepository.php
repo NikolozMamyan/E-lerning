@@ -63,4 +63,30 @@ class QuizAttemptRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+/**
+ * @param int[] $userIds
+ * @return array<int, QuizAttempt>  // [userId => QuizAttempt]
+ */
+public function findLatestByUserIds(array $userIds): array
+{
+    if (!$userIds) return [];
+
+    $attempts = $this->createQueryBuilder('qa')
+        ->join('qa.user', 'u')
+        ->andWhere('u.id IN (:userIds)')
+        ->andWhere('qa.id = (
+            SELECT MAX(qa2.id)
+            FROM App\Entity\QuizAttempt qa2
+            WHERE qa2.user = qa.user
+        )')
+        ->setParameter('userIds', $userIds)
+        ->getQuery()
+        ->getResult();
+
+    $byUserId = [];
+    foreach ($attempts as $attempt) {
+        $byUserId[$attempt->getUser()->getId()] = $attempt;
+    }
+    return $byUserId;
+}
 }
