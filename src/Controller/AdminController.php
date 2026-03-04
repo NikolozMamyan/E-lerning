@@ -577,7 +577,8 @@ public function importUsers(
 #[Route('/certificate/list', name: 'certificate_list')]
 public function certificateList(
     Request $request,
-    CertificateRepository $certificateRepo
+    CertificateRepository $certificateRepo,
+    SubscriptionRepository $subscriptionRepo
 ): Response {
     $preset = $request->query->get('preset'); // week | month | this_month
     $startStr = $request->query->get('start'); // YYYY-MM-DD
@@ -611,28 +612,74 @@ public function certificateList(
         }
     }
 
-    $rows = $certificateRepo->findForListWithPassedAt($start, $end);
+     $rows = $certificateRepo->findForListWithPassedAt($start, $end);
 
-    // group par mois basé sur passedAt
-    $grouped = [];
+    // filtre: sub=1 (avec) / sub=0 (sans) / null (tout)
+    $subFilter = $request->query->get('sub'); // "1" | "0" | null
+    $courseFilter = $request->query->get('course'); // id du course
+
+    // 1) extraire les userIds
+    $userIds = [];
     foreach ($rows as $row) {
-        $passedAt = $row['passedAt'];
-        $key = $passedAt ? : 'unknown';
+        $user = $row['certificate']->getPassed(); // ton User
+        if ($user?->getId()) {
+            $userIds[] = $user->getId();
+        }
+    }
+    $userIds = array_values(array_unique($userIds));
+
+    // 2) une requête: ids des users qui ont un abo actif
+    $activeUserIds = $subscriptionRepo->findUserIdsWithActiveSubscription($userIds);
+    $activeMap = array_fill_keys($activeUserIds, true);
+
+    // 3) enrichir + filtrer
+$filtered = [];
+foreach ($rows as $row) {
+
+    $certificate = $row['certificate'];
+    $userId = $certificate->getPassed()?->getId();
+    $courseId = $certificate->getCourse()?->getId();
+
+    // filtre cours
+    if ($courseFilter && $courseId != $courseFilter) {
+        continue;
+    }
+
+    $hasSub = $userId ? isset($activeMap[$userId]) : false;
+
+    $row['hasSubscription'] = $hasSub;
+
+    // filtre abonnement
+    if ($subFilter === '1' && !$hasSub) {
+        continue;
+    }
+    if ($subFilter === '0' && $hasSub) {
+        continue;
+    }
+
+    $filtered[] = $row;
+}
+
+    // 4) grouper (attention: ton code groupe par timestamp complet)
+    $grouped = [];
+    foreach ($filtered as $row) {
+        $passedAt = $row['passedAt']; // string "2025-12-31 19:47:07"
+        $key = $passedAt ? (new \DateTimeImmutable($passedAt))->format('Y-m') : 'unknown';
         $grouped[$key][] = $row;
     }
 
-    // option: mettre "unknown" à la fin
     if (isset($grouped['unknown'])) {
         $unknown = $grouped['unknown'];
         unset($grouped['unknown']);
         $grouped['unknown'] = $unknown;
     }
-
     return $this->render('admin/certificate/index.html.twig', [
         'grouped' => $grouped,
         'start' => $start,
         'end' => $end,
+        'course' => $courseFilter,
         'preset' => $preset,
+        'sub' => $subFilter,
     ]);
 }
 
