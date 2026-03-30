@@ -184,11 +184,11 @@
   </span>
                     
 <div class="course-price">
-    <strong>€{{ euro|number_format(2, ',', ' ') }}</strong> <span>(incl. VAT)</span>
-    <div class="tax-info">
+    <strong>€{{ priceHT|number_format(2, ',', ' ') }}</strong> <span>(excl. VAT)</span>
+    {# <div class="tax-info">
        <br>
         <span>€{{ priceHT|number_format(2, ',', ' ') }} (excl. VAT)</span>
-    </div>
+    </div> #}
 </div>
 
                     
