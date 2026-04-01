@@ -83,6 +83,7 @@ $formattedDuration = sprintf('%02d:%02d', $minutes, $seconds);
                 'id' => $course->getId(),
                 'title' => $course->getTitle(),
                 'description' => $course->getDescription(),
+                'planFormations' =>'/uploads/course_plans/' . $course->getPlanPdf(),
                 'image' => $course->getThumb(),
                 'category' => $course->getCategory() ? [
                     'id' => $course->getCategory()->getId(),
@@ -158,6 +159,7 @@ $formattedDuration = sprintf('%02d:%02d', $minutes, $seconds);
                     'id' => $course->getId(),
                     'title' => $course->getTitle(),
                     'description' => $course->getDescription(),
+                    'planFormations' =>'/uploads/course_plans/' . $course->getPlanPdf(),
                     'image' => $course->getThumb(),
                     'price' => $euroPrice,
                 ],
