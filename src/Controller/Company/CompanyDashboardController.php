@@ -124,6 +124,7 @@ public function index(
 public function teamTracking(
     CourseRepository $courseRepo,
     ProgressRepository $progressRepo,
+    QuizAttemptRepository $attemptRepo,
     EntityManagerInterface $em
 ): Response {
     $user = $this->getUser();
@@ -180,6 +181,29 @@ public function teamTracking(
         if (count($employeeProgress) > 0) {
             $average = round(array_sum($employeeProgress) / count($employeeProgress), 2);
         }
+$employeeIds = [];
+foreach ($collaborations as $collab) {
+    $employeeIds[] = $collab->getEmployee()->getId();
+}
+
+$attempts = $attemptRepo->findLatestByUserIds($employeeIds);
+
+        $courseResults = [];
+foreach ($attempts as $qa) {
+    $u = $qa->getUser();
+    $c = $qa->getCourse();
+    if (!$u || !$c) continue;
+
+    $courseResults[] = [
+        'userId' => $u->getId(),
+        'userName' => $u->getUsername(),
+        'userEmail' => $u->getEmail(),
+        'courseTitle' => $c->getTitle(),
+        'score' => $qa->getScore(),
+        'passed' => $qa->isPassed(),
+        'attemptedAt' => $qa->getCreatedAt()->format('Y-m-d H:i:s'),
+    ];
+}
 
         $collaboratorsProgress[] = [
             'employee' => $employee,
@@ -194,6 +218,7 @@ public function teamTracking(
         'employees' => $employees,
         'collaborations' => $collaborations,
         'collaboratorsProgress' => $collaboratorsProgress,
+        'courseResults' => $courseResults
     ]);
 }
 

@@ -35,30 +35,30 @@ foreach ($collaborations as $collab) {
     $employeeIds[] = $collab->getEmployee()->getId();
 }
 
-$attempts = $attemptRepo->findLatestByUserIds($employeeIds);
+// $attempts = $attemptRepo->findLatestByUserIds($employeeIds);
 
-$courseResults = [];
-foreach ($attempts as $qa) {
-    $u = $qa->getUser();
-    $c = $qa->getCourse();
-    if (!$u || !$c) continue;
+// $courseResults = [];
+// foreach ($attempts as $qa) {
+//     $u = $qa->getUser();
+//     $c = $qa->getCourse();
+//     if (!$u || !$c) continue;
 
-    $courseResults[] = [
-        'userId' => $u->getId(),
-        'userName' => $u->getUsername(),
-        'userEmail' => $u->getEmail(),
-        'courseTitle' => $c->getTitle(),
-        'score' => $qa->getScore(),
-        'passed' => $qa->isPassed(),
-        'attemptedAt' => $qa->getCreatedAt()->format('Y-m-d H:i:s'),
-    ];
-}
+//     $courseResults[] = [
+//         'userId' => $u->getId(),
+//         'userName' => $u->getUsername(),
+//         'userEmail' => $u->getEmail(),
+//         'courseTitle' => $c->getTitle(),
+//         'score' => $qa->getScore(),
+//         'passed' => $qa->isPassed(),
+//         'attemptedAt' => $qa->getCreatedAt()->format('Y-m-d H:i:s'),
+//     ];
+// }
 
 
         return $this->render('company/colab/index.html.twig', [
             'employees' => $employees,
             'collaborations' => $collaborations,
-            'courseResults' => $courseResults
+            // 'courseResults' => $courseResults
         ]);
     }
 
