@@ -73,6 +73,37 @@
     </div>
   </div>
 
+<!-- Modal -->
+<div id="addEmployeeModal" class="modal">
+  <div class="modal-overlay" id="modalOverlay"></div>
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Add new employee</h2>
+      <button class="modal-close" id="closeModalBtn">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+    <form id="add-colab-form" class="modal-body">
+      <div class="form-group">
+        <label for="employeeEmail">Employee mail</label>
+        <input 
+          type="email" 
+          id="employeeEmail"
+          name="email" 
+          placeholder="exemple@email.com" 
+          required
+          autocomplete="email">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" id="cancelBtn">Close</button>
+        <button type="submit" class="btn-primary">Add</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <style>
 :root{
   --green:#1A6D55;
@@ -557,5 +588,6 @@ rowCheckboxes.forEach(checkbox => {
     mainCheckbox.indeterminate = someChecked && !allChecked;
   });
 });
+
 </script>
 {% endblock %}
