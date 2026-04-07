@@ -125,23 +125,43 @@ public function teamTracking(
     CourseRepository $courseRepo,
     ProgressRepository $progressRepo,
     QuizAttemptRepository $attemptRepo,
+    EnrollmentRepository $enrollmentRepo,
     EntityManagerInterface $em
 ): Response {
     $user = $this->getUser();
 
-    // Vérifie que l’utilisateur est bien une entreprise
     if (!$user) {
         throw $this->createAccessDeniedException('You must be logged in as a company.');
     }
 
-    // Tous les cours
+    // Tous les cours = pour le tableau global
     $courses = $courseRepo->findAll();
+
+    // Enrollments de l’entreprise = pour le tableau "Course Results"
+    $enrollments = $enrollmentRepo->findByUserWithCourse($user);
+
+    // Extraire les cours possédés par l’entreprise
+    $enrolledCourses = [];
+    $seenCourseIds = [];
+
+    foreach ($enrollments as $enrollment) {
+        $course = $enrollment->getCourse();
+
+        if (!$course) {
+            continue;
+        }
+
+        if (!in_array($course->getId(), $seenCourseIds, true)) {
+            $seenCourseIds[] = $course->getId();
+            $enrolledCourses[] = $course;
+        }
+    }
 
     // Collaborations (employés)
     $collaborations = $user->getCollaborationsAsCompany();
     $employees = $collaborations->map(fn($c) => $c->getEmployee());
 
-    // --- Progression des collaborateurs ---
+    // --- Tableau global : progression sur tous les cours ---
     $collaboratorsProgress = [];
 
     foreach ($collaborations as $collab) {
@@ -155,6 +175,7 @@ public function teamTracking(
 
             if ($totalVideos > 0) {
                 $completedPercent = 0;
+
                 foreach ($videos as $video) {
                     $progress = $progressRepo->findOneBy([
                         'user' => $employee,
@@ -164,6 +185,7 @@ public function teamTracking(
                     if ($progress) {
                         $watched = $progress->getWatchedSeconds();
                         $duration = $video->getDuration();
+
                         if ($duration > 0) {
                             $completedPercent += min(($watched / $duration) * 100, 100);
                         }
@@ -176,34 +198,10 @@ public function teamTracking(
             $employeeProgress[$course->getId()] = $percent;
         }
 
-        // Calcule une moyenne globale par collaborateur
         $average = 0;
         if (count($employeeProgress) > 0) {
             $average = round(array_sum($employeeProgress) / count($employeeProgress), 2);
         }
-$employeeIds = [];
-foreach ($collaborations as $collab) {
-    $employeeIds[] = $collab->getEmployee()->getId();
-}
-
-$attempts = $attemptRepo->findLatestByUserIds($employeeIds);
-
-        $courseResults = [];
-foreach ($attempts as $qa) {
-    $u = $qa->getUser();
-    $c = $qa->getCourse();
-    if (!$u || !$c) continue;
-
-    $courseResults[] = [
-        'userId' => $u->getId(),
-        'userName' => $u->getUsername(),
-        'userEmail' => $u->getEmail(),
-        'courseTitle' => $c->getTitle(),
-        'score' => $qa->getScore(),
-        'passed' => $qa->isPassed(),
-        'attemptedAt' => $qa->getCreatedAt()->format('Y-m-d H:i:s'),
-    ];
-}
 
         $collaboratorsProgress[] = [
             'employee' => $employee,
@@ -212,9 +210,57 @@ foreach ($attempts as $qa) {
         ];
     }
 
-    // --- Rendu du template ---
+    // --- IDs des employés ---
+    $employeeIds = [];
+    foreach ($collaborations as $collab) {
+        $employeeIds[] = $collab->getEmployee()->getId();
+    }
+
+    // --- Dernières tentatives des employés ---
+    $attempts = !empty($employeeIds) ? $attemptRepo->findLatestByUserIds($employeeIds) : [];
+
+    // --- Indexation des tentatives par userId + courseId ---
+    $attemptMap = [];
+    foreach ($attempts as $qa) {
+        $attemptUser = $qa->getUser();
+        $attemptCourse = $qa->getCourse();
+
+        if (!$attemptUser || !$attemptCourse) {
+            continue;
+        }
+
+        $key = $attemptUser->getId() . '_' . $attemptCourse->getId();
+        $attemptMap[$key] = $qa;
+    }
+
+    // --- Tableau 2 : résultats seulement sur les cours possédés ---
+    $courseResults = [];
+
+    foreach ($employees as $employee) {
+        foreach ($enrolledCourses as $course) {
+            $key = $employee->getId() . '_' . $course->getId();
+            $attempt = $attemptMap[$key] ?? null;
+
+            $courseResults[] = [
+                'userId' => $employee->getId(),
+                'userName' => $employee->getUsername(),
+                'userEmail' => $employee->getEmail(),
+                'courseId' => $course->getId(),
+                'courseTitle' => $course->getTitle(),
+                'score' => $attempt ? $attempt->getScore() : null,
+                'passed' => $attempt ? $attempt->isPassed() : false,
+                'attempted' => $attempt !== null,
+                'attemptedAt' => ($attempt && $attempt->getCreatedAt())
+                    ? $attempt->getCreatedAt()->format('Y-m-d H:i:s')
+                    : null,
+            ];
+        }
+    }
+
     return $this->render('company/dashboard/team_tracking.html.twig', [
         'courses' => $courses,
+        'enrolledCourses' => $enrolledCourses,
+        'enrollments' => $enrollments,
         'employees' => $employees,
         'collaborations' => $collaborations,
         'collaboratorsProgress' => $collaboratorsProgress,
