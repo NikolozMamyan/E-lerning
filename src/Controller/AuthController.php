@@ -79,7 +79,7 @@ final class AuthController extends AbstractController
 
         // ✅ créer une session (multi-support)
         $device = $data['device'] ?? 'web';
-        $created = $sessionTokenService->createSession($user, $device, 4);
+        $created = $sessionTokenService->createSession($user, $device, 90);
         $plainToken = $created['plainToken'];
         $expiresAt = $created['session']->getExpiresAt();
 
@@ -128,7 +128,7 @@ final class AuthController extends AbstractController
 
         // ✅ nouvelle session au lieu d’écraser
         $device = $data['device'] ?? 'web';
-        $created = $sessionTokenService->createSession($user, $device, 4);
+        $created = $sessionTokenService->createSession($user, $device, 90);
         $plainToken = $created['plainToken'];
         $expiresAt = $created['session']->getExpiresAt();
 
@@ -255,7 +255,7 @@ final class AuthController extends AbstractController
         }
 
         // ✅ nouvelle session
-        $created = $sessionTokenService->createSession($user, 'web', 4);
+        $created = $sessionTokenService->createSession($user, 'web', 90);
         $plainToken = $created['plainToken'];
         $expiresAt = $created['session']->getExpiresAt();
 
