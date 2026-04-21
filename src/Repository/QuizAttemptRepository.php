@@ -89,4 +89,52 @@ public function findLatestByUserIds(array $userIds): array
     }
     return $byUserId;
 }
+
+/**
+ * @param int[] $userIds
+ * @return QuizAttempt[]
+ */
+public function findLatestByUserIdsGroupedByCourse(array $userIds): array
+{
+    if (!$userIds) {
+        return [];
+    }
+
+    return $this->createQueryBuilder('qa')
+        ->join('qa.user', 'u')
+        ->andWhere('u.id IN (:userIds)')
+        ->andWhere('qa.id IN (
+            SELECT MAX(qa2.id)
+            FROM App\Entity\QuizAttempt qa2
+            JOIN qa2.user u2
+            JOIN qa2.course c2
+            WHERE u2.id IN (:userIds)
+            GROUP BY u2.id, c2.id
+        )')
+        ->setParameter('userIds', $userIds)
+        ->getQuery()
+        ->getResult();
+}
+
+/**
+ * @param int[] $userIds
+ * @return QuizAttempt[]
+ */
+public function findByUserIds(array $userIds): array
+{
+    if (!$userIds) {
+        return [];
+    }
+
+    return $this->createQueryBuilder('qa')
+        ->join('qa.user', 'u')
+        ->leftJoin('qa.course', 'c')
+        ->addSelect('u', 'c')
+        ->andWhere('u.id IN (:userIds)')
+        ->setParameter('userIds', $userIds)
+        ->orderBy('qa.createdAt', 'DESC')
+        ->addOrderBy('qa.id', 'DESC')
+        ->getQuery()
+        ->getResult();
+}
 }
