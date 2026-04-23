@@ -13,6 +13,13 @@
             </svg>
             Filtres de recherche
         </h2>
+        <a href="{{ path('admin_certificate_create') }}" class="create-cert-btn">
+            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 5v14"/>
+                <path d="M5 12h14"/>
+            </svg>
+            Créer certificat
+        </a>
     </div>
 
     {# Boutons rapides #}
@@ -452,7 +459,28 @@ body {
 }
 
 .filters-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
     margin-bottom: 28px;
+}
+
+.create-cert-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 18px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #0f766e 0%, #0d9488 100%);
+    color: white;
+    text-decoration: none;
+    font-weight: 700;
+    box-shadow: 0 8px 20px rgba(13, 148, 136, 0.25);
+}
+
+.create-cert-btn:hover {
+    transform: translateY(-1px);
 }
 
 .filters-title {
@@ -1007,6 +1035,11 @@ body {
 @media (max-width: 768px) {
     body {
         padding: 12px;
+    }
+
+    .filters-header {
+        flex-direction: column;
+        align-items: stretch;
     }
 
     .filters-card {

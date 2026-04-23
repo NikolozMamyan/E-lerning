@@ -27,6 +27,12 @@ class Certificate
     #[ORM\ManyToOne(inversedBy: 'certificates')]
     private ?User $passed = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $durationLabel = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $trainerName = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -76,6 +82,30 @@ class Certificate
     public function setPassed(?User $passed): static
     {
         $this->passed = $passed;
+
+        return $this;
+    }
+
+    public function getDurationLabel(): ?string
+    {
+        return $this->durationLabel;
+    }
+
+    public function setDurationLabel(?string $durationLabel): static
+    {
+        $this->durationLabel = $durationLabel;
+
+        return $this;
+    }
+
+    public function getTrainerName(): ?string
+    {
+        return $this->trainerName;
+    }
+
+    public function setTrainerName(?string $trainerName): static
+    {
+        $this->trainerName = $trainerName;
 
         return $this;
     }

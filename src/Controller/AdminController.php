@@ -7,9 +7,12 @@ namespace App\Controller;
 use App\Entity\User;
 use App\Entity\Video;
 use App\Entity\Course;
+use App\Entity\Certificate;
+use App\Entity\QuizAttempt;
 use App\Entity\Article;
 use App\Entity\Comment;
 use App\Entity\Category;
+use App\Form\AdminCertificateCreateType;
 use App\Form\CourseType;
 use App\Entity\Enrollment;
 use App\Entity\QuizAnswer;
@@ -27,6 +30,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 
 #[Route('/admin', name: 'admin_')]
 class AdminController extends AbstractController
@@ -681,6 +685,208 @@ foreach ($rows as $row) {
         'preset' => $preset,
         'sub' => $subFilter,
     ]);
+}
+
+#[Route('/certificate/create', name: 'certificate_create', methods: ['GET', 'POST'])]
+public function certificateCreate(
+    Request $request,
+    EntityManagerInterface $em,
+    CertificateRepository $certificateRepo
+): Response {
+    $admin = $this->getUser();
+    if (!in_array('ROLE_ADMIN', $admin->getRoles())) {
+        return $this->redirectToRoute('show_login');
+    }
+
+    $form = $this->createForm(AdminCertificateCreateType::class);
+    $form->handleRequest($request);
+
+    if ($form->isSubmitted() && $form->isValid()) {
+        $users = $form->get('users')->getData();
+        $course = $form->get('course')->getData();
+        $durationLabel = trim((string) $form->get('durationLabel')->getData());
+        $trainerName = trim((string) $form->get('trainerName')->getData());
+
+        $createdCount = 0;
+        $updatedCount = 0;
+        $firstCreatedOrUpdatedCertificate = null;
+        $quizAttemptRepo = $em->getRepository(QuizAttempt::class);
+        $enrollmentRepo = $em->getRepository(Enrollment::class);
+
+        foreach ($users as $user) {
+            $certificate = $certificateRepo->findOneBy([
+                'passed' => $user,
+                'course' => $course,
+            ]);
+
+            if (!$certificate) {
+                $certificate = new Certificate();
+                $certificate->setRef('CERT-' . date('Ymd') . '-' . strtoupper(substr(md5(uniqid('', true)), 0, 6)));
+                $certificate->setCourse($course);
+                $certificate->setPassed($user);
+                $em->persist($certificate);
+                $createdCount++;
+            } else {
+                $updatedCount++;
+            }
+
+            $certificate->setTitle('Certificate of completion: ' . $course->getTitle());
+            $certificate->setDurationLabel($durationLabel);
+            $certificate->setTrainerName($trainerName);
+
+            $existingPassedAttempt = $quizAttemptRepo->findOneBy([
+                'user' => $user,
+                'course' => $course,
+                'passed' => true,
+            ]);
+
+            if (!$existingPassedAttempt) {
+                $quizAttempt = new QuizAttempt();
+                $quizAttempt->setUser($user);
+                $quizAttempt->setCourse($course);
+                $quizAttempt->setScore(100);
+                $quizAttempt->setPassed(true);
+
+                $enrollment = $enrollmentRepo->findOneBy([
+                    'user' => $user,
+                    'course' => $course,
+                ], ['createdAt' => 'DESC']);
+
+                if ($enrollment) {
+                    $quizAttempt->setEnrollment($enrollment);
+                }
+
+                $em->persist($quizAttempt);
+            }
+
+            if (!$firstCreatedOrUpdatedCertificate instanceof Certificate) {
+                $firstCreatedOrUpdatedCertificate = $certificate;
+            }
+        }
+
+        $em->flush();
+
+        if (count($users) === 1 && $firstCreatedOrUpdatedCertificate instanceof Certificate) {
+            return $this->redirectToRoute('admin_certificate_download', [
+                'id' => $firstCreatedOrUpdatedCertificate->getId(),
+            ]);
+        }
+
+        if ($createdCount > 0) {
+            $this->addFlash('success', sprintf('%d certificat(s) créé(s).', $createdCount));
+        }
+        if ($updatedCount > 0) {
+            $this->addFlash('info', sprintf('%d certificat(s) existant(s) mis à jour.', $updatedCount));
+        }
+
+        return $this->redirectToRoute('admin_certificate_list');
+    }
+
+    return $this->render('admin/certificate/create.html.twig', [
+        'form' => $form->createView(),
+    ]);
+}
+
+#[Route('/certificate/{id}/download', name: 'certificate_download', methods: ['GET'])]
+public function certificateDownload(
+    Certificate $certificate,
+    EntityManagerInterface $em
+): Response {
+    $admin = $this->getUser();
+    if (!in_array('ROLE_ADMIN', $admin->getRoles())) {
+        return $this->redirectToRoute('show_login');
+    }
+
+    $user = $certificate->getPassed();
+    $course = $certificate->getCourse();
+
+    if (!$user || !$course) {
+        throw $this->createNotFoundException('Certificat incomplet.');
+    }
+
+    $attempt = $em->getRepository(QuizAttempt::class)->findOneBy([
+        'user' => $user,
+        'course' => $course,
+        'passed' => true,
+    ], ['createdAt' => 'DESC']);
+
+    $certificateNumber = $certificate->getRef();
+
+    $pdf = new \FPDF('L', 'mm', 'A4');
+    $pdf->AddPage();
+
+    $pageWidth = $pdf->GetPageWidth();
+    $pageHeight = $pdf->GetPageHeight();
+
+    $background = $this->getParameter('kernel.project_dir') . '/public/build/images/certificate-template.png';
+    $pdf->Image($background, 0, 0, $pageWidth, $pageHeight);
+
+    $pdf->SetFont('Arial', 'B', 26);
+    $pdf->SetTextColor(0, 0, 0);
+    $name = utf8_decode($user->getUsername());
+    $nameWidth = $pdf->GetStringWidth($name);
+    $x = ($pageWidth - $nameWidth) / 2;
+    $y = 95;
+    $pdf->SetXY($x, $y);
+    $pdf->Cell($nameWidth, 10, $name);
+
+    $pdf->SetFont('Arial', 'B', 18);
+    $title = utf8_decode($course->getTitle());
+    $maxWidth = $pageWidth * 0.8;
+    $titleY = 130;
+    $pdf->SetY($titleY);
+
+    $titleWidth = $pdf->GetStringWidth($title);
+    if ($titleWidth > $maxWidth) {
+        $x = ($pageWidth - $maxWidth) / 2;
+        $pdf->SetX($x);
+        $pdf->MultiCell($maxWidth, 10, $title, 0, 'C');
+    } else {
+        $pdf->SetXY(0, $titleY);
+        $pdf->Cell($pageWidth, 10, $title, 0, 0, 'C');
+    }
+
+    $durationLabel = $certificate->getDurationLabel();
+    if (!$durationLabel) {
+        $totalDurationSeconds = 0;
+        foreach ($course->getVideos() as $video) {
+            $totalDurationSeconds += $video->getDuration();
+        }
+        $durationLabel = round($totalDurationSeconds / 60) . ' min';
+    }
+
+    $pdf->SetFont('Arial', '', 14);
+    $pdf->SetXY(0, 150);
+    $pdf->Cell($pageWidth, 10, utf8_decode('Course Duration : ' . $durationLabel), 0, 0, 'C');
+
+    if ($certificate->getTrainerName()) {
+        $pdf->SetXY(0, 160);
+        $pdf->Cell($pageWidth, 10, utf8_decode('Trainer : ' . $certificate->getTrainerName()), 0, 0, 'C');
+    }
+
+    $date = $attempt?->getCreatedAt() ?? new \DateTime();
+    $pdf->SetFont('Arial', '', 14);
+    $pdf->SetXY(100, 178);
+    $pdf->Cell(40, 10, $date->format('d/m/Y'), 0, 0, 'L');
+
+    $pdf->SetFont('Arial', 'I', 10);
+    $pdf->SetTextColor(100, 100, 100);
+    $pdf->SetXY($pageWidth - 70, 10);
+    $pdf->Cell(60, 10, 'Ref: ' . $certificateNumber, 0, 0, 'R');
+
+    $pdfContent = $pdf->Output('S');
+
+    return new Response(
+        $pdfContent,
+        200,
+        [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => (new ResponseHeaderBag())->makeDisposition(
+                ResponseHeaderBag::DISPOSITION_ATTACHMENT,
+                'certificate_' . $certificateNumber . '.pdf'
+            ),
+        ]
+    );
 }
 
 }

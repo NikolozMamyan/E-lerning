@@ -112,17 +112,23 @@ public function generateCertificate(
             $pdf->Cell($pageWidth, 10, $title, 0, 0, 'C');
         }
 
-        // --- Calcul de la durée totale du cours ---
-        $totalDurationSeconds = 0;
-        foreach ($course->getVideos() as $video) {
-            $totalDurationSeconds += $video->getDuration();
+        $durationLabel = $certificate->getDurationLabel();
+        if (!$durationLabel) {
+            $totalDurationSeconds = 0;
+            foreach ($course->getVideos() as $video) {
+                $totalDurationSeconds += $video->getDuration();
+            }
+            $durationLabel = round($totalDurationSeconds / 60) . ' min';
         }
-        $totalDurationMinutes = round($totalDurationSeconds / 60);
 
-        // --- Affichage durée ---
         $pdf->SetFont('Arial', '', 14);
         $pdf->SetXY(0, 150);
-        $pdf->Cell($pageWidth, 10, utf8_decode("Course Duration : " . $totalDurationMinutes . " min"), 0, 0, 'C');
+        $pdf->Cell($pageWidth, 10, utf8_decode("Course Duration : " . $durationLabel), 0, 0, 'C');
+
+        if ($certificate->getTrainerName()) {
+            $pdf->SetXY(0, 160);
+            $pdf->Cell($pageWidth, 10, utf8_decode("Trainer : " . $certificate->getTrainerName()), 0, 0, 'C');
+        }
 
         // Date
         $pdf->SetFont('Arial', '', 14);
