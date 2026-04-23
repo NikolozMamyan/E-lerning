@@ -186,7 +186,9 @@ final class CompanyDashboardController extends AbstractController
         }
 
         $attempts = !empty($employeeIds) ? $attemptRepo->findByUserIds($employeeIds) : [];
+        $employeeEnrollments = !empty($employeeIds) ? $enrollmentRepo->findByUserIdsWithCourse($employeeIds) : [];
         $courseResults = [];
+        $attemptedCourseKeys = [];
 
         foreach ($attempts as $attempt) {
             $attemptUser = $attempt->getUser();
@@ -195,6 +197,9 @@ final class CompanyDashboardController extends AbstractController
             if (!$attemptUser || !$attemptCourse) {
                 continue;
             }
+
+            $attemptKey = $attemptUser->getId() . '_' . $attemptCourse->getId();
+            $attemptedCourseKeys[$attemptKey] = true;
 
             $courseResults[] = [
                 'userId' => $attemptUser->getId(),
@@ -208,6 +213,32 @@ final class CompanyDashboardController extends AbstractController
                 'attemptedAt' => $attempt->getCreatedAt()
                     ? $attempt->getCreatedAt()->format('Y-m-d H:i:s')
                     : null,
+            ];
+        }
+
+        foreach ($employeeEnrollments as $enrollment) {
+            $enrollmentUser = $enrollment->getUser();
+            $enrollmentCourse = $enrollment->getCourse();
+
+            if (!$enrollmentUser || !$enrollmentCourse) {
+                continue;
+            }
+
+            $enrollmentKey = $enrollmentUser->getId() . '_' . $enrollmentCourse->getId();
+            if (isset($attemptedCourseKeys[$enrollmentKey])) {
+                continue;
+            }
+
+            $courseResults[] = [
+                'userId' => $enrollmentUser->getId(),
+                'userName' => $enrollmentUser->getUsername(),
+                'userEmail' => $enrollmentUser->getEmail(),
+                'courseId' => $enrollmentCourse->getId(),
+                'courseTitle' => $enrollmentCourse->getTitle(),
+                'score' => null,
+                'passed' => false,
+                'attempted' => false,
+                'attemptedAt' => null,
             ];
         }
 

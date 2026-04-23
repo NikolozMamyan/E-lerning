@@ -52,4 +52,25 @@ class EnrollmentRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * @param int[] $userIds
+     * @return Enrollment[]
+     */
+    public function findByUserIdsWithCourse(array $userIds): array
+    {
+        if (!$userIds) {
+            return [];
+        }
+
+        return $this->createQueryBuilder('e')
+            ->join('e.user', 'u')
+            ->join('e.course', 'c')
+            ->addSelect('u', 'c')
+            ->andWhere('u.id IN (:userIds)')
+            ->setParameter('userIds', $userIds)
+            ->orderBy('e.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
 }

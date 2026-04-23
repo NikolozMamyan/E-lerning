@@ -713,6 +713,31 @@
   color: #DC2626;
 }
 
+.status {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.4rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.813rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.status.completed {
+  background: rgba(26, 109, 85, 0.1);
+  color: var(--green);
+}
+
+.status.in-learning {
+  background: rgba(239, 68, 68, 0.1);
+  color: #DC2626;
+}
+
+.status.not-started {
+  background: rgba(107, 114, 128, 0.12);
+  color: #4B5563;
+}
+
 /* Buttons */
 .btn-view {
   display: inline-flex;
@@ -1198,14 +1223,22 @@ document.addEventListener('click', e => {
   });
 
   function norm(s){ return (s || '').toString().trim().toLowerCase(); }
-  function passedLabel(p){ return p === true ? 'Yes' : 'No'; }
-  function passedRank(p){ return p === true ? 1 : 0; } // Yes > No
+  function passedLabel(row){
+    if (row.passed === true) return 'Yes';
+    if (row.attempted === false) return 'No (Not started)';
+    return 'No';
+  }
+  function passedRank(row){
+    if (row.passed === true) return 2;
+    if (row.attempted === false) return 0;
+    return 1;
+  }
 
   function applySort(rows) {
     const mode = sortBy.value;
     const byCourse = (a,b) => norm(a.courseTitle).localeCompare(norm(b.courseTitle));
     const byUser = (a,b) => norm(a.userName).localeCompare(norm(b.userName));
-    const byPassed = (a,b) => passedRank(a.passed) - passedRank(b.passed);
+    const byPassed = (a,b) => passedRank(a) - passedRank(b);
     const byScore = (a,b) => (Number(a.score) || 0) - (Number(b.score) || 0);
 
     const copy = [...rows];
@@ -1229,17 +1262,18 @@ document.addEventListener('click', e => {
     const passedVal = filterPassed.value; // "", "1", "0"
 
     let rows = data.filter(r => {
+      const matchesPassed =
+        passedVal === ''
+          ? true
+          : (passedVal === '1' && r.passed === true)
+            || (passedVal === '0' && (r.passed === false || r.attempted === false));
+
       const matchesUser =
         !userVal ||
         norm(r.userName).includes(userVal) ||
         norm(r.userEmail).includes(userVal);
 
       const matchesCourse = !courseVal || r.courseTitle === courseVal;
-
-      const matchesPassed =
-        !passedVal ||
-        (passedVal === '1' && r.passed === true) ||
-        (passedVal === '0' && r.passed === false);
 
       return matchesUser && matchesCourse && matchesPassed;
     });
@@ -1256,16 +1290,16 @@ document.addEventListener('click', e => {
     }
 
     tbody.innerHTML = rows.map(r => {
-      const score = (r.score ?? 0);
-      const passed = passedLabel(r.passed);
-      const badgeClass = r.passed ? 'completed' : 'in-learning';
+      const score = r.attempted ? `${(r.score ?? 0)}%` : '—';
+      const passed = passedLabel(r);
+      const badgeClass = r.passed ? 'completed' : (r.attempted === false ? 'not-started' : 'in-learning');
 
       return `
         <tr>
           <td class="name-cell">${r.userName || '—'}</td>
           <td class="hide-tablet">${r.userEmail || '—'}</td>
           <td>${r.courseTitle || '—'}</td>
-          <td>${score}%</td>
+          <td>${score}</td>
           <td><span class="status ${badgeClass}">${passed}</span></td>
         </tr>
       `;
@@ -1288,8 +1322,8 @@ document.addEventListener('click', e => {
         r.userName || '',
         r.userEmail || '',
         r.courseTitle || '',
-        `${(r.score ?? 0)}%`,
-        passedLabel(r.passed),
+        r.attempted ? `${(r.score ?? 0)}%` : '',
+        passedLabel(r),
       ].map(csvCell).join(','));
     });
 
