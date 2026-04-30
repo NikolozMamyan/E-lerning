@@ -303,6 +303,9 @@
 
       <select id="filterCourse" class="results-input">
         <option value="">All courses</option>
+        {% for course in courses %}
+          <option value="{{ course.title }}">{{ course.title }}</option>
+        {% endfor %}
       </select>
 
       <select id="filterPassed" class="results-input">
@@ -1211,16 +1214,6 @@ document.addEventListener('click', e => {
   const exportBtn = document.getElementById('exportCsvBtn');
 
   if (!tbody || !filterUser || !filterCourse || !filterPassed || !sortBy || !exportBtn) return;
-
-  // Course options
-  const uniqueCourses = [...new Set(data.map(r => (r.courseTitle || '').trim()).filter(Boolean))]
-    .sort((a,b) => a.localeCompare(b));
-  uniqueCourses.forEach(title => {
-    const opt = document.createElement('option');
-    opt.value = title;
-    opt.textContent = title;
-    filterCourse.appendChild(opt);
-  });
 
   function norm(s){ return (s || '').toString().trim().toLowerCase(); }
   function passedLabel(row){

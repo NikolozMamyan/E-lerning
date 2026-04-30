@@ -188,7 +188,23 @@ final class CompanyDashboardController extends AbstractController
         $attempts = !empty($employeeIds) ? $attemptRepo->findByUserIds($employeeIds) : [];
         $employeeEnrollments = !empty($employeeIds) ? $enrollmentRepo->findByUserIdsWithCourse($employeeIds) : [];
         $courseResults = [];
-        $attemptedCourseKeys = [];
+        $courseResultsByKey = [];
+
+        foreach ($employees as $employee) {
+            foreach ($courses as $course) {
+                $courseResultsByKey[$employee->getId() . '_' . $course->getId()] = [
+                    'userId' => $employee->getId(),
+                    'userName' => $employee->getUsername(),
+                    'userEmail' => $employee->getEmail(),
+                    'courseId' => $course->getId(),
+                    'courseTitle' => $course->getTitle(),
+                    'score' => null,
+                    'passed' => false,
+                    'attempted' => false,
+                    'attemptedAt' => null,
+                ];
+            }
+        }
 
         foreach ($attempts as $attempt) {
             $attemptUser = $attempt->getUser();
@@ -199,9 +215,8 @@ final class CompanyDashboardController extends AbstractController
             }
 
             $attemptKey = $attemptUser->getId() . '_' . $attemptCourse->getId();
-            $attemptedCourseKeys[$attemptKey] = true;
 
-            $courseResults[] = [
+            $courseResultsByKey[$attemptKey] = [
                 'userId' => $attemptUser->getId(),
                 'userName' => $attemptUser->getUsername(),
                 'userEmail' => $attemptUser->getEmail(),
@@ -225,11 +240,14 @@ final class CompanyDashboardController extends AbstractController
             }
 
             $enrollmentKey = $enrollmentUser->getId() . '_' . $enrollmentCourse->getId();
-            if (isset($attemptedCourseKeys[$enrollmentKey])) {
+            if (
+                isset($courseResultsByKey[$enrollmentKey])
+                && $courseResultsByKey[$enrollmentKey]['attempted'] === true
+            ) {
                 continue;
             }
 
-            $courseResults[] = [
+            $courseResultsByKey[$enrollmentKey] = [
                 'userId' => $enrollmentUser->getId(),
                 'userName' => $enrollmentUser->getUsername(),
                 'userEmail' => $enrollmentUser->getEmail(),
@@ -241,6 +259,12 @@ final class CompanyDashboardController extends AbstractController
                 'attemptedAt' => null,
             ];
         }
+
+        $courseResults = array_values($courseResultsByKey);
+
+        usort($courseResults, static function (array $left, array $right): int {
+            return [$left['courseTitle'], $left['userName']] <=> [$right['courseTitle'], $right['userName']];
+        });
 
         return $this->render('company/dashboard/team_tracking.html.twig', [
             'courses' => $courses,
