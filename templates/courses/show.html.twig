@@ -126,7 +126,7 @@
   transition: border-color .2s ease, transform .1s ease;
 }
 .lesson-nav a:hover { border-color: var(--teal); transform: translateY(-1px); }
-.lesson-nav .primary { border-color: var(--teal); color: white !important;}
+.lesson-nav .primary { background-color: var(--teal); color: white !important;}
 
 /* ------- Responsive tweaks ------- */
 @media (max-width: 1024px) {
@@ -456,6 +456,13 @@
         </svg>
       </a>
 
+    {% elseif progressPercent == 100 and hasPassedQuiz %}
+      <a class="primary" href="{{ path('app_certificates') }}">
+        Get Certificate
+        <svg viewBox="0 0 24 24" width="18" height="18">
+          <path fill="currentColor" d="M12 17.27L18.18 21 16.54 13.97 22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+        </svg>
+      </a>
     {% elseif progressPercent == 100 %}
       <a class="primary take-quiz-cta" href="{{ path('course_quiz', { id: course.id }) }}">
         Take Quiz

@@ -1,7 +1,7 @@
 {% extends 'base.html.twig' %}
+
 {% block body %}
 <style>
-/* ------- Quiz Already Completed Styles ------- */
 .quiz-already-completed {
   background: white;
   border-radius: 20px;
@@ -18,14 +18,11 @@
 .quiz-already-completed::before {
   content: '';
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
+  inset: 0 0 auto 0;
   height: 4px;
   background: linear-gradient(135deg, #10b981 0%, #059669 100%);
 }
 
-/* ------- Completion Icon ------- */
 .completion-icon-container {
   margin-bottom: 2rem;
 }
@@ -60,7 +57,6 @@
   }
 }
 
-/* ------- Typography ------- */
 .completion-title {
   font-size: 1.8rem;
   font-weight: 700;
@@ -81,14 +77,6 @@
   font-size: 1.4rem;
 }
 
-.completion-message {
-  font-size: 1.1rem;
-  color: #6b7280;
-  margin-bottom: 2rem;
-  line-height: 1.5;
-}
-
-/* ------- Action Buttons ------- */
 .completion-actions {
   display: flex;
   gap: 1rem;
@@ -133,6 +121,10 @@
   transition: all 0.3s ease;
   min-width: 180px;
   box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .retake-button:hover {
@@ -141,112 +133,37 @@
   box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
 }
 
-/* ------- Animations ------- */
-@keyframes slideInUp {
-  0% {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.quiz-already-completed {
-  animation: slideInUp 0.6s ease-out;
-}
-
-.completion-title {
-  animation: slideInUp 0.8s ease-out 0.2s both;
-}
-
-.completion-score {
-  animation: slideInUp 0.8s ease-out 0.3s both;
-}
-
-.completion-message {
-  animation: slideInUp 0.8s ease-out 0.4s both;
-}
-
-.completion-actions {
-  animation: slideInUp 0.8s ease-out 0.5s both;
-}
-
-/* ------- Responsive ------- */
 @media (max-width: 768px) {
   .quiz-already-completed {
     margin: 1rem;
     padding: 2rem 1.5rem;
   }
-  
+
   .completion-title {
     font-size: 1.5rem;
   }
-  
+
   .completion-score {
     font-size: 1.2rem;
   }
-  
+
   .completion-score strong {
     font-size: 1.3rem;
   }
-  
-  .completion-message {
-    font-size: 1rem;
-  }
-  
+
   .completion-actions {
     flex-direction: column;
     align-items: center;
   }
-  
+
   .dashboard-link,
   .retake-button {
     width: 100%;
     max-width: 250px;
   }
-  
-  .completion-icon {
-    width: 70px;
-    height: 70px;
-  }
-  
-  .completion-icon svg {
-    width: 35px;
-    height: 35px;
-  }
 }
-
-@media (max-width: 480px) {
-  .completion-title {
-    font-size: 1.25rem;
-  }
-  
-  .completion-score {
-    font-size: 1.1rem;
-  }
-  
-  .completion-score strong {
-    font-size: 1.2rem;
-  }
-  
-  .completion-icon {
-    width: 60px;
-    height: 60px;
-  }
-  
-  .completion-icon svg {
-    width: 30px;
-    height: 30px;
-  }
-}
-
-
-
-
-
 </style>
+
 {% if attempt %}
 <div class="quiz-already-completed">
   <div class="completion-icon-container">
@@ -256,36 +173,28 @@
       </svg>
     </div>
   </div>
-  
+
   <h2 class="completion-title">You've Got This One Covered!</h2>
-<p class="completion-score">
-  {% if attempt.score < 100 %}
-    You’ve already done this quiz with a <strong>{{ attempt.score }}%</strong> score!
-  {% else %}
-    You’ve already aced this quiz with a <strong>{{ attempt.score }}%</strong> score!
-  {% endif %}
-</p>
+  <p class="completion-score">
+    {% if attempt.passed %}
+      You've already passed this quiz with a <strong>{{ attempt.score }}%</strong> score!
+    {% elseif attempt.score < 100 %}
+      You've already done this quiz with a <strong>{{ attempt.score }}%</strong> score!
+    {% else %}
+      You've already aced this quiz with a <strong>{{ attempt.score }}%</strong> score!
+    {% endif %}
+  </p>
 
-
-  
-
-  
   <div class="completion-actions">
     <a href="{{ path('app_dashboard') }}" class="dashboard-link">Dashboard</a>
-          {% if attempt.score == 100 %}
-   <a href="{{ path('app_certificates', { id: course.id }) }}" class="retake-button">Get Certificate</a>
-   
-      {% else %}
-        
-    <form method="post" action="{{ path('app_course_checkout', { id: course.id }) }}" style="display: inline;">
-
-      <button type="submit" class="retake-button">Go for Round Two! 🚀</button>
-    </form>
-       {% endif %}
+    {% if attempt.passed %}
+      <a href="{{ path('app_certificates') }}" class="retake-button">Get Certificate</a>
+    {% else %}
+      <form method="post" action="{{ path('app_course_checkout', { id: course.id }) }}" style="display: inline;">
+        <button type="submit" class="retake-button">Go for Round Two!</button>
+      </form>
+    {% endif %}
   </div>
 </div>
-{% else %}
-  <!-- Votre formulaire de quiz normal ici -->
 {% endif %}
-
 {% endblock %}

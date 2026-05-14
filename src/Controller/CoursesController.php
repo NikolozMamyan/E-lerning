@@ -6,6 +6,7 @@ use App\Entity\Course;
 use App\Repository\VideoRepository;
 use App\Repository\CourseRepository;
 use App\Repository\CategoryRepository;
+use App\Repository\QuizAttemptRepository;
 use App\Repository\ProgressRepository;
 use App\Repository\EnrollmentRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -68,6 +69,7 @@ public function show(
     ?int $videoId,
     CourseRepository $courseRepo,
     VideoRepository $videoRepo,
+    QuizAttemptRepository $quizAttemptRepository,
     ProgressRepository $progressRepo,
     Request $request,
     EnrollmentRepository $enrollmentRepo,
@@ -175,6 +177,7 @@ if ($user) {
 
     $completedCount = count(array_filter($progress, fn($p) => $p['completed'] ?? false));
     $progressPercent = count($videos) > 0 ? round(($completedCount / count($videos)) * 100) : 0;
+    $hasPassedQuiz = $user ? $quizAttemptRepository->hasPassedAttempt($user, $course) : false;
 
     return $this->render('courses/show.html.twig', [
         'course' => $course,
@@ -182,7 +185,8 @@ if ($user) {
         'currentVideo' => $currentVideo,
         'progress' => $progress,
         'progressPercent' => $progressPercent,
-        'hasFrench' =>$hasFrench
+        'hasFrench' => $hasFrench,
+        'hasPassedQuiz' => $hasPassedQuiz,
     ]);
 }
 

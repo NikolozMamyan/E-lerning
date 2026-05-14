@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Course;
 use App\Entity\User;
 use App\Entity\QuizAttempt;
 use Doctrine\Persistence\ManagerRegistry;
@@ -136,5 +137,48 @@ public function findByUserIds(array $userIds): array
         ->addOrderBy('qa.id', 'DESC')
         ->getQuery()
         ->getResult();
+}
+
+public function findLatestForUserAndCourse(User $user, Course $course): ?QuizAttempt
+{
+    return $this->createQueryBuilder('qa')
+        ->andWhere('qa.user = :user')
+        ->andWhere('qa.course = :course')
+        ->setParameter('user', $user)
+        ->setParameter('course', $course)
+        ->orderBy('qa.createdAt', 'DESC')
+        ->addOrderBy('qa.id', 'DESC')
+        ->setMaxResults(1)
+        ->getQuery()
+        ->getOneOrNullResult();
+}
+
+public function findLatestPassedForUserAndCourse(User $user, Course $course): ?QuizAttempt
+{
+    return $this->createQueryBuilder('qa')
+        ->andWhere('qa.user = :user')
+        ->andWhere('qa.course = :course')
+        ->andWhere('qa.passed = true')
+        ->setParameter('user', $user)
+        ->setParameter('course', $course)
+        ->orderBy('qa.createdAt', 'DESC')
+        ->addOrderBy('qa.id', 'DESC')
+        ->setMaxResults(1)
+        ->getQuery()
+        ->getOneOrNullResult();
+}
+
+public function hasPassedAttempt(User $user, Course $course): bool
+{
+    return null !== $this->createQueryBuilder('qa')
+        ->select('qa.id')
+        ->andWhere('qa.user = :user')
+        ->andWhere('qa.course = :course')
+        ->andWhere('qa.passed = true')
+        ->setParameter('user', $user)
+        ->setParameter('course', $course)
+        ->setMaxResults(1)
+        ->getQuery()
+        ->getOneOrNullResult();
 }
 }
