@@ -82,7 +82,9 @@ class QuizService
 
     public function canAttempt(User $user, Course $course): bool
     {
-        if ($this->quizAttemptRepository->hasPassedAttempt($user, $course)) {
+        $latestAttempt = $this->quizAttemptRepository->findLatestForUserAndCourse($user, $course);
+
+        if ($latestAttempt !== null) {
             return false;
         }
 

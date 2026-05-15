@@ -108,6 +108,20 @@
   font-weight: 500;
 }
 
+.retry-context {
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid #fed7aa;
+  border-radius: 16px;
+  padding: 1rem 1.1rem;
+  margin: 1.5rem 0 0;
+  color: #9a3412;
+  text-align: left;
+}
+
+.retry-context strong {
+  color: #7c2d12;
+}
+
 /* ------- Action Buttons ------- */
 .action-buttons {
   display: flex;
@@ -298,11 +312,15 @@
       <h1 class="result-title">Almost there!</h1>
       <p class="score-text">You scored <strong>{{ attempt.score }}%</strong></p>
       <p class="requirement-text">You need at least <strong>80%</strong> to pass</p>
+      <div class="retry-context">
+        <strong>Next step:</strong> this attempt is now locked.
+        Buy a new attempt to reopen the quiz and try again.
+      </div>
       
       <div class="action-buttons">
         <a href="{{ path('app_dashboard') }}" class="dashboard-btn">Dashboard</a>
         <form method="post" action="{{ path('app_course_checkout', { id: course.id }) }}" style="display: inline;">
-          <button type="submit" class="retry-btn">Try Again</button>
+          <button type="submit" class="retry-btn">Unlock New Attempt</button>
         </form>
       </div>
     </div>

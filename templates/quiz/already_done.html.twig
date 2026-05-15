@@ -179,7 +179,7 @@
     {% if attempt.passed %}
       You've already passed this quiz with a <strong>{{ attempt.score }}%</strong> score!
     {% elseif attempt.score < 100 %}
-      You've already done this quiz with a <strong>{{ attempt.score }}%</strong> score!
+      Your last attempt scored <strong>{{ attempt.score }}%</strong>.
     {% else %}
       You've already aced this quiz with a <strong>{{ attempt.score }}%</strong> score!
     {% endif %}
@@ -191,7 +191,7 @@
       <a href="{{ path('app_certificates') }}" class="retake-button">Get Certificate</a>
     {% else %}
       <form method="post" action="{{ path('app_course_checkout', { id: course.id }) }}" style="display: inline;">
-        <button type="submit" class="retake-button">Go for Round Two!</button>
+        <button type="submit" class="retake-button">Unlock New Attempt</button>
       </form>
     {% endif %}
   </div>

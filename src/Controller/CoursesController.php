@@ -177,7 +177,8 @@ if ($user) {
 
     $completedCount = count(array_filter($progress, fn($p) => $p['completed'] ?? false));
     $progressPercent = count($videos) > 0 ? round(($completedCount / count($videos)) * 100) : 0;
-    $hasPassedQuiz = $user ? $quizAttemptRepository->hasPassedAttempt($user, $course) : false;
+    $latestQuizAttempt = $user ? $quizAttemptRepository->findLatestForUserAndCourse($user, $course) : null;
+    $hasPassedQuiz = $latestQuizAttempt?->isPassed() ?? false;
 
     return $this->render('courses/show.html.twig', [
         'course' => $course,
@@ -187,6 +188,7 @@ if ($user) {
         'progressPercent' => $progressPercent,
         'hasFrench' => $hasFrench,
         'hasPassedQuiz' => $hasPassedQuiz,
+        'latestQuizAttempt' => $latestQuizAttempt,
     ]);
 }
 

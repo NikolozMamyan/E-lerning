@@ -4,6 +4,7 @@ namespace App\Tests\Service;
 
 use App\Entity\Course;
 use App\Entity\Enrollment;
+use App\Entity\QuizAttempt;
 use App\Entity\User;
 use App\Repository\QuizAttemptRepository;
 use App\Service\NotificationService;
@@ -25,9 +26,32 @@ class QuizServiceTest extends TestCase
         $course = $this->createMock(Course::class);
 
         $quizAttemptRepository->expects($this->once())
-            ->method('hasPassedAttempt')
+            ->method('findLatestForUserAndCourse')
             ->with($user, $course)
-            ->willReturn(true);
+            ->willReturn($this->createMock(QuizAttempt::class));
+
+        $service = new QuizService($entityManager, $quizAttemptRepository, $notificationService);
+
+        self::assertFalse($service->canAttempt($user, $course));
+    }
+
+    public function testCanAttemptReturnsFalseWhenSubscribedUserAlreadyFailedQuiz(): void
+    {
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $quizAttemptRepository = $this->createMock(QuizAttemptRepository::class);
+        $notificationService = $this->createMock(NotificationService::class);
+        $user = $this->createConfiguredMock(User::class, [
+            'hasActiveSubscription' => true,
+        ]);
+        $course = $this->createMock(Course::class);
+        $attempt = $this->createConfiguredMock(QuizAttempt::class, [
+            'isPassed' => false,
+        ]);
+
+        $quizAttemptRepository->expects($this->once())
+            ->method('findLatestForUserAndCourse')
+            ->with($user, $course)
+            ->willReturn($attempt);
 
         $service = new QuizService($entityManager, $quizAttemptRepository, $notificationService);
 
