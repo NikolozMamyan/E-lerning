@@ -51,6 +51,35 @@ class MailerService
     }
 
     /**
+     * Envoie un message libre à plusieurs destinataires sans exposer leur adresse entre eux.
+     */
+    public function sendAdminBroadcast(
+        array $bcc,
+        string $subject,
+        string $message,
+        array $cc = []
+    ): void {
+        $html = $this->twig->render('emails/admin_bulk_message.html.twig', [
+            'message' => $message,
+        ]);
+        $text = trim(strip_tags(str_replace(['<br>', '<br/>', '<br />'], "\n", $html)));
+
+        $email = (new Email())
+            ->from('contact@les-consultants.com')
+            ->to('contact@les-consultants.com')
+            ->bcc(...$bcc)
+            ->subject($subject)
+            ->text($text)
+            ->html($html);
+
+        if ($cc !== []) {
+            $email->cc(...$cc);
+        }
+
+        $this->mailer->send($email);
+    }
+
+    /**
      * Génère un PDF à partir d’un template Twig (Dompdf)
      */
     private function generatePdfFromTemplate(string $template, array $context): string

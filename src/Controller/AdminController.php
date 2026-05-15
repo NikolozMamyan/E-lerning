@@ -22,6 +22,7 @@ use App\Entity\Subscription;
 use App\Repository\UserRepository;
 use App\Repository\CourseRepository;
 use App\Repository\ArticleRepository;
+use App\Service\MailerService;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\CertificateRepository;
 use App\Repository\SubscriptionRepository;
@@ -35,6 +36,8 @@ use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 #[Route('/admin', name: 'admin_')]
 class AdminController extends AbstractController
 {
+    private const ADMIN_MAIL_SENDER = 'contact@les-consultants.com';
+
     #[Route('/courses', name: 'course_index', methods: ['GET'])]
     public function index(CourseRepository $repo): Response
     {
@@ -508,6 +511,95 @@ public function importUsers(
     return $this->render('admin/user_import.html.twig');
 }
 
+#[Route('/emails/group', name: 'bulk_email', methods: ['GET', 'POST'])]
+public function bulkEmail(
+    Request $request,
+    UserRepository $userRepository,
+    MailerService $mailerService
+): Response {
+    $admin = $this->getUser();
+    if (!in_array('ROLE_ADMIN', $admin->getRoles())) {
+        return $this->redirectToRoute('show_login');
+    }
+
+    $users = $userRepository->findBy([], ['email' => 'ASC']);
+    $subject = trim((string) $request->request->get('subject', ''));
+    $message = trim((string) $request->request->get('message', ''));
+    $ccEmailsText = trim((string) $request->request->get('cc_emails', ''));
+    $selectedUserIds = array_values(array_unique(array_map(
+        'intval',
+        $request->request->all('user_ids')
+    )));
+
+    if ($request->isMethod('POST')) {
+        if ($selectedUserIds === []) {
+            $this->addFlash('danger', 'Sélectionnez au moins un utilisateur.');
+        } elseif ($subject === '') {
+            $this->addFlash('danger', 'Le sujet est obligatoire.');
+        } elseif ($message === '') {
+            $this->addFlash('danger', 'Le message est obligatoire.');
+        } else {
+            $selectedUsers = $userRepository->createQueryBuilder('u')
+                ->where('u.id IN (:ids)')
+                ->setParameter('ids', $selectedUserIds)
+                ->orderBy('u.email', 'ASC')
+                ->getQuery()
+                ->getResult();
+
+            $bccEmails = [];
+            foreach ($selectedUsers as $user) {
+                if ($user instanceof User && $user->getEmail()) {
+                    $bccEmails[] = mb_strtolower(trim($user->getEmail()));
+                }
+            }
+
+            $bccEmails = array_values(array_unique($bccEmails));
+            $ccEmails = $this->extractValidEmails($ccEmailsText);
+
+            if ($bccEmails === []) {
+                $this->addFlash('danger', 'Aucune adresse utilisateur valide n’a été trouvée.');
+            } else {
+                $invalidCcEmails = $this->extractInvalidEmails($ccEmailsText);
+
+                if ($invalidCcEmails !== []) {
+                    $this->addFlash(
+                        'danger',
+                        sprintf('Emails en copie invalides : %s', implode(', ', $invalidCcEmails))
+                    );
+                } else {
+                    $ccEmails = array_values(array_diff($ccEmails, $bccEmails, [self::ADMIN_MAIL_SENDER]));
+
+                    $mailerService->sendAdminBroadcast(
+                        $bccEmails,
+                        $subject,
+                        $message,
+                        $ccEmails
+                    );
+
+                    $this->addFlash(
+                        'success',
+                        sprintf(
+                            'Email envoyé à %d destinataire(s)%s.',
+                            count($bccEmails),
+                            $ccEmails !== [] ? sprintf(' avec %d copie(s)', count($ccEmails)) : ''
+                        )
+                    );
+
+                    return $this->redirectToRoute('admin_bulk_email');
+                }
+            }
+        }
+    }
+
+    return $this->render('admin/bulk_email.html.twig', [
+        'users' => $users,
+        'preselectedUserIds' => $selectedUserIds,
+        'subject' => $subject,
+        'message' => $message,
+        'ccEmailsText' => $ccEmailsText,
+    ]);
+}
+
 
     // ---------- ADMIN ARTICLES PAGES -------------
    #[Route('/articles', name: 'articles')]
@@ -887,6 +979,46 @@ public function certificateDownload(
             ),
         ]
     );
+}
+
+private function extractValidEmails(string $rawEmails): array
+{
+    $emails = preg_split('/[\s,;]+/', $rawEmails) ?: [];
+    $validEmails = [];
+
+    foreach ($emails as $email) {
+        $normalizedEmail = mb_strtolower(trim($email));
+
+        if ($normalizedEmail === '') {
+            continue;
+        }
+
+        if (filter_var($normalizedEmail, FILTER_VALIDATE_EMAIL)) {
+            $validEmails[] = $normalizedEmail;
+        }
+    }
+
+    return array_values(array_unique($validEmails));
+}
+
+private function extractInvalidEmails(string $rawEmails): array
+{
+    $emails = preg_split('/[\s,;]+/', $rawEmails) ?: [];
+    $invalidEmails = [];
+
+    foreach ($emails as $email) {
+        $normalizedEmail = trim($email);
+
+        if ($normalizedEmail === '') {
+            continue;
+        }
+
+        if (!filter_var($normalizedEmail, FILTER_VALIDATE_EMAIL)) {
+            $invalidEmails[] = $normalizedEmail;
+        }
+    }
+
+    return array_values(array_unique($invalidEmails));
 }
 
 }
