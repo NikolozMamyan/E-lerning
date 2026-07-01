@@ -25,6 +25,7 @@ use App\Repository\ArticleRepository;
 use App\Service\MailerService;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\CertificateRepository;
+use App\Repository\QuizAttemptRepository;
 use App\Repository\SubscriptionRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -32,6 +33,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/admin', name: 'admin_')]
 class AdminController extends AbstractController
@@ -674,11 +676,18 @@ public function bulkEmail(
 public function certificateList(
     Request $request,
     CertificateRepository $certificateRepo,
-    SubscriptionRepository $subscriptionRepo
+    SubscriptionRepository $subscriptionRepo,
+    QuizAttemptRepository $quizAttemptRepo,
+    CourseRepository $courseRepo
 ): Response {
     $preset = $request->query->get('preset'); // week | month | this_month
     $startStr = $request->query->get('start'); // YYYY-MM-DD
     $endStr = $request->query->get('end');     // YYYY-MM-DD
+    $status = $request->query->get('status', 'passed'); // passed | failed
+
+    if (!in_array($status, ['passed', 'failed'], true)) {
+        $status = 'passed';
+    }
 
     $now = new \DateTimeImmutable('now');
     $start = null;
@@ -695,10 +704,16 @@ public function certificateList(
         $end = $now->modify('last day of this month')->setTime(23, 59, 59);
     } else {
         if ($startStr) {
-            $start = \DateTimeImmutable::createFromFormat('Y-m-d', $startStr)?->setTime(0, 0);
+            $parsedStart = \DateTimeImmutable::createFromFormat('!Y-m-d', $startStr);
+            if ($parsedStart instanceof \DateTimeImmutable) {
+                $start = $parsedStart->setTime(0, 0);
+            }
         }
         if ($endStr) {
-            $end = \DateTimeImmutable::createFromFormat('Y-m-d', $endStr)?->setTime(0, 0);
+            $parsedEnd = \DateTimeImmutable::createFromFormat('!Y-m-d', $endStr);
+            if ($parsedEnd instanceof \DateTimeImmutable) {
+                $end = $parsedEnd->setTime(23, 59, 59);
+            }
         }
 
         // défaut = mois en cours
@@ -708,16 +723,28 @@ public function certificateList(
         }
     }
 
-     $rows = $certificateRepo->findForListWithPassedAt($start, $end);
-
     // filtre: sub=1 (avec) / sub=0 (sans) / null (tout)
     $subFilter = $request->query->get('sub'); // "1" | "0" | null
-    $courseFilter = $request->query->get('course'); // id du course
+    if (!in_array($subFilter, ['1', '0'], true)) {
+        $subFilter = null;
+    }
+
+    $courseFilterRaw = $request->query->get('course'); // id du course
+    $courseFilter = $courseFilterRaw !== null && $courseFilterRaw !== '' && ctype_digit((string) $courseFilterRaw)
+        ? (int) $courseFilterRaw
+        : null;
+
+    $rows = $status === 'failed'
+        ? $quizAttemptRepo->findFailedForCertificateList($start, $end, $courseFilter)
+        : $certificateRepo->findForListWithPassedAt($start, $end);
 
     // 1) extraire les userIds
     $userIds = [];
     foreach ($rows as $row) {
-        $user = $row['certificate']->getPassed(); // ton User
+        $user = $status === 'failed'
+            ? $row['attempt']->getUser()
+            : $row['certificate']->getPassed();
+
         if ($user?->getId()) {
             $userIds[] = $user->getId();
         }
@@ -732,12 +759,18 @@ public function certificateList(
 $filtered = [];
 foreach ($rows as $row) {
 
-    $certificate = $row['certificate'];
-    $userId = $certificate->getPassed()?->getId();
-    $courseId = $certificate->getCourse()?->getId();
+    if ($status === 'failed') {
+        $attempt = $row['attempt'];
+        $userId = $attempt->getUser()?->getId();
+        $courseId = $attempt->getCourse()?->getId();
+    } else {
+        $certificate = $row['certificate'];
+        $userId = $certificate->getPassed()?->getId();
+        $courseId = $certificate->getCourse()?->getId();
+    }
 
     // filtre cours
-    if ($courseFilter && $courseId != $courseFilter) {
+    if ($courseFilter && $courseId !== $courseFilter) {
         continue;
     }
 
@@ -759,8 +792,14 @@ foreach ($rows as $row) {
     // 4) grouper (attention: ton code groupe par timestamp complet)
     $grouped = [];
     foreach ($filtered as $row) {
-        $passedAt = $row['passedAt']; // string "2025-12-31 19:47:07"
-        $key = $passedAt ? (new \DateTimeImmutable($passedAt))->format('Y-m') : 'unknown';
+        $dateValue = $status === 'failed' ? $row['failedAt'] : $row['passedAt'];
+        if ($dateValue instanceof \DateTimeInterface) {
+            $key = $dateValue->format('Y-m');
+        } elseif ($dateValue) {
+            $key = (new \DateTimeImmutable((string) $dateValue))->format('Y-m');
+        } else {
+            $key = 'unknown';
+        }
         $grouped[$key][] = $row;
     }
 
@@ -774,8 +813,10 @@ foreach ($rows as $row) {
         'start' => $start,
         'end' => $end,
         'course' => $courseFilter,
+        'courses' => $courseRepo->findBy([], ['title' => 'ASC']),
         'preset' => $preset,
         'sub' => $subFilter,
+        'status' => $status,
     ]);
 }
 

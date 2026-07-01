@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Course;
 use App\Entity\User;
+use App\Entity\Certificate;
 use App\Entity\QuizAttempt;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -180,5 +181,49 @@ public function hasPassedAttempt(User $user, Course $course): bool
         ->setMaxResults(1)
         ->getQuery()
         ->getOneOrNullResult();
+}
+
+/**
+ * @return array<int, array{attempt: QuizAttempt, failedAt: \DateTimeInterface}>
+ */
+public function findFailedForCertificateList(?\DateTimeImmutable $start, ?\DateTimeImmutable $end, ?int $courseId = null): array
+{
+    $qb = $this->createQueryBuilder('qa')
+        ->select('qa AS attempt')
+        ->addSelect('qa.createdAt AS failedAt')
+        ->leftJoin(
+            Certificate::class,
+            'cert',
+            'WITH',
+            'cert.passed = qa.user AND cert.course = qa.course'
+        )
+        ->leftJoin(
+            QuizAttempt::class,
+            'passedQa',
+            'WITH',
+            'passedQa.user = qa.user AND passedQa.course = qa.course AND passedQa.passed = true'
+        )
+        ->andWhere('qa.passed = false')
+        ->andWhere('cert.id IS NULL')
+        ->andWhere('passedQa.id IS NULL')
+        ->orderBy('qa.createdAt', 'DESC')
+        ->addOrderBy('qa.id', 'DESC');
+
+    if ($start) {
+        $qb->andWhere('qa.createdAt >= :start')
+            ->setParameter('start', $start);
+    }
+
+    if ($end) {
+        $qb->andWhere('qa.createdAt <= :end')
+            ->setParameter('end', $end->setTime(23, 59, 59));
+    }
+
+    if ($courseId) {
+        $qb->andWhere('IDENTITY(qa.course) = :courseId')
+            ->setParameter('courseId', $courseId);
+    }
+
+    return $qb->getQuery()->getResult();
 }
 }
