@@ -34,7 +34,7 @@ final class QuizAttemptController extends AbstractController
         $search = (new UnicodeString(trim((string) $request->query->get('q', ''))))
             ->slice(0, 120)
             ->toString();
-        $courseId = $request->query->getInt('course');
+        $courseId = $this->queryInt($request, 'course');
         $selectedCourse = $courseId > 0 ? $courseRepository->find($courseId) : null;
         if ($courseId > 0 && $selectedCourse === null) {
             $this->addFlash('warning', 'Le cours sélectionné n’existe pas.');
@@ -61,7 +61,7 @@ final class QuizAttemptController extends AbstractController
             $dateTo,
         );
         $pageCount = max(1, (int) ceil($total / self::ITEMS_PER_PAGE));
-        $page = min(max(1, $request->query->getInt('page', 1)), $pageCount);
+        $page = min(max(1, $this->queryInt($request, 'page', 1) ?? 1), $pageCount);
         $offset = ($page - 1) * self::ITEMS_PER_PAGE;
 
         $attempts = $quizAttemptRepository->findFailedForAdmin(
@@ -117,5 +117,17 @@ final class QuizAttemptController extends AbstractController
         }
 
         return $date;
+    }
+
+    private function queryInt(Request $request, string $parameter, ?int $default = null): ?int
+    {
+        $value = $request->query->filter(
+            $parameter,
+            $default,
+            \FILTER_VALIDATE_INT,
+            ['flags' => \FILTER_REQUIRE_SCALAR | \FILTER_NULL_ON_FAILURE],
+        );
+
+        return is_int($value) ? $value : $default;
     }
 }
