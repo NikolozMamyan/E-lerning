@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Course</title>
+    <link rel="stylesheet" href="assets/css/app.css">
+</head>
+<body>
+    <div class="course-shell">
+        <aside class="course-sidebar" aria-label="Course chapters">
+            <div class="brand">SCORM Course</div>
+            <h1 id="course-title">Loading…</h1>
+            <div class="progress-summary">
+                <div class="progress-label">
+                    <span>Overall progress</span>
+                    <strong id="global-progress-text">0 %</strong>
+                </div>
+                <progress id="global-progress" max="100" value="0">0 %</progress>
+            </div>
+            <ol id="playlist" class="playlist"></ol>
+        </aside>
+
+        <main class="course-content">
+            <div id="error-message" class="message message-error" role="alert" hidden></div>
+            <div id="completion-message" class="message message-success" role="status" hidden>
+                Course completed. Your progress has been saved.
+            </div>
+
+            <section class="player-card" aria-labelledby="video-title">
+                <div class="player-heading">
+                    <p id="video-position" class="eyebrow"></p>
+                    <h2 id="video-title">Video</h2>
+                </div>
+
+                <video id="course-video" controls preload="metadata" playsinline>
+                    Your browser does not support HTML5 video playback.
+                </video>
+
+                <div class="video-progress">
+                    <div class="progress-label">
+                        <span>Watched progress</span>
+                        <strong id="video-progress-text">0 %</strong>
+                    </div>
+                    <progress id="video-progress" max="100" value="0">0 %</progress>
+                </div>
+
+                <div class="navigation">
+                    <button id="previous-button" type="button" class="button button-secondary">Previous</button>
+                    <button id="next-button" type="button" class="button button-primary">Next</button>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="assets/js/scorm-api.js"></script>
+    <script src="assets/js/course.js"></script>
+</body>
+</html>

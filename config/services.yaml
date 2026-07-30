@@ -6,6 +6,9 @@ parameters:
     uploads_directory: '%kernel.project_dir%/public/uploads/avatars'
     articles_dir: '%kernel.project_dir%/public/uploads/articles'
     videos_dir: '%kernel.project_dir%/public/uploads/videos'
+    app.scorm.max_package_size: 5153960755
+    app.scorm.completion_threshold: 90
+    app.scorm.commit_interval_seconds: 10
 
 services:
     # default configuration for services in *this* file
@@ -21,6 +24,27 @@ services:
             - '../src/DependencyInjection/'
             - '../src/Entity/'
             - '../src/Kernel.php'
+
+    App\Service\Scorm\ScormPackageGenerator:
+        arguments:
+            $resourcesDirectory: '%kernel.project_dir%/resources/scorm'
+            $temporaryDirectory: '%kernel.cache_dir%/scorm/packages'
+            $maxPackageSize: '%app.scorm.max_package_size%'
+            $completionThreshold: '%app.scorm.completion_threshold%'
+            $commitIntervalSeconds: '%app.scorm.commit_interval_seconds%'
+
+    App\Service\Scorm\LocalVideoPathResolver:
+        arguments:
+            $publicDirectory: '%kernel.project_dir%/public'
+
+    App\Service\Scorm\CourseScormExportService:
+        arguments:
+            $exportDirectory: '%kernel.cache_dir%/scorm/exports'
+
+    App\Service\Scorm\ScormVideoStorage:
+        arguments:
+            $publicDirectory: '%kernel.project_dir%/public'
+            $maxFileSize: '%app.scorm.max_package_size%'
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
