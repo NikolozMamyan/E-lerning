@@ -6,6 +6,7 @@ use App\Entity\Course;
 use App\Entity\User;
 use App\Entity\Certificate;
 use App\Entity\QuizAttempt;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 
@@ -181,6 +182,99 @@ public function hasPassedAttempt(User $user, Course $course): bool
         ->setMaxResults(1)
         ->getQuery()
         ->getOneOrNullResult();
+}
+
+/**
+ * @return QuizAttempt[]
+ */
+public function findFailedForAdmin(
+    string $search = '',
+    ?int $courseId = null,
+    ?\DateTimeImmutable $dateFrom = null,
+    ?\DateTimeImmutable $dateTo = null,
+    string $sort = 'newest',
+    int $limit = 25,
+    int $offset = 0,
+): array
+{
+    $qb = $this->createFailedAdminQueryBuilder($search, $courseId, $dateFrom, $dateTo)
+        ->addSelect('u', 'c')
+        ->setMaxResults($limit)
+        ->setFirstResult($offset);
+
+    match ($sort) {
+        'oldest' => $qb
+            ->orderBy('qa.createdAt', 'ASC')
+            ->addOrderBy('qa.id', 'ASC'),
+        'score_asc' => $qb
+            ->orderBy('qa.score', 'ASC')
+            ->addOrderBy('qa.createdAt', 'DESC')
+            ->addOrderBy('qa.id', 'DESC'),
+        'score_desc' => $qb
+            ->orderBy('qa.score', 'DESC')
+            ->addOrderBy('qa.createdAt', 'DESC')
+            ->addOrderBy('qa.id', 'DESC'),
+        default => $qb
+            ->orderBy('qa.createdAt', 'DESC')
+            ->addOrderBy('qa.id', 'DESC'),
+    };
+
+    return $qb->getQuery()->getResult();
+}
+
+public function countFailedForAdmin(
+    string $search = '',
+    ?int $courseId = null,
+    ?\DateTimeImmutable $dateFrom = null,
+    ?\DateTimeImmutable $dateTo = null,
+): int
+{
+    return (int) $this->createFailedAdminQueryBuilder($search, $courseId, $dateFrom, $dateTo)
+        ->select('COUNT(qa.id)')
+        ->getQuery()
+        ->getSingleScalarResult();
+}
+
+private function createFailedAdminQueryBuilder(
+    string $search,
+    ?int $courseId,
+    ?\DateTimeImmutable $dateFrom,
+    ?\DateTimeImmutable $dateTo,
+): QueryBuilder
+{
+    $qb = $this->createQueryBuilder('qa')
+        ->leftJoin('qa.user', 'u')
+        ->leftJoin('qa.course', 'c')
+        ->andWhere('qa.passed = :passed')
+        ->setParameter('passed', false);
+
+    if ($search !== '') {
+        $qb->andWhere(
+            $qb->expr()->orX(
+                'LOWER(u.username) LIKE LOWER(:search)',
+                'LOWER(u.email) LIKE LOWER(:search)',
+                'LOWER(c.title) LIKE LOWER(:search)',
+            ),
+        )
+            ->setParameter('search', '%'.$search.'%');
+    }
+
+    if ($courseId !== null) {
+        $qb->andWhere('c.id = :courseId')
+            ->setParameter('courseId', $courseId);
+    }
+
+    if ($dateFrom !== null) {
+        $qb->andWhere('qa.createdAt >= :dateFrom')
+            ->setParameter('dateFrom', $dateFrom->setTime(0, 0));
+    }
+
+    if ($dateTo !== null) {
+        $qb->andWhere('qa.createdAt <= :dateTo')
+            ->setParameter('dateTo', $dateTo->setTime(23, 59, 59));
+    }
+
+    return $qb;
 }
 
 /**

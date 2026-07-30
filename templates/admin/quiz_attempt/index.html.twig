@@ -1,0 +1,637 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Tentatives de quiz{% endblock %}
+
+{% block stylesheets %}
+<style>
+    .quiz-attempts-page {
+        --qa-border: #dceae7;
+        --qa-danger: #b42318;
+        --qa-danger-soft: #fef3f2;
+        padding: 0 0 2.5rem;
+        color: var(--black);
+    }
+
+    .quiz-attempts-page .qa-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .quiz-attempts-page .qa-eyebrow {
+        margin: 0 0 .35rem;
+        color: var(--teal);
+        font-size: .78rem;
+        font-weight: 700;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+    }
+
+    .quiz-attempts-page h1 {
+        margin: 0;
+        font-size: clamp(1.75rem, 3vw, 2.35rem);
+        line-height: 1.15;
+    }
+
+    .quiz-attempts-page .qa-subtitle {
+        max-width: 680px;
+        margin: .5rem 0 0;
+        color: var(--grey);
+        line-height: 1.5;
+    }
+
+    .quiz-attempts-page .qa-total {
+        flex: 0 0 auto;
+        min-width: 150px;
+        padding: 1rem 1.25rem;
+        border: 1px solid var(--qa-border);
+        border-radius: var(--radius);
+        background: var(--white);
+        box-shadow: var(--shadow);
+        text-align: right;
+    }
+
+    .quiz-attempts-page .qa-total strong {
+        display: block;
+        color: var(--green);
+        font-size: 1.65rem;
+        line-height: 1;
+    }
+
+    .quiz-attempts-page .qa-total span {
+        display: block;
+        margin-top: .35rem;
+        color: var(--grey);
+        font-size: .82rem;
+    }
+
+    .quiz-attempts-page .qa-filter-card,
+    .quiz-attempts-page .qa-table-card,
+    .quiz-attempts-page .qa-empty {
+        border: 1px solid var(--qa-border);
+        border-radius: var(--radius);
+        background: var(--white);
+        box-shadow: var(--shadow);
+    }
+
+    .quiz-attempts-page .qa-filter-card {
+        margin-bottom: 1.5rem;
+        padding: 1.25rem;
+    }
+
+    .quiz-attempts-page .qa-filter-grid {
+        display: grid;
+        grid-template-columns: minmax(220px, 1.7fr) minmax(180px, 1fr) repeat(2, minmax(150px, .75fr)) minmax(170px, .85fr);
+        gap: 1rem;
+        align-items: end;
+    }
+
+    .quiz-attempts-page .qa-field {
+        min-width: 0;
+    }
+
+    .quiz-attempts-page .qa-field label {
+        display: block;
+        margin-bottom: .4rem;
+        color: #344054;
+        font-size: .82rem;
+        font-weight: 700;
+    }
+
+    .quiz-attempts-page .qa-input,
+    .quiz-attempts-page .qa-select {
+        width: 100%;
+        height: 44px;
+        padding: 0 .8rem;
+        border: 1px solid #c8d8d4;
+        border-radius: 9px;
+        background: var(--white);
+        color: var(--black);
+        font: inherit;
+        font-size: .9rem;
+        transition: border-color .2s, box-shadow .2s;
+    }
+
+    .quiz-attempts-page .qa-input:focus,
+    .quiz-attempts-page .qa-select:focus {
+        border-color: var(--teal);
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(13, 131, 131, .12);
+    }
+
+    .quiz-attempts-page .qa-filter-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: .65rem;
+        margin-top: 1rem;
+    }
+
+    .quiz-attempts-page .qa-button {
+        display: inline-flex;
+        min-height: 40px;
+        align-items: center;
+        justify-content: center;
+        gap: .45rem;
+        padding: .65rem .9rem;
+        border: 1px solid transparent;
+        border-radius: 9px;
+        font: inherit;
+        font-size: .86rem;
+        font-weight: 700;
+        line-height: 1.15;
+        text-decoration: none;
+        cursor: pointer;
+        transition: transform .15s, background .2s, border-color .2s;
+    }
+
+    .quiz-attempts-page .qa-button:hover {
+        text-decoration: none;
+        transform: translateY(-1px);
+    }
+
+    .quiz-attempts-page .qa-button svg {
+        width: 17px;
+        height: 17px;
+        flex: 0 0 auto;
+    }
+
+    .quiz-attempts-page .qa-button-primary {
+        background: var(--green);
+        color: var(--white);
+    }
+
+    .quiz-attempts-page .qa-button-primary:hover {
+        background: #135b46;
+    }
+
+    .quiz-attempts-page .qa-button-secondary {
+        border-color: #c8d8d4;
+        background: var(--white);
+        color: var(--green);
+    }
+
+    .quiz-attempts-page .qa-button-reset {
+        border-color: #f5b8b3;
+        background: var(--qa-danger-soft);
+        color: var(--qa-danger);
+        white-space: nowrap;
+    }
+
+    .quiz-attempts-page .qa-button-reset:hover {
+        border-color: #e98b82;
+        background: #fee4e2;
+    }
+
+    .quiz-attempts-page .qa-table-heading {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid var(--qa-border);
+    }
+
+    .quiz-attempts-page .qa-table-heading h2 {
+        margin: 0;
+        font-size: 1rem;
+    }
+
+    .quiz-attempts-page .qa-range {
+        color: var(--grey);
+        font-size: .82rem;
+    }
+
+    .quiz-attempts-page .qa-table-wrapper {
+        overflow-x: auto;
+    }
+
+    .quiz-attempts-page table {
+        width: 100%;
+        min-width: 900px;
+        border-collapse: collapse;
+    }
+
+    .quiz-attempts-page th {
+        padding: .8rem 1rem;
+        background: #f0f7f5;
+        color: #36534b;
+        font-size: .76rem;
+        font-weight: 700;
+        letter-spacing: .035em;
+        text-align: left;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+
+    .quiz-attempts-page td {
+        padding: 1rem;
+        border-top: 1px solid #edf3f1;
+        color: #263c36;
+        font-size: .88rem;
+        vertical-align: middle;
+    }
+
+    .quiz-attempts-page tbody tr:hover {
+        background: #fbfdfc;
+    }
+
+    .quiz-attempts-page .qa-user {
+        display: flex;
+        align-items: center;
+        gap: .75rem;
+        min-width: 220px;
+    }
+
+    .quiz-attempts-page .qa-avatar {
+        display: grid;
+        width: 38px;
+        height: 38px;
+        flex: 0 0 38px;
+        place-items: center;
+        border-radius: 50%;
+        background: var(--mint);
+        color: var(--green);
+        font-size: .85rem;
+        font-weight: 800;
+    }
+
+    .quiz-attempts-page .qa-user strong,
+    .quiz-attempts-page .qa-course {
+        display: block;
+        color: var(--black);
+        font-weight: 700;
+    }
+
+    .quiz-attempts-page .qa-user small {
+        display: block;
+        max-width: 240px;
+        margin-top: .15rem;
+        overflow: hidden;
+        color: var(--grey);
+        font-size: .78rem;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .quiz-attempts-page .qa-score {
+        display: flex;
+        min-width: 105px;
+        align-items: center;
+        gap: .6rem;
+    }
+
+    .quiz-attempts-page .qa-score strong {
+        min-width: 38px;
+        color: var(--qa-danger);
+    }
+
+    .quiz-attempts-page .qa-score-bar {
+        width: 55px;
+        height: 6px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: #f1d6d3;
+    }
+
+    .quiz-attempts-page .qa-score-bar span {
+        display: block;
+        height: 100%;
+        border-radius: inherit;
+        background: #d92d20;
+    }
+
+    .quiz-attempts-page .qa-status {
+        display: inline-flex;
+        align-items: center;
+        gap: .35rem;
+        padding: .35rem .55rem;
+        border-radius: 999px;
+        background: var(--qa-danger-soft);
+        color: var(--qa-danger);
+        font-size: .76rem;
+        font-weight: 700;
+    }
+
+    .quiz-attempts-page .qa-status::before {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: currentColor;
+        content: "";
+    }
+
+    .quiz-attempts-page .qa-date {
+        white-space: nowrap;
+    }
+
+    .quiz-attempts-page .qa-date small {
+        display: block;
+        margin-top: .15rem;
+        color: var(--grey);
+        font-size: .76rem;
+    }
+
+    .quiz-attempts-page .qa-action-form {
+        margin: 0;
+        text-align: right;
+    }
+
+    .quiz-attempts-page .qa-empty {
+        padding: 3.5rem 1.5rem;
+        text-align: center;
+    }
+
+    .quiz-attempts-page .qa-empty-icon {
+        display: grid;
+        width: 64px;
+        height: 64px;
+        margin: 0 auto 1rem;
+        place-items: center;
+        border-radius: 50%;
+        background: var(--mint);
+        color: var(--green);
+    }
+
+    .quiz-attempts-page .qa-empty-icon svg {
+        width: 30px;
+        height: 30px;
+    }
+
+    .quiz-attempts-page .qa-empty h2 {
+        margin: 0 0 .4rem;
+        font-size: 1.2rem;
+    }
+
+    .quiz-attempts-page .qa-empty p {
+        margin: 0;
+        color: var(--grey);
+    }
+
+    .quiz-attempts-page .qa-pagination {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1rem 1.25rem;
+        border-top: 1px solid var(--qa-border);
+    }
+
+    .quiz-attempts-page .qa-pagination-state {
+        color: var(--grey);
+        font-size: .84rem;
+    }
+
+    .quiz-attempts-page .qa-pagination-actions {
+        display: flex;
+        gap: .6rem;
+    }
+
+    .quiz-attempts-page .qa-button-disabled {
+        opacity: .45;
+        pointer-events: none;
+    }
+
+    @media (max-width: 1280px) {
+        .quiz-attempts-page .qa-filter-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @media (max-width: 720px) {
+        .quiz-attempts-page {
+            padding-top: 1rem;
+        }
+
+        .quiz-attempts-page .qa-header {
+            align-items: stretch;
+            flex-direction: column;
+        }
+
+        .quiz-attempts-page .qa-total {
+            text-align: left;
+        }
+
+        .quiz-attempts-page .qa-filter-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .quiz-attempts-page .qa-filter-actions {
+            align-items: stretch;
+            flex-direction: column-reverse;
+        }
+
+        .quiz-attempts-page .qa-table-heading,
+        .quiz-attempts-page .qa-pagination {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .quiz-attempts-page .qa-pagination-actions,
+        .quiz-attempts-page .qa-pagination-actions .qa-button {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<section class="quiz-attempts-page">
+    <header class="qa-header">
+        <div>
+            <p class="qa-eyebrow">Administration des quiz</p>
+            <h1>Tentatives échouées</h1>
+            <p class="qa-subtitle">
+                Retrouvez les utilisateurs bloqués après un échec et autorisez un nouvel essai en supprimant leur tentative.
+            </p>
+        </div>
+        <div class="qa-total" aria-label="{{ total }} tentative(s) trouvée(s)">
+            <strong>{{ total }}</strong>
+            <span>tentative{{ total > 1 ? 's' : '' }} trouvée{{ total > 1 ? 's' : '' }}</span>
+        </div>
+    </header>
+
+    <form method="get" action="{{ path('admin_quiz_attempt_index') }}" class="qa-filter-card">
+        <div class="qa-filter-grid">
+            <div class="qa-field">
+                <label for="quiz-search">Recherche</label>
+                <input
+                    id="quiz-search"
+                    class="qa-input"
+                    type="search"
+                    name="q"
+                    value="{{ filters.q }}"
+                    maxlength="120"
+                    placeholder="Nom, e-mail ou cours"
+                >
+            </div>
+
+            <div class="qa-field">
+                <label for="quiz-course">Cours</label>
+                <select id="quiz-course" class="qa-select" name="course">
+                    <option value="">Tous les cours</option>
+                    {% for course in courses %}
+                        <option value="{{ course.id }}" {{ filters.course == course.id ? 'selected' : '' }}>
+                            {{ course.title }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="qa-field">
+                <label for="quiz-date-from">Du</label>
+                <input
+                    id="quiz-date-from"
+                    class="qa-input"
+                    type="date"
+                    name="date_from"
+                    value="{{ filters.date_from ?? '' }}"
+                >
+            </div>
+
+            <div class="qa-field">
+                <label for="quiz-date-to">Au</label>
+                <input
+                    id="quiz-date-to"
+                    class="qa-input"
+                    type="date"
+                    name="date_to"
+                    value="{{ filters.date_to ?? '' }}"
+                >
+            </div>
+
+            <div class="qa-field">
+                <label for="quiz-sort">Trier par</label>
+                <select id="quiz-sort" class="qa-select" name="sort">
+                    <option value="newest" {{ filters.sort == 'newest' ? 'selected' : '' }}>Plus récentes</option>
+                    <option value="oldest" {{ filters.sort == 'oldest' ? 'selected' : '' }}>Plus anciennes</option>
+                    <option value="score_asc" {{ filters.sort == 'score_asc' ? 'selected' : '' }}>Score croissant</option>
+                    <option value="score_desc" {{ filters.sort == 'score_desc' ? 'selected' : '' }}>Score décroissant</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="qa-filter-actions">
+            <a class="qa-button qa-button-secondary" href="{{ path('admin_quiz_attempt_index') }}">
+                Réinitialiser
+            </a>
+            <button class="qa-button qa-button-primary" type="submit">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <circle cx="11" cy="11" r="7"></circle>
+                    <path d="m20 20-4-4"></path>
+                </svg>
+                Filtrer
+            </button>
+        </div>
+    </form>
+
+    {% if attempts is empty %}
+        <div class="qa-empty">
+            <div class="qa-empty-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M9 11l3 3L22 4"></path>
+                    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                </svg>
+            </div>
+            <h2>Aucune tentative échouée</h2>
+            <p>Aucun résultat ne correspond aux filtres sélectionnés.</p>
+        </div>
+    {% else %}
+        <div class="qa-table-card">
+            <div class="qa-table-heading">
+                <h2>Utilisateurs à débloquer</h2>
+                <span class="qa-range">Résultats {{ firstResult }}–{{ lastResult }} sur {{ total }}</span>
+            </div>
+
+            <div class="qa-table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Utilisateur</th>
+                            <th>Cours</th>
+                            <th>Score</th>
+                            <th>Statut</th>
+                            <th>Date de tentative</th>
+                            <th aria-label="Actions"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for attempt in attempts %}
+                        {% set user = attempt.user %}
+                        {% set course = attempt.course %}
+                        {% set userLabel = user ? user.username : 'Utilisateur supprimé' %}
+                        <tr>
+                            <td>
+                                <div class="qa-user">
+                                    <span class="qa-avatar" aria-hidden="true">{{ userLabel|slice(0, 2)|upper }}</span>
+                                    <span>
+                                        <strong>{{ userLabel }}</strong>
+                                        <small>{{ user ? user.email : 'Compte indisponible' }}</small>
+                                    </span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="qa-course">{{ course ? course.title : 'Cours supprimé' }}</span>
+                            </td>
+                            <td>
+                                <div class="qa-score">
+                                    <strong>{{ attempt.score }}%</strong>
+                                    <span class="qa-score-bar" aria-hidden="true">
+                                        <span style="width: {{ attempt.score < 0 ? 0 : (attempt.score > 100 ? 100 : attempt.score) }}%"></span>
+                                    </span>
+                                </div>
+                            </td>
+                            <td><span class="qa-status">Échec</span></td>
+                            <td class="qa-date">
+                                {{ attempt.createdAt|date('d/m/Y') }}
+                                <small>{{ attempt.createdAt|date('H:i') }}</small>
+                            </td>
+                            <td>
+                                <form
+                                    class="qa-action-form"
+                                    method="post"
+                                    action="{{ path('admin_quiz_attempt_reset', {id: attempt.id}|merge(filterQuery)|merge({page: page})) }}"
+                                    onsubmit="return confirm('Autoriser {{ userLabel|e('js') }} à repasser ce quiz ? La tentative échouée sera supprimée.');"
+                                >
+                                    <input type="hidden" name="_token" value="{{ csrf_token('reset_quiz_attempt_' ~ attempt.id) }}">
+                                    <button class="qa-button qa-button-reset" type="submit">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                            <path d="M3 12a9 9 0 1 0 3-6.7"></path>
+                                            <path d="M3 4v6h6"></path>
+                                        </svg>
+                                        Autoriser un nouvel essai
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if pageCount > 1 %}
+                <nav class="qa-pagination" aria-label="Pagination des tentatives">
+                    <span class="qa-pagination-state">Page {{ page }} sur {{ pageCount }}</span>
+                    <div class="qa-pagination-actions">
+                        <a
+                            class="qa-button qa-button-secondary {{ page == 1 ? 'qa-button-disabled' : '' }}"
+                            href="{{ page > 1 ? path('admin_quiz_attempt_index', filterQuery|merge({page: page - 1})) : '#' }}"
+                            {% if page == 1 %}aria-disabled="true" tabindex="-1"{% endif %}
+                        >
+                            Précédent
+                        </a>
+                        <a
+                            class="qa-button qa-button-secondary {{ page == pageCount ? 'qa-button-disabled' : '' }}"
+                            href="{{ page < pageCount ? path('admin_quiz_attempt_index', filterQuery|merge({page: page + 1})) : '#' }}"
+                            {% if page == pageCount %}aria-disabled="true" tabindex="-1"{% endif %}
+                        >
+                            Suivant
+                        </a>
+                    </div>
+                </nav>
+            {% endif %}
+        </div>
+    {% endif %}
+</section>
+{% endblock %}

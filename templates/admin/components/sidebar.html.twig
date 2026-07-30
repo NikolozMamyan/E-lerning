@@ -40,6 +40,16 @@
         </a>
       </li>
 
+      <li class="nav-item">
+        <a href="{{ path('admin_quiz_attempt_index') }}"
+           class="nav-link {{ app.request.attributes.get('_route') starts with 'admin_quiz_attempt_' ? 'active' : '' }}">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm-8 14H7v-2h4v2zm6-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+          </svg>
+          Quiz
+        </a>
+      </li>
+
       {# <li class="nav-item">
         <a href="{{ path('admin_scorm_generator') }}"
            class="nav-link {{ app.request.attributes.get('_route') starts with 'admin_scorm_' ? 'active' : '' }}">
