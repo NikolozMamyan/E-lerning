@@ -45,6 +45,12 @@
   </div>
   {% endif %}
 
+  {% set teamMemberPageSize = 10 %}
+  {% set totalTeamMembers = collaboratorsProgress|length %}
+  {% set initiallyVisibleMembers = totalTeamMembers > teamMemberPageSize ? teamMemberPageSize : totalTeamMembers %}
+  {% set remainingTeamMembers = totalTeamMembers - initiallyVisibleMembers %}
+  {% set nextTeamMemberBatch = remainingTeamMembers > teamMemberPageSize ? teamMemberPageSize : remainingTeamMembers %}
+
   <div class="card">
     <div class="card-header">
       <h2 class="card-title">Team Members</h2>
@@ -63,8 +69,29 @@
         </span>
       </div>
     </div>
+    {% if collaboratorsProgress is not empty %}
+      <div class="team-members-toolbar">
+        <label class="team-member-search" for="teamMemberSearch">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+            <circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M12 12L16 16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          <input
+            id="teamMemberSearch"
+            type="search"
+            placeholder="Search by name, email or ID..."
+            autocomplete="off"
+            aria-label="Search team members"
+            aria-controls="teamMembersTable"
+          >
+        </label>
+        <span id="teamMembersCount" class="team-members-count" aria-live="polite">
+          {{ initiallyVisibleMembers }} / {{ totalTeamMembers }} members
+        </span>
+      </div>
+    {% endif %}
     <div class="table-container">
-      <table class="employee-table">
+      <table class="employee-table" id="teamMembersTable">
         <thead>
           <tr>
             <th>Member</th>
@@ -74,7 +101,7 @@
             <th>Actions</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody id="teamMembersTbody">
         {% if collaboratorsProgress is not empty %}
           {% for collab in collaboratorsProgress %}
             {% set employee = collab.employee %}
@@ -90,7 +117,11 @@
               {% endif %}
             {% endfor %}
 
-            <tr class="employee-row">
+            <tr
+              class="employee-row"
+              data-search="{{ ((employee.username ?? '') ~ ' ' ~ employee.email ~ ' ' ~ employee.id)|lower|e('html_attr') }}"
+              {% if loop.index > teamMemberPageSize %}hidden{% endif %}
+            >
               <td>
                 <div class="employee-info">
                   <img class="user-avatar" src="{{ asset(employee.avatar ? 'uploads/avatars/' ~ employee.avatar : 'images/User.svg') }}" alt="avatar">
@@ -268,6 +299,12 @@
             </div>
 
           {% endfor %}
+          <tr id="teamMembersNoResults" hidden>
+            <td colspan="5" class="empty-state team-members-no-results">
+              <h3>No matching team members</h3>
+              <p>Try another name, email address or ID.</p>
+            </td>
+          </tr>
         {% else %}
           <tr>
             <td colspan="5" class="empty-state">
@@ -285,6 +322,19 @@
         </tbody>
       </table>
     </div>
+    {% if collaboratorsProgress is not empty %}
+      <div class="team-members-footer">
+        <button
+          id="teamMembersShowMore"
+          class="btn-show-more"
+          type="button"
+          aria-controls="teamMembersTbody"
+          {% if totalTeamMembers <= teamMemberPageSize %}hidden{% endif %}
+        >
+          Show {{ nextTeamMemberBatch }} more
+        </button>
+      </div>
+    {% endif %}
   </div>
 </div>
 
@@ -545,6 +595,91 @@
 .legend-dot.green { background: var(--green); }
 .legend-dot.yellow { background: #F59E0B; }
 .legend-dot.red { background: #EF4444; }
+
+.team-members-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 2rem;
+  border-bottom: 1px solid var(--mint);
+}
+
+.team-member-search {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: min(420px, 100%);
+  padding: 0.75rem 1rem;
+  color: var(--light-grey);
+  background: var(--bg);
+  border: 2px solid var(--mint);
+  border-radius: var(--radius-sm);
+  transition: var(--transition);
+}
+
+.team-member-search:focus-within {
+  color: var(--teal);
+  background: var(--white);
+  border-color: var(--teal);
+  box-shadow: 0 0 0 3px rgba(13, 131, 131, 0.1);
+}
+
+.team-member-search input {
+  width: 100%;
+  padding: 0;
+  color: var(--black);
+  background: transparent;
+  border: 0;
+  outline: 0;
+  font: inherit;
+}
+
+.team-member-search input::placeholder {
+  color: var(--light-grey);
+}
+
+.team-members-count {
+  flex-shrink: 0;
+  color: var(--grey);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.team-members-footer {
+  display: flex;
+  justify-content: center;
+  padding: 1rem 2rem 1.5rem;
+  border-top: 1px solid var(--mint);
+}
+
+.btn-show-more {
+  padding: 0.75rem 1.5rem;
+  color: var(--teal);
+  background: var(--white);
+  border: 2px solid var(--teal);
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.btn-show-more:hover {
+  color: var(--white);
+  background: var(--teal);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.btn-show-more:focus-visible {
+  outline: 3px solid rgba(13, 131, 131, 0.25);
+  outline-offset: 2px;
+}
+
+.team-members-no-results {
+  padding: 3rem 2rem !important;
+}
 
 /* Table */
 .table-container {
@@ -1119,6 +1254,20 @@
     gap: 0.75rem;
   }
 
+  .team-members-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+    padding: 1rem;
+  }
+
+  .team-member-search {
+    width: 100%;
+  }
+
+  .team-members-count {
+    align-self: flex-end;
+  }
+
   .employee-table th,
   .employee-table td {
     padding: 0.875rem;
@@ -1203,6 +1352,73 @@ document.addEventListener('click', e => {
     }
   }
 });
+
+(function() {
+  const PAGE_SIZE = 10;
+  const tbody = document.getElementById('teamMembersTbody');
+  const searchInput = document.getElementById('teamMemberSearch');
+  const countElement = document.getElementById('teamMembersCount');
+  const showMoreButton = document.getElementById('teamMembersShowMore');
+  const noResultsRow = document.getElementById('teamMembersNoResults');
+
+  if (!tbody || !searchInput || !countElement || !showMoreButton || !noResultsRow) return;
+
+  const rows = Array.from(tbody.querySelectorAll('.employee-row')).map(row => ({
+    element: row,
+    searchText: normalizeSearchValue(row.dataset.search),
+  }));
+  let visibleLimit = PAGE_SIZE;
+
+  function normalizeSearchValue(value) {
+    return (value || '')
+      .toString()
+      .trim()
+      .toLocaleLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+  }
+
+  function renderTeamMembers() {
+    const query = normalizeSearchValue(searchInput.value);
+    const matchingRows = rows.filter(row => !query || row.searchText.includes(query));
+    const displayedCount = Math.min(visibleLimit, matchingRows.length);
+
+    rows.forEach(row => {
+      row.element.hidden = true;
+    });
+
+    matchingRows.slice(0, displayedCount).forEach(row => {
+      row.element.hidden = false;
+    });
+
+    noResultsRow.hidden = matchingRows.length !== 0;
+
+    if (query) {
+      const resultLabel = matchingRows.length === 1 ? 'result' : 'results';
+      countElement.textContent = `${displayedCount} / ${matchingRows.length} ${resultLabel} (${rows.length} total)`;
+    } else {
+      const memberLabel = rows.length === 1 ? 'member' : 'members';
+      countElement.textContent = `${displayedCount} / ${rows.length} ${memberLabel}`;
+    }
+
+    const remainingCount = matchingRows.length - displayedCount;
+    showMoreButton.hidden = remainingCount <= 0;
+    showMoreButton.textContent = `Show ${Math.min(PAGE_SIZE, remainingCount)} more`;
+  }
+
+  searchInput.addEventListener('input', () => {
+    visibleLimit = PAGE_SIZE;
+    renderTeamMembers();
+  });
+
+  showMoreButton.addEventListener('click', () => {
+    visibleLimit += PAGE_SIZE;
+    renderTeamMembers();
+  });
+
+  renderTeamMembers();
+})();
+
 (function() {
   const data = Array.isArray(window.__COURSE_RESULTS__) ? window.__COURSE_RESULTS__ : [];
 
