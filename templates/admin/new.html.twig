@@ -1,5 +1,7 @@
 {% extends 'base.html.twig' %}
 
+{% block title %}Create a course | Admin{% endblock %}
+
 {% block body %}
-{% include 'admin/_form.html.twig' with {form: form, course: course} %}
+{% include 'admin/_form.html.twig' with {form: form, course: course, button_label: 'Create course'} %}
 {% endblock %}

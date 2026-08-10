@@ -20,7 +20,6 @@ class QuizController extends AbstractController
         QuizService $quizService,
         QuizAttemptRepository $quizAttemptRepository,
         EntityManagerInterface $em,
-        Request $request,
     ): Response {
         $user = $this->getUser();
 
@@ -55,32 +54,31 @@ class QuizController extends AbstractController
             ]);
         }
 
-        $locale = $request->getLocale();
         $hasFrench = false;
+        $hasItalian = false;
 
         foreach ($course->getQuizQuestions() as $question) {
-            if ($locale === 'fr' && $question->getQuestionFr()) {
-                $question->setQuestion($question->getQuestionFr());
+            if (!empty($question->getQuestionFr())) {
+                $hasFrench = true;
+            }
+            if (!empty($question->getQuestionIt())) {
+                $hasItalian = true;
             }
 
             foreach ($question->getAnswers() as $answer) {
-                if ($locale === 'fr' && $answer->getTextFr()) {
-                    $answer->setText($answer->getTextFr());
-                }
-
                 if (!empty($answer->getTextFr())) {
                     $hasFrench = true;
                 }
-            }
-
-            if (!empty($question->getQuestionFr())) {
-                $hasFrench = true;
+                if (!empty($answer->getTextIt())) {
+                    $hasItalian = true;
+                }
             }
         }
 
         return $this->render('quiz/pass.html.twig', [
             'course' => $course,
             'hasFrench' => $hasFrench,
+            'hasItalian' => $hasItalian,
         ]);
     }
 

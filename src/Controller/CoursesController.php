@@ -129,18 +129,17 @@ if (!$hasAccess) {
     if (!$currentVideo && count($videos) > 0) {
         $currentVideo = $videos[0];
     }
-    // 👉 Choisir la bonne URL selon la locale
-if ($currentVideo) {
-    $locale = $request->getLocale();
-    if ($locale === 'fr' && $currentVideo->getUrlFr()) {
-        $currentVideo->setUrl($currentVideo->getUrlFr());
-    }
-}
+// 👉 Choisir la bonne URL selon la locale, avec repli vers l'anglais
+$currentVideoUrl = $currentVideo?->getUrlForLocale($request->getLocale());
+
 $hasFrench = false;
+$hasItalian = false;
 foreach ($videos as $video) {
     if (!empty($video->getUrlFr())) {
         $hasFrench = true;
-        break; // Sortir dès qu'on trouve une vidéo FR
+    }
+    if (!empty($video->getUrlIt())) {
+        $hasItalian = true;
     }
 }
 
@@ -184,9 +183,11 @@ if ($user) {
         'course' => $course,
         'videos' => $videos,
         'currentVideo' => $currentVideo,
+        'currentVideoUrl' => $currentVideoUrl,
         'progress' => $progress,
         'progressPercent' => $progressPercent,
         'hasFrench' => $hasFrench,
+        'hasItalian' => $hasItalian,
         'hasPassedQuiz' => $hasPassedQuiz,
         'latestQuizAttempt' => $latestQuizAttempt,
     ]);

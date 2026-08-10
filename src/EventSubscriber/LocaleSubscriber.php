@@ -5,10 +5,11 @@ namespace App\EventSubscriber;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
-use Symfony\Component\HttpFoundation\Session\SessionInterface;
 
 class LocaleSubscriber implements EventSubscriberInterface
 {
+    private const SUPPORTED_LOCALES = ['en', 'fr', 'it'];
+
     private string $defaultLocale;
 
     public function __construct(string $defaultLocale = 'en')
@@ -19,18 +20,29 @@ class LocaleSubscriber implements EventSubscriberInterface
     public function onKernelRequest(RequestEvent $event): void
     {
         $request = $event->getRequest();
+        $requestedLocale = $request->query->get('_locale');
+
+        if (is_string($requestedLocale) && in_array($requestedLocale, self::SUPPORTED_LOCALES, true)) {
+            $request->setLocale($requestedLocale);
+
+            if ($request->hasSession()) {
+                $request->getSession()->set('_locale', $requestedLocale);
+            }
+
+            return;
+        }
 
         if (!$request->hasPreviousSession()) {
             return;
         }
 
-        // Si _locale est présent dans l’URL → on l’utilise
-        if ($locale = $request->query->get('_locale')) {
-            $request->getSession()->set('_locale', $locale);
-        }
+        $sessionLocale = $request->getSession()->get('_locale', $this->defaultLocale);
+        $request->setLocale($this->isSupported($sessionLocale) ? $sessionLocale : $this->defaultLocale);
+    }
 
-        // Sinon → on reprend la locale de la session
-        $request->setLocale($request->getSession()->get('_locale', $this->defaultLocale));
+    private function isSupported(mixed $locale): bool
+    {
+        return is_string($locale) && in_array($locale, self::SUPPORTED_LOCALES, true);
     }
 
     public static function getSubscribedEvents(): array

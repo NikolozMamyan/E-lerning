@@ -34,6 +34,9 @@ class Video
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $url_fr = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $url_it = null;
+
     #[ORM\Column(name: 'scorm_fr', length: 255, nullable: true)]
     private ?string $scormFr = null;
 
@@ -87,6 +90,27 @@ public function setDuration(float $duration): self
         $this->url_fr = $url_fr;
 
         return $this;
+    }
+
+    public function getUrlIt(): ?string
+    {
+        return $this->url_it;
+    }
+
+    public function setUrlIt(?string $url_it): static
+    {
+        $this->url_it = $url_it;
+
+        return $this;
+    }
+
+    public function getUrlForLocale(string $locale): string
+    {
+        return match ($locale) {
+            'fr' => $this->url_fr ?: $this->url,
+            'it' => $this->url_it ?: $this->url,
+            default => $this->url,
+        };
     }
 
     public function getScormFr(): ?string

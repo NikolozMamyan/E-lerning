@@ -15,7 +15,15 @@ class QuizAnswerType extends AbstractType
     {
         $builder
             ->add('text', TextType::class, [
-                'label' => 'Réponse',
+                'label' => 'Answer (English)',
+            ])
+            ->add('textFr', TextType::class, [
+                'label' => 'Answer (French)',
+                'required' => false,
+            ])
+            ->add('textIt', TextType::class, [
+                'label' => 'Answer (Italian)',
+                'required' => false,
             ])
             ->add('isCorrect', CheckboxType::class, [
                 'label' => 'Bonne réponse ?',

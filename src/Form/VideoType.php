@@ -27,7 +27,15 @@ class VideoType extends AbstractType
             'min'  => '0.1',
         ],
     ])
-    ->add('url', TextType::class, ['label' => 'URL de la vidéo']);
+    ->add('url', TextType::class, ['label' => 'Video URL (English)'])
+    ->add('urlFr', TextType::class, [
+        'label' => 'Video URL (French)',
+        'required' => false,
+    ])
+    ->add('urlIt', TextType::class, [
+        'label' => 'Video URL (Italian)',
+        'required' => false,
+    ]);
     }
 
     public function configureOptions(OptionsResolver $resolver): void

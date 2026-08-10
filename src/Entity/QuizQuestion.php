@@ -33,6 +33,9 @@ class QuizQuestion
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $question_fr = null;
 
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $question_it = null;
+
     public function __construct()
     {
         $this->answers = new ArrayCollection();
@@ -103,5 +106,26 @@ class QuizQuestion
         $this->question_fr = $question_fr;
 
         return $this;
+    }
+
+    public function getQuestionIt(): ?string
+    {
+        return $this->question_it;
+    }
+
+    public function setQuestionIt(?string $question_it): static
+    {
+        $this->question_it = $question_it;
+
+        return $this;
+    }
+
+    public function getQuestionForLocale(string $locale): ?string
+    {
+        return match ($locale) {
+            'fr' => $this->question_fr ?: $this->question,
+            'it' => $this->question_it ?: $this->question,
+            default => $this->question,
+        };
     }
 }

@@ -1,6 +1,7 @@
 {% extends 'base.html.twig' %}
 
+{% block title %}Edit {{ course.title }} | Admin{% endblock %}
+
 {% block body %}
-<h1>Éditer le cours</h1>
-{% include 'admin/_form.html.twig' with {form: form, course: course, button_label:'Mettre à jour'} %}
+{% include 'admin/_form.html.twig' with {form: form, course: course, button_label: 'Save changes'} %}
 {% endblock %}

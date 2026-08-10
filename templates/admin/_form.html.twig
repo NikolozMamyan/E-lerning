@@ -56,6 +56,17 @@
     margin-bottom: 1rem;
 }
 
+.localized-fields,
+.answer-translations {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+.answer-translations {
+    flex: 1;
+}
+
 .collection-container {
     min-height: 60px;
 }
@@ -297,6 +308,11 @@
     .form-grid {
         grid-template-columns: 1fr;
     }
+
+    .localized-fields,
+    .answer-translations {
+        grid-template-columns: 1fr;
+    }
     
     .answer-content {
         flex-direction: column;
@@ -368,306 +384,1179 @@ select.form-control, select {
 }
 
 </style>
+
+<style>
+.course-editor {
+    --editor-border: #dce8e5;
+    --editor-muted: #64748b;
+    --editor-soft: #f5f9f8;
+    --editor-danger: #c2413b;
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 1.5rem 1.25rem 4rem;
+    color: var(--black);
+}
+
+.editor-hero {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    justify-content: space-between;
+    gap: 2rem;
+    margin-bottom: 1.5rem;
+    padding: 2rem 2.25rem;
+    color: var(--white);
+    background:
+        radial-gradient(circle at 90% 10%, rgba(255, 255, 255, .18), transparent 32%),
+        linear-gradient(135deg, #0b6659, #0d8383 65%, #33a39a);
+    border-radius: 24px;
+    box-shadow: 0 18px 45px rgba(7, 82, 75, .18);
+}
+
+.editor-hero-copy {
+    position: relative;
+    z-index: 1;
+    max-width: 720px;
+}
+
+.editor-back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    margin-bottom: 1.25rem;
+    color: rgba(255, 255, 255, .84);
+    font-size: .875rem;
+    font-weight: 700;
+}
+
+.editor-back-link:hover {
+    color: var(--white);
+    text-decoration: none;
+}
+
+.editor-kicker {
+    display: block;
+    margin-bottom: .45rem;
+    color: #c8f2ea;
+    font-size: .75rem;
+    font-weight: 800;
+    letter-spacing: .13em;
+    text-transform: uppercase;
+}
+
+.editor-hero h1 {
+    margin: 0 0 .65rem;
+    color: var(--white);
+    font-size: clamp(1.9rem, 3vw, 2.65rem);
+    line-height: 1.08;
+    letter-spacing: -.025em;
+}
+
+.editor-hero p {
+    max-width: 620px;
+    margin: 0;
+    color: rgba(255, 255, 255, .82);
+    font-size: 1rem;
+    line-height: 1.55;
+}
+
+.editor-hero-stats {
+    position: relative;
+    z-index: 1;
+    align-self: flex-end;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(82px, 1fr));
+    gap: .65rem;
+    min-width: 300px;
+}
+
+.editor-stat {
+    padding: .9rem .75rem;
+    text-align: center;
+    background: rgba(255, 255, 255, .12);
+    border: 1px solid rgba(255, 255, 255, .18);
+    border-radius: 14px;
+    backdrop-filter: blur(6px);
+}
+
+.editor-stat strong,
+.editor-stat span {
+    display: block;
+}
+
+.editor-stat strong {
+    margin-bottom: .15rem;
+    font-size: 1.35rem;
+}
+
+.editor-stat span {
+    color: rgba(255, 255, 255, .75);
+    font-size: .72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.course-editor .course-form {
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+.editor-shell {
+    display: grid;
+    grid-template-columns: 240px minmax(0, 1fr);
+    gap: 1.5rem;
+    align-items: start;
+}
+
+.editor-sidebar {
+    position: sticky;
+    top: 1.25rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, .92);
+    border: 1px solid var(--editor-border);
+    border-radius: 18px;
+    box-shadow: 0 10px 30px rgba(7, 23, 23, .06);
+    backdrop-filter: blur(10px);
+}
+
+.editor-sidebar-title {
+    margin: .25rem .5rem .75rem;
+    color: var(--editor-muted);
+    font-size: .72rem;
+    font-weight: 800;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+}
+
+.editor-nav {
+    display: flex;
+    flex-direction: column;
+    gap: .3rem;
+}
+
+.editor-nav-link {
+    display: grid;
+    grid-template-columns: 30px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: .6rem;
+    padding: .7rem .75rem;
+    color: #435552;
+    border-radius: 11px;
+    font-size: .875rem;
+    font-weight: 700;
+    transition: .2s ease;
+}
+
+.editor-nav-link i {
+    color: #76938d;
+    text-align: center;
+}
+
+.editor-nav-link:hover,
+.editor-nav-link.is-active {
+    color: var(--green);
+    background: var(--mint);
+    text-decoration: none;
+}
+
+.editor-nav-link.is-active i {
+    color: var(--teal);
+}
+
+.editor-nav-count {
+    min-width: 24px;
+    padding: .15rem .4rem;
+    color: var(--teal);
+    background: var(--white);
+    border: 1px solid #cee0dc;
+    border-radius: 999px;
+    font-size: .7rem;
+    text-align: center;
+}
+
+.editor-tip {
+    margin-top: 1rem;
+    padding: .85rem;
+    color: #536a65;
+    background: #f2f8f6;
+    border-radius: 12px;
+    font-size: .78rem;
+    line-height: 1.45;
+}
+
+.editor-tip i {
+    margin-right: .35rem;
+    color: #d59618;
+}
+
+.editor-content {
+    min-width: 0;
+}
+
+.course-editor .form-section {
+    scroll-margin-top: 1.5rem;
+    margin: 0 0 1.25rem;
+    padding: 1.5rem;
+    background: var(--white);
+    border: 1px solid var(--editor-border);
+    border-radius: 20px;
+    box-shadow: 0 10px 28px rgba(7, 23, 23, .055);
+}
+
+.course-editor .section-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.35rem;
+    padding-bottom: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #e8f0ee;
+}
+
+.section-heading {
+    display: flex;
+    align-items: flex-start;
+    gap: .85rem;
+}
+
+.section-number {
+    flex: 0 0 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    color: var(--white);
+    background: linear-gradient(135deg, var(--green), var(--teal));
+    border-radius: 11px;
+    font-size: .8rem;
+    font-weight: 800;
+}
+
+.course-editor .section-header h2 {
+    margin: .05rem 0 .2rem;
+    color: var(--black);
+    font-size: 1.2rem;
+    line-height: 1.25;
+}
+
+.course-editor .section-header p {
+    margin: 0;
+    color: var(--editor-muted);
+    font-size: .875rem;
+}
+
+.section-status {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    padding: .35rem .65rem;
+    color: #667a76;
+    background: var(--editor-soft);
+    border-radius: 999px;
+    font-size: .72rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.course-editor .form-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    margin: 0;
+}
+
+.course-editor .form-grid-single {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.course-editor .localized-fields,
+.course-editor .answer-translations {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: .85rem;
+}
+
+.course-editor label:not(.form-check-label) {
+    display: block;
+    margin-bottom: .42rem;
+    color: #263b37;
+    font-size: .82rem;
+    font-weight: 750;
+}
+
+.course-editor label.required::after {
+    content: ' *';
+    color: #d24c45;
+}
+
+.course-editor input[type='text'],
+.course-editor input[type='number'],
+.course-editor input[type='url'],
+.course-editor select,
+.course-editor textarea {
+    width: 100%;
+    min-height: 44px;
+    padding: .72rem .8rem;
+    color: var(--black);
+    background: #fbfdfc;
+    border: 1px solid #cfdedb;
+    border-radius: 10px;
+    outline: none;
+    font: inherit;
+    font-size: .9rem;
+    transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
+}
+
+.course-editor textarea {
+    min-height: 96px;
+    resize: vertical;
+}
+
+.course-editor input:focus,
+.course-editor select:focus,
+.course-editor textarea:focus {
+    background: var(--white);
+    border-color: var(--teal);
+    box-shadow: 0 0 0 3px rgba(13, 131, 131, .11);
+}
+
+.course-editor input::placeholder,
+.course-editor textarea::placeholder {
+    color: #9aaba7;
+}
+
+.course-editor .form-error-message,
+.course-editor ul.form-error-message,
+.course-editor .invalid-feedback {
+    margin: .35rem 0 0;
+    color: var(--editor-danger);
+    font-size: .78rem;
+}
+
+.resource-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+.resource-card {
+    min-width: 0;
+    padding: 1.1rem;
+    background: var(--editor-soft);
+    border: 1px dashed #b8ceca;
+    border-radius: 14px;
+}
+
+.resource-card-title {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    margin: 0 0 .8rem;
+    color: #324945;
+    font-size: .85rem;
+    font-weight: 800;
+}
+
+.resource-card-title i {
+    color: var(--teal);
+}
+
+.course-editor input[type='file'] {
+    width: 100%;
+    padding: .55rem;
+    color: var(--editor-muted);
+    background: var(--white);
+    border: 1px solid #cfdedb;
+    border-radius: 10px;
+    font-size: .82rem;
+}
+
+.course-editor input[type='file']::file-selector-button {
+    margin-right: .75rem;
+    padding: .55rem .75rem;
+    color: var(--green);
+    background: var(--mint);
+    border: 0;
+    border-radius: 7px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.current-resource {
+    display: flex;
+    align-items: center;
+    gap: .8rem;
+    margin-top: .8rem;
+    padding: .7rem;
+    color: #47605b;
+    background: var(--white);
+    border: 1px solid #dfeae8;
+    border-radius: 10px;
+    font-size: .78rem;
+}
+
+.current-resource img {
+    width: 72px;
+    height: 48px;
+    object-fit: cover;
+    border-radius: 7px;
+}
+
+.current-resource-info {
+    min-width: 0;
+    flex: 1;
+}
+
+.current-resource-info strong,
+.current-resource-info span {
+    display: block;
+}
+
+.current-resource-info span {
+    overflow: hidden;
+    color: var(--editor-muted);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.language-note {
+    display: flex;
+    align-items: flex-start;
+    gap: .65rem;
+    margin-bottom: 1rem;
+    padding: .75rem .9rem;
+    color: #49615d;
+    background: #f1f8f6;
+    border-left: 3px solid var(--teal);
+    border-radius: 9px;
+    font-size: .8rem;
+    line-height: 1.45;
+}
+
+.language-note i {
+    margin-top: .15rem;
+    color: var(--teal);
+}
+
+.course-editor .collection-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    min-height: 0;
+}
+
+.course-editor .card {
+    margin: 0;
+    padding: 1.15rem;
+    background: #fcfefd;
+    border: 1px solid #dbe8e5;
+    border-radius: 15px;
+    box-shadow: none;
+}
+
+.course-editor .card:hover {
+    border-color: #b7d0ca;
+    box-shadow: 0 8px 22px rgba(7, 23, 23, .055);
+    transform: none;
+}
+
+.course-editor .item-header {
+    margin: 0 0 1rem;
+    padding: 0 0 .8rem;
+    border-bottom: 1px solid #e5eeec;
+}
+
+.item-title {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+}
+
+.item-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    color: var(--teal);
+    background: var(--mint);
+    border-radius: 8px;
+}
+
+.course-editor .item-number {
+    color: #28443e;
+    font-size: .88rem;
+    font-weight: 800;
+}
+
+.course-editor .answers-section {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px dashed #d5e3e0;
+}
+
+.answers-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: .8rem;
+}
+
+.course-editor .answers-section h4 {
+    margin: 0;
+    color: #314b46;
+    font-size: .88rem;
+}
+
+.course-editor .answers {
+    display: flex;
+    flex-direction: column;
+    gap: .7rem;
+}
+
+.course-editor .answer-item {
+    margin: 0;
+    padding: .85rem;
+    background: #f6faf9;
+    border: 1px solid #e0ebe9;
+    border-left: 3px solid #b9d9d2;
+    border-radius: 11px;
+}
+
+.course-editor .answer-content {
+    align-items: flex-end;
+}
+
+.course-editor .answer-controls {
+    min-height: 44px;
+}
+
+.course-editor .form-check {
+    min-height: 40px;
+    padding: .55rem .7rem;
+    background: #eaf5f1;
+    border-radius: 9px;
+}
+
+.course-editor .form-check-input {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--green);
+}
+
+.course-editor .form-check-label {
+    color: var(--green);
+    font-size: .78rem;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.course-editor .empty-state {
+    padding: 1.5rem;
+    color: #6d817d;
+    background: #f8fbfa;
+    border: 1px dashed #bfd2ce;
+    border-radius: 13px;
+    font-style: normal;
+}
+
+.empty-state i {
+    display: block;
+    margin-bottom: .5rem;
+    color: #8ba9a3;
+    font-size: 1.5rem;
+}
+
+.empty-state p {
+    margin: 0;
+}
+
+.section-footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 1rem;
+}
+
+.course-editor .btn {
+    justify-content: center;
+    min-height: 40px;
+    padding: .62rem 1rem;
+    border-radius: 10px;
+    font-size: .82rem;
+    font-weight: 800;
+}
+
+.course-editor .btn::before {
+    display: none;
+}
+
+.course-editor .btn-primary {
+    background: var(--teal);
+    box-shadow: 0 6px 14px rgba(13, 131, 131, .16);
+}
+
+.course-editor .btn-primary:hover,
+.course-editor .btn-success:hover {
+    filter: brightness(.95);
+    text-decoration: none;
+    transform: translateY(-1px);
+}
+
+.course-editor .btn-secondary {
+    color: #35534d;
+    background: #edf5f3;
+    border: 1px solid #d1e2de;
+}
+
+.course-editor .btn-secondary:hover {
+    color: var(--green);
+    background: #e2f0ed;
+    text-decoration: none;
+}
+
+.course-editor .btn-danger {
+    color: var(--editor-danger);
+    background: #fff2f1;
+    border: 1px solid #f3cfcc;
+}
+
+.course-editor .btn-danger:hover {
+    color: #9f302b;
+    background: #ffe8e6;
+}
+
+.course-editor .btn-success {
+    min-width: 170px;
+    background: linear-gradient(135deg, var(--green), var(--teal));
+    box-shadow: 0 8px 18px rgba(26, 109, 85, .2);
+}
+
+.course-editor .duration-input-group {
+    min-height: 44px;
+    background: #fbfdfc;
+    border-color: #cfdedb;
+    border-radius: 10px;
+}
+
+.course-editor .duration-input-group .form-control {
+    min-height: 42px;
+    padding: .72rem .8rem;
+}
+
+.course-editor .input-group-text {
+    align-self: stretch;
+    display: inline-flex;
+    align-items: center;
+    padding: 0 .8rem;
+    background: #edf4f2;
+}
+
+.course-editor .form-actions {
+    position: sticky;
+    z-index: 20;
+    bottom: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin: 1.5rem 0 0;
+    padding: .9rem 1rem;
+    background: rgba(255, 255, 255, .94);
+    border: 1px solid var(--editor-border);
+    border-radius: 16px;
+    box-shadow: 0 14px 35px rgba(7, 23, 23, .14);
+    backdrop-filter: blur(12px);
+}
+
+.save-status {
+    display: flex;
+    align-items: center;
+    gap: .55rem;
+    color: var(--editor-muted);
+    font-size: .8rem;
+    font-weight: 650;
+}
+
+.save-status i {
+    color: var(--teal);
+}
+
+.save-status.is-dirty i {
+    color: #d59618;
+    font-size: .55rem;
+}
+
+.form-action-buttons {
+    display: flex;
+    gap: .65rem;
+}
+
+.course-editor .divider {
+    display: none;
+}
+
+@keyframes slideOut {
+    to {
+        opacity: 0;
+        transform: translateY(-8px) scale(.985);
+    }
+}
+
+@media (max-width: 1100px) {
+    .editor-shell {
+        grid-template-columns: 1fr;
+    }
+
+    .editor-sidebar {
+        position: sticky;
+        z-index: 15;
+        top: 0;
+        overflow-x: auto;
+        padding: .65rem;
+    }
+
+    .editor-sidebar-title,
+    .editor-tip {
+        display: none;
+    }
+
+    .editor-nav {
+        flex-direction: row;
+        min-width: max-content;
+    }
+
+    .editor-nav-link {
+        display: inline-flex;
+        padding: .6rem .75rem;
+    }
+}
+
+@media (max-width: 820px) {
+    .course-editor {
+        padding: .75rem .65rem 3rem;
+    }
+
+    .editor-hero {
+        flex-direction: column;
+        padding: 1.5rem;
+        border-radius: 18px;
+    }
+
+    .editor-hero-stats {
+        align-self: stretch;
+        min-width: 0;
+    }
+
+    .course-editor .form-section {
+        padding: 1.1rem;
+        border-radius: 15px;
+    }
+
+    .course-editor .section-header {
+        flex-direction: column;
+    }
+
+    .course-editor .form-grid,
+    .resource-grid,
+    .course-editor .localized-fields,
+    .course-editor .answer-translations {
+        grid-template-columns: 1fr;
+    }
+
+    .course-editor .answer-content {
+        align-items: stretch;
+    }
+
+    .course-editor .item-header {
+        flex-direction: row;
+        align-items: center;
+    }
+
+    .course-editor .form-actions {
+        position: static;
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .form-action-buttons {
+        flex-direction: column-reverse;
+    }
+
+    .course-editor .btn-success {
+        width: 100%;
+    }
+}
+</style>
+
+{% set isEditing = course is defined and course.id %}
+<div class="course-editor">
+  <header class="editor-hero">
+    <div class="editor-hero-copy">
+      <a href="{{ path('admin_course_index') }}" class="editor-back-link">
+        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+        Back to courses
+      </a>
+      <span class="editor-kicker">Course builder</span>
+      <h1>{{ isEditing ? 'Edit your course' : 'Create a new course' }}</h1>
+      <p>{{ isEditing ? 'Update the content, lessons and knowledge check from one guided workspace.' : 'Build the course step by step. You can add translations and learning content as you go.' }}</p>
+    </div>
+    <div class="editor-hero-stats" aria-label="Course content summary">
+      <div class="editor-stat">
+        <strong data-summary-count="prices">{{ form.coursePrices|length }}</strong>
+        <span>Prices</span>
+      </div>
+      <div class="editor-stat">
+        <strong data-summary-count="videos">{{ form.videos|length }}</strong>
+        <span>Lessons</span>
+      </div>
+      <div class="editor-stat">
+        <strong data-summary-count="questions">{{ form.quizQuestions|length }}</strong>
+        <span>Questions</span>
+      </div>
+    </div>
+  </header>
+
 {{ form_start(form, {'attr': {'class': 'course-form'}}) }}
+<div class="editor-shell">
+  <aside class="editor-sidebar" aria-label="Course form navigation">
+    <div class="editor-sidebar-title">Course setup</div>
+    <nav class="editor-nav">
+      <a href="#course-details" class="editor-nav-link is-active" data-section-link="course-details">
+        <i class="fa-regular fa-pen-to-square" aria-hidden="true"></i><span>Details</span>
+      </a>
+      <a href="#course-resources" class="editor-nav-link" data-section-link="course-resources">
+        <i class="fa-regular fa-image" aria-hidden="true"></i><span>Resources</span>
+      </a>
+      <a href="#course-pricing" class="editor-nav-link" data-section-link="course-pricing">
+        <i class="fa-solid fa-tag" aria-hidden="true"></i><span>Pricing</span>
+        <span class="editor-nav-count" data-nav-count="prices">{{ form.coursePrices|length }}</span>
+      </a>
+      <a href="#course-lessons" class="editor-nav-link" data-section-link="course-lessons">
+        <i class="fa-solid fa-circle-play" aria-hidden="true"></i><span>Lessons</span>
+        <span class="editor-nav-count" data-nav-count="videos">{{ form.videos|length }}</span>
+      </a>
+      <a href="#course-quiz" class="editor-nav-link" data-section-link="course-quiz">
+        <i class="fa-regular fa-circle-question" aria-hidden="true"></i><span>Quiz</span>
+        <span class="editor-nav-count" data-nav-count="questions">{{ form.quizQuestions|length }}</span>
+      </a>
+    </nav>
+    <div class="editor-tip"><i class="fa-regular fa-lightbulb" aria-hidden="true"></i>English is the fallback language. French and Italian content can be completed progressively.</div>
+  </aside>
 
-<div class="form-section">
-    <div class="section-header">
-        <h2>New course</h2>
-        <p>Basic details about your course</p>
-    </div>
-<div class="form-grid">
-    {{ form_row(form.title) }}
-    {{ form_row(form.category) }}
-</div>
+  <div class="editor-content">
+    {{ form_errors(form) }}
 
-<div class="form-grid">
-    {{ form_row(form.description) }}
-</div>
+    <section id="course-details" class="form-section" data-editor-section>
+      <div class="section-header">
+        <div class="section-heading">
+          <span class="section-number">01</span>
+          <div>
+            <h2>Course details</h2>
+            <p>Give learners a clear title, category and overview.</p>
+          </div>
+        </div>
+        <span class="section-status"><i class="fa-solid fa-asterisk" aria-hidden="true"></i> Core information</span>
+      </div>
+      <div class="form-grid">
+        {{ form_row(form.title) }}
+        {{ form_row(form.category) }}
+      </div>
+      <div class="form-grid-single">
+        {{ form_row(form.description) }}
+      </div>
+    </section>
 
-</div>
-<div class="form-section">
-    <div class="section-header">
-        <h2>Miniature du cours</h2>
-        <p>Upload une image de couverture</p>
-    </div>
-    <div class="form-grid">
-        {{ form_row(form.thumbFile) }}
-        {% if course is defined and course.thumb %}
-            <img src="{{ asset('uploads/courses/' ~ course.thumb) }}" 
-                 alt="{{ course.title }}" 
-                 class="preview-img" width="200">
-        {% endif %}
-    </div>
-</div>
-<div class="form-section">
-    <div class="section-header">
-        <h2>Plan de formation (PDF)</h2>
-        <p>Upload le plan de formation au format PDF</p>
-    </div>
-
-    <div class="form-grid">
-        {{ form_row(form.planPdfFile) }}
-
-        {% if course is defined and course.planPdf %}
-            <div>
-                <a class="btn btn-secondary btn-small"
-                   href="{{ asset('uploads/course_plans/' ~ course.planPdf) }}"
-                   target="_blank"
-                   download>
-                    <span class="btn-icon">⬇</span> Télécharger le PDF actuel
-                </a>
-
-                <div style="margin-top:8px; color: var(--grey); font-size: 12px;">
-                    Fichier actuel : {{ course.planPdf }}
-                </div>
+    <section id="course-resources" class="form-section" data-editor-section>
+      <div class="section-header">
+        <div class="section-heading">
+          <span class="section-number">02</span>
+          <div>
+            <h2>Visuals & resources</h2>
+            <p>Add the course cover and an optional training plan.</p>
+          </div>
+        </div>
+        <span class="section-status">Optional</span>
+      </div>
+      <div class="resource-grid">
+        <div class="resource-card">
+          <div class="resource-card-title"><i class="fa-regular fa-image" aria-hidden="true"></i> Course thumbnail</div>
+          {{ form_row(form.thumbFile) }}
+          {% if course is defined and course.thumb %}
+            <div class="current-resource">
+              <img src="{{ asset('uploads/courses/' ~ course.thumb) }}" alt="Current thumbnail for {{ course.title }}">
+              <div class="current-resource-info"><strong>Current image</strong><span>{{ course.thumb }}</span></div>
             </div>
-        {% endif %}
-    </div>
-</div>
+          {% endif %}
+        </div>
+        <div class="resource-card">
+          <div class="resource-card-title"><i class="fa-regular fa-file-pdf" aria-hidden="true"></i> Training plan</div>
+          {{ form_row(form.planPdfFile) }}
+          {% if course is defined and course.planPdf %}
+            <div class="current-resource">
+              <i class="fa-solid fa-file-pdf" aria-hidden="true"></i>
+              <div class="current-resource-info"><strong>Current PDF</strong><span>{{ course.planPdf }}</span></div>
+              <a class="btn btn-secondary btn-small" href="{{ asset('uploads/course_plans/' ~ course.planPdf) }}" target="_blank" download aria-label="Download current training plan">
+                <i class="fa-solid fa-download" aria-hidden="true"></i>
+              </a>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </section>
 
-<div class="divider"></div>
-
-<div class="form-section">
-    <div class="section-header">
-        <h2>Course Prices</h2>
-        <p>Define the pricing options for this course</p>
-    </div>
-    <div id="course_prices"
-         data-prototype="{{ form_widget(form.coursePrices.vars.prototype)|e('html_attr') }}"
-         data-index="{{ form.coursePrices|length }}"
-         class="collection-container">
+    <section id="course-pricing" class="form-section" data-editor-section>
+      <div class="section-header">
+        <div class="section-heading">
+          <span class="section-number">03</span>
+          <div>
+            <h2>Pricing</h2>
+            <p>Add one or more price and currency combinations.</p>
+          </div>
+        </div>
+        <span class="section-status">Flexible</span>
+      </div>
+      <div id="course_prices"
+           data-prototype="
+             <div class='price-item card collection-item'>
+               <div class='item-header'>
+                 <div class='item-title'><span class='item-icon'><i class='fa-solid fa-tag'></i></span><span class='item-number'>Price __name__</span></div>
+                 <button type='button' class='btn btn-danger btn-small remove-item' title='Remove this price'><i class='fa-regular fa-trash-can'></i><span>Remove</span></button>
+               </div>
+               <div class='form-grid'>
+                 {{ form_row(form.coursePrices.vars.prototype.price)|e('html_attr') }}
+                 {{ form_row(form.coursePrices.vars.prototype.currency)|e('html_attr') }}
+               </div>
+             </div>
+           "
+           data-index="{{ form.coursePrices|length }}"
+           class="collection-container">
         {% for priceForm in form.coursePrices %}
-            <div class="price-item card collection-item">
-                <div class="item-header">
-                    <span class="item-number">Price {{ loop.index }}</span>
-                    <button type="button" class="btn btn-danger btn-small remove-item" title="Remove this price">
-                        <span class="btn-icon">×</span> Remove
-                    </button>
-                </div>
-                <div class="form-grid">
-                    {{ form_row(priceForm.price) }}
-                    {{ form_row(priceForm.currency) }}
-                </div>
+          <div class="price-item card collection-item">
+            <div class="item-header">
+              <div class="item-title"><span class="item-icon"><i class="fa-solid fa-tag" aria-hidden="true"></i></span><span class="item-number">Price {{ loop.index }}</span></div>
+              <button type="button" class="btn btn-danger btn-small remove-item" title="Remove this price"><i class="fa-regular fa-trash-can" aria-hidden="true"></i><span>Remove</span></button>
             </div>
+            <div class="form-grid">
+              {{ form_row(priceForm.price) }}
+              {{ form_row(priceForm.currency) }}
+            </div>
+          </div>
         {% endfor %}
         {% if form.coursePrices|length == 0 %}
-            <div class="empty-state">
-                <p>No price defined yet. Click the button below to add one.</p>
-            </div>
+          <div class="empty-state"><i class="fa-solid fa-tag" aria-hidden="true"></i><p>No price yet. Add one when the course is sold individually.</p></div>
         {% endif %}
-    </div>
-    <button type="button" class="btn btn-primary add-item" data-target="#course_prices">
-        <span class="btn-icon">+</span> Add Price
-    </button>
-</div>
+      </div>
+      <div class="section-footer">
+        <button type="button" class="btn btn-primary add-item" data-target="#course_prices"><i class="fa-solid fa-plus" aria-hidden="true"></i>Add price</button>
+      </div>
+    </section>
 
-<div class="divider"></div>
-
-<div class="form-section">
-    <div class="section-header">
-        <h2>Course Videos</h2>
-        <p>Add educational videos to your course</p>
-    </div>
-
-    <div id="course_videos"
-         data-prototype="
-            <div class='video-item card collection-item'>
-                <div class='item-header'>
-                    <span class='item-number'>Video __name__</span>
-                    <button type='button' class='btn btn-danger btn-small remove-item' title='Remove this video'>
-                        <span class='btn-icon'>×</span> Remove
-                    </button>
-                </div>
-                <div class='form-grid'>
-                    {{ form_row(form.videos.vars.prototype.title)|e('html_attr') }}
-
-                    <div class='duration-field'>
-                        <label class='form-label'>Durée</label>
-                        <div class='duration-input-group'>
-                            <input type='number'
-                                   class='form-control duration-minutes'
-                                   step='0.5'
-                                   min='0.5'
-                                   placeholder='Ex: 15.5'
-                                   data-target='{{ form.videos.vars.prototype.duration.vars.full_name|e('html_attr') }}'
-                                   data-current-seconds='0'>
-                            <span class='input-group-text'>minutes</span>
-                        </div>
-                        <small class='form-text text-muted duration-conversion' style='display:none;'></small>
-
-                        {{ form_widget(form.videos.vars.prototype.duration, {'attr': {'style': 'display:none;'}})|e('html_attr') }}
-                    </div>
-                </div>
-
-                {{ form_row(form.videos.vars.prototype.description)|e('html_attr') }}
-                {{ form_row(form.videos.vars.prototype.url)|e('html_attr') }}
-            </div>
-         "
-         data-index="{{ form.videos|length }}"
-         class="collection-container">
-
-        {# affichage des vidéos existantes (edit) #}
-        {% for videoForm in form.videos %}
-            <div class="video-item card collection-item">
-                <div class="item-header">
-                    <span class="item-number">Video {{ loop.index }}</span>
-                    <button type="button" class="btn btn-danger btn-small remove-item" title="Remove this video">
-                        <span class="btn-icon">×</span> Remove
-                    </button>
-                </div>
-                <div class="form-grid">
-                    {{ form_row(videoForm.title) }}
-                    <div class="duration-field">
-                        <label class="form-label">Durée</label>
-                        <div class="duration-input-group">
-                            <input type="number"
-                                   class="form-control duration-minutes"
-                                   step="0.5"
-                                   min="0.5"
-                                   placeholder="Ex: 15.5"
-                                   data-target="{{ videoForm.duration.vars.full_name }}"
-                                   data-current-seconds="{{ videoForm.duration.vars.value }}">
-                            <span class="input-group-text">minutes</span>
-                        </div>
-                        <small class="form-text text-muted duration-conversion"></small>
-                        {{ form_widget(videoForm.duration, {'attr': {'style': 'display:none;'}}) }}
-                    </div>
-                </div>
-                {{ form_row(videoForm.description) }}
-                {{ form_row(videoForm.url) }}
-            </div>
-        {% endfor %}
-
-        {% if form.videos|length == 0 %}
-            <div class="empty-state">
-                <p>No videos added yet. Click the button below to add your first video.</p>
-            </div>
-        {% endif %}
-    </div>
-
-    <button type="button" class="btn btn-primary add-item" data-target="#course_videos">
-        <span class="btn-icon">+</span> Add Video
-    </button>
-</div>
-
-
-<div class="divider"></div>
-
-<div class="form-section">
-    <div class="section-header">
-        <h2>Quiz Questions</h2>
-        <p>Create interactive questions to test knowledge</p>
-    </div>
-   <div id="course_questions"
-     data-prototype="
-        <div class='question-item card collection-item'>
-            <div class='item-header'>
-                <span class='item-number'>Question __name__</span>
-                <button type='button' class='btn btn-danger btn-small remove-item' title='Remove this question'>
-                    <span class='btn-icon'>×</span> Remove Question
-                </button>
-            </div>
-
-            {{ form_row(form.quizQuestions.vars.prototype.question)|e('html_attr') }}
-
-            <div class='answers-section'>
-                <h4>Answer Options</h4>
-                <div class='answers'
-                     data-prototype='{{ form_widget(form.quizQuestions.vars.prototype.answers.vars.prototype)|e('html_attr') }}'
-                     data-index='0'>
-                </div>
-                <button type='button' class='btn btn-secondary btn-small add-answer'>
-                    <span class='btn-icon'>+</span> Add Answer Option
-                </button>
-            </div>
+    <section id="course-lessons" class="form-section" data-editor-section>
+      <div class="section-header">
+        <div class="section-heading">
+          <span class="section-number">04</span>
+          <div>
+            <h2>Lessons</h2>
+            <p>Build the video sequence learners will follow.</p>
+          </div>
         </div>
-     "
-     data-index="{{ form.quizQuestions|length }}"
-     class="collection-container">
-        {% for qForm in form.quizQuestions %}
-            <div class="question-item card collection-item">
-                <div class="item-header">
-                    <span class="item-number">Question {{ loop.index }}</span>
-                    <button type="button" class="btn btn-danger btn-small remove-item" title="Remove this question">
-                        <span class="btn-icon">×</span> Remove Question
-                    </button>
-                </div>
-                
-                {{ form_row(qForm.question) }}
-
-                <div class="answers-section">
-                    <h4>Answer Options</h4>
-                    <div class="answers"
-                         data-prototype="{{ form_widget(qForm.answers.vars.prototype)|e('html_attr') }}"
-                         data-index="{{ qForm.answers|length }}">
-                        {% for aForm in qForm.answers %}
-                            <div class="answer-item">
-                                <div class="answer-content">
-                                    {{ form_row(aForm.text) }}
-                                    <div class="answer-controls">
-                                        {{ form_row(aForm.isCorrect) }}
-                                        <button type="button" class="btn btn-danger btn-small remove-item" title="Remove this answer">
-                                            <span class="btn-icon">×</span>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        {% endfor %}
-                    </div>
-                    <button type="button" class="btn btn-secondary btn-small add-answer">
-                        <span class="btn-icon">+</span> Add Answer Option
-                    </button>
-                </div>
+        <span class="section-status"><span data-section-count="videos">{{ form.videos|length }}</span>&nbsp;lesson(s)</span>
+      </div>
+      <div class="language-note"><i class="fa-solid fa-language" aria-hidden="true"></i><span>Add the English video URL first. French and Italian URLs are optional and automatically appear to learners when available.</span></div>
+      <div id="course_videos"
+           data-prototype="
+             <div class='video-item card collection-item'>
+               <div class='item-header'>
+                 <div class='item-title'><span class='item-icon'><i class='fa-solid fa-circle-play'></i></span><span class='item-number'>Lesson __name__</span></div>
+                 <button type='button' class='btn btn-danger btn-small remove-item' title='Remove this lesson'><i class='fa-regular fa-trash-can'></i><span>Remove</span></button>
+               </div>
+               <div class='form-grid'>
+                 {{ form_row(form.videos.vars.prototype.title)|e('html_attr') }}
+                 <div class='duration-field'>
+                   <label class='form-label'>Duration</label>
+                   <div class='duration-input-group'>
+                     <input type='number' class='form-control duration-minutes' step='0.5' min='0.5' placeholder='e.g. 15.5' data-target='{{ form.videos.vars.prototype.duration.vars.full_name|e('html_attr') }}' data-current-seconds='0'>
+                     <span class='input-group-text'>minutes</span>
+                   </div>
+                   <small class='form-text text-muted duration-conversion' style='display:none;'></small>
+                   {{ form_widget(form.videos.vars.prototype.duration, {'attr': {'style': 'display:none;'}})|e('html_attr') }}
+                 </div>
+               </div>
+               <div class='form-grid-single'>{{ form_row(form.videos.vars.prototype.description)|e('html_attr') }}</div>
+               <div class='localized-fields'>
+                 {{ form_row(form.videos.vars.prototype.url)|e('html_attr') }}
+                 {{ form_row(form.videos.vars.prototype.urlFr)|e('html_attr') }}
+                 {{ form_row(form.videos.vars.prototype.urlIt)|e('html_attr') }}
+               </div>
+             </div>
+           "
+           data-index="{{ form.videos|length }}"
+           class="collection-container">
+        {% for videoForm in form.videos %}
+          <div class="video-item card collection-item">
+            <div class="item-header">
+              <div class="item-title"><span class="item-icon"><i class="fa-solid fa-circle-play" aria-hidden="true"></i></span><span class="item-number">Lesson {{ loop.index }}</span></div>
+              <button type="button" class="btn btn-danger btn-small remove-item" title="Remove this lesson"><i class="fa-regular fa-trash-can" aria-hidden="true"></i><span>Remove</span></button>
             </div>
+            <div class="form-grid">
+              {{ form_row(videoForm.title) }}
+              <div class="duration-field">
+                <label class="form-label">Duration</label>
+                <div class="duration-input-group">
+                  <input type="number" class="form-control duration-minutes" step="0.5" min="0.5" placeholder="e.g. 15.5" data-target="{{ videoForm.duration.vars.full_name }}" data-current-seconds="{{ videoForm.duration.vars.value }}">
+                  <span class="input-group-text">minutes</span>
+                </div>
+                <small class="form-text text-muted duration-conversion"></small>
+                {{ form_widget(videoForm.duration, {'attr': {'style': 'display:none;'}}) }}
+              </div>
+            </div>
+            <div class="form-grid-single">{{ form_row(videoForm.description) }}</div>
+            <div class="localized-fields">
+              {{ form_row(videoForm.url) }}
+              {{ form_row(videoForm.urlFr) }}
+              {{ form_row(videoForm.urlIt) }}
+            </div>
+          </div>
+        {% endfor %}
+        {% if form.videos|length == 0 %}
+          <div class="empty-state"><i class="fa-regular fa-circle-play" aria-hidden="true"></i><p>No lessons yet. Add the first video to start building the course.</p></div>
+        {% endif %}
+      </div>
+      <div class="section-footer">
+        <button type="button" class="btn btn-primary add-item" data-target="#course_videos"><i class="fa-solid fa-plus" aria-hidden="true"></i>Add lesson</button>
+      </div>
+    </section>
+
+    <section id="course-quiz" class="form-section" data-editor-section>
+      <div class="section-header">
+        <div class="section-heading">
+          <span class="section-number">05</span>
+          <div>
+            <h2>Knowledge quiz</h2>
+            <p>Create questions and identify the correct answer for each one.</p>
+          </div>
+        </div>
+        <span class="section-status"><span data-section-count="questions">{{ form.quizQuestions|length }}</span>&nbsp;question(s)</span>
+      </div>
+      <div class="language-note"><i class="fa-solid fa-language" aria-hidden="true"></i><span>Translate each question and answer in the same row. Missing translations fall back to English.</span></div>
+      <div id="course_questions"
+           data-prototype="
+             <div class='question-item card collection-item'>
+               <div class='item-header'>
+                 <div class='item-title'><span class='item-icon'><i class='fa-regular fa-circle-question'></i></span><span class='item-number'>Question __name__</span></div>
+                 <button type='button' class='btn btn-danger btn-small remove-item' title='Remove this question'><i class='fa-regular fa-trash-can'></i><span>Remove</span></button>
+               </div>
+               <div class='localized-fields'>
+                 {{ form_row(form.quizQuestions.vars.prototype.question)|e('html_attr') }}
+                 {{ form_row(form.quizQuestions.vars.prototype.questionFr)|e('html_attr') }}
+                 {{ form_row(form.quizQuestions.vars.prototype.questionIt)|e('html_attr') }}
+               </div>
+               <div class='answers-section'>
+                 <div class='answers-heading'><h4>Answer options</h4></div>
+                 <div class='answers' data-prototype='{{ form_widget(form.quizQuestions.vars.prototype.answers.vars.prototype)|e('html_attr') }}' data-index='0'></div>
+                 <div class='section-footer'><button type='button' class='btn btn-secondary btn-small add-answer'><i class='fa-solid fa-plus'></i>Add answer</button></div>
+               </div>
+             </div>
+           "
+           data-index="{{ form.quizQuestions|length }}"
+           class="collection-container">
+        {% for qForm in form.quizQuestions %}
+          <div class="question-item card collection-item">
+            <div class="item-header">
+              <div class="item-title"><span class="item-icon"><i class="fa-regular fa-circle-question" aria-hidden="true"></i></span><span class="item-number">Question {{ loop.index }}</span></div>
+              <button type="button" class="btn btn-danger btn-small remove-item" title="Remove this question"><i class="fa-regular fa-trash-can" aria-hidden="true"></i><span>Remove</span></button>
+            </div>
+            <div class="localized-fields">
+              {{ form_row(qForm.question) }}
+              {{ form_row(qForm.questionFr) }}
+              {{ form_row(qForm.questionIt) }}
+            </div>
+            <div class="answers-section">
+              <div class="answers-heading"><h4>Answer options</h4><span class="section-status">Select the correct answer</span></div>
+              <div class="answers" data-prototype="{{ form_widget(qForm.answers.vars.prototype)|e('html_attr') }}" data-index="{{ qForm.answers|length }}">
+                {% for aForm in qForm.answers %}
+                  <div class="answer-item">
+                    <div class="answer-content">
+                      <div class="answer-translations">
+                        {{ form_row(aForm.text) }}
+                        {{ form_row(aForm.textFr) }}
+                        {{ form_row(aForm.textIt) }}
+                      </div>
+                      <div class="answer-controls">
+                        {{ form_row(aForm.isCorrect) }}
+                        <button type="button" class="btn btn-danger btn-small remove-item" title="Remove this answer" aria-label="Remove this answer"><i class="fa-regular fa-trash-can" aria-hidden="true"></i></button>
+                      </div>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+              <div class="section-footer"><button type="button" class="btn btn-secondary btn-small add-answer"><i class="fa-solid fa-plus" aria-hidden="true"></i>Add answer</button></div>
+            </div>
+          </div>
         {% endfor %}
         {% if form.quizQuestions|length == 0 %}
-            <div class="empty-state">
-                <p>No quiz questions added yet. Click the button below to add your first question.</p>
-            </div>
+          <div class="empty-state"><i class="fa-regular fa-circle-question" aria-hidden="true"></i><p>No questions yet. Add a question to create the knowledge check.</p></div>
         {% endif %}
+      </div>
+      <div class="section-footer">
+        <button type="button" class="btn btn-primary add-item" data-target="#course_questions"><i class="fa-solid fa-plus" aria-hidden="true"></i>Add question</button>
+      </div>
+    </section>
+
+    <div class="form-actions">
+      <div class="save-status" id="courseSaveStatus"><i class="fa-regular fa-circle-check" aria-hidden="true"></i><span>Complete the required fields, then save your course.</span></div>
+      <div class="form-action-buttons">
+        <a href="{{ path('admin_course_index') }}" class="btn btn-secondary btn-large"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i>Cancel</a>
+        <button type="submit" class="btn btn-success btn-large" id="courseSubmitButton" data-idle-label="{{ button_label|default('Save course') }}">
+          <i class="fa-solid fa-check" aria-hidden="true"></i><span>{{ button_label|default('Save course') }}</span>
+        </button>
+      </div>
     </div>
-    <button type="button" class="btn btn-primary add-item" data-target="#course_questions">
-        <span class="btn-icon">+</span> Add Question
-    </button>
+  </div>
 </div>
-
-<div class="divider"></div>
-
-<div class="form-actions">
-    <button class="btn btn-success btn-large">
-        <span class="btn-icon">✓</span> {{ button_label|default('Save Course') }}
-    </button>
-    <a href="{{ path('admin_course_index') }}" class="btn btn-secondary btn-large">
-        <span class="btn-icon">←</span> Back to Courses
-    </a>
-</div>
-
+{% do form.coursePrices.setRendered() %}
+{% do form.videos.setRendered() %}
+{% do form.quizQuestions.setRendered() %}
 {{ form_end(form) }}
+</div>
 
 
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    const editor = document.querySelector('.course-editor');
+    const form = editor?.querySelector('.course-form');
+    const saveStatus = document.getElementById('courseSaveStatus');
+    const submitButton = document.getElementById('courseSubmitButton');
 
-    /**
-     * =========================
-     * Gestion Durée Vidéos (minutes ↔ secondes)
-     * =========================
-     */
+    if (!editor || !form) return;
+
     function setupDurationInputs(container) {
         container.querySelectorAll('.duration-minutes').forEach(input => {
+            if (input.dataset.durationReady === 'true') return;
+
             const hiddenName = input.dataset.target;
             const hiddenField = container.querySelector(`[name="${hiddenName}"]`);
             const conversion = input.closest('.duration-field').querySelector('.duration-conversion');
 
-            // Initialiser la valeur en minutes si hidden contient des secondes
+            if (!hiddenField) return;
+
+            input.dataset.durationReady = 'true';
+
             if (input.dataset.currentSeconds && parseInt(input.dataset.currentSeconds) > 0) {
                 const minutes = parseInt(input.dataset.currentSeconds) / 60;
                 input.value = minutes % 1 === 0 ? Math.floor(minutes) : minutes.toFixed(1);
                 updateDisplay(conversion, parseInt(input.dataset.currentSeconds));
             }
 
-            // Mettre à jour hidden quand on tape dans minutes
             input.addEventListener('input', function () {
                 const minutes = parseFloat(this.value) || 0;
                 const seconds = Math.round(minutes * 60);
@@ -675,7 +1564,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 updateDisplay(conversion, seconds);
             });
 
-            // Auto-sélection au focus
             input.addEventListener('focus', function () {
                 this.select();
             });
@@ -694,11 +1582,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    /**
-     * =========================
-     * Gestion des collections
-     * =========================
-     */
     function updateItemNumbers() {
         document.querySelectorAll('#course_prices .price-item').forEach((item, i) => {
             const numberSpan = item.querySelector('.item-number');
@@ -706,23 +1589,39 @@ document.addEventListener('DOMContentLoaded', function () {
         });
         document.querySelectorAll('#course_videos .video-item').forEach((item, i) => {
             const numberSpan = item.querySelector('.item-number');
-            if (numberSpan) numberSpan.textContent = `Video ${i + 1}`;
+            if (numberSpan) numberSpan.textContent = `Lesson ${i + 1}`;
         });
         document.querySelectorAll('#course_questions .question-item').forEach((item, i) => {
             const numberSpan = item.querySelector('.item-number');
             if (numberSpan) numberSpan.textContent = `Question ${i + 1}`;
         });
+
+        updateCounts();
+    }
+
+    function updateCounts() {
+        const counts = {
+            prices: editor.querySelectorAll('#course_prices .price-item').length,
+            videos: editor.querySelectorAll('#course_videos .video-item').length,
+            questions: editor.querySelectorAll('#course_questions .question-item').length,
+        };
+
+        Object.entries(counts).forEach(([key, value]) => {
+            editor.querySelectorAll(`[data-nav-count="${key}"], [data-summary-count="${key}"], [data-section-count="${key}"]`).forEach(element => {
+                element.textContent = value;
+            });
+        });
     }
 
     function toggleEmptyStates() {
         const containers = [
-            { selector: '#course_prices', itemClass: '.price-item', message: 'No price defined yet. Click the button below to add one.' },
-            { selector: '#course_videos', itemClass: '.video-item', message: 'No videos added yet. Click the button below to add your first video.' },
-            { selector: '#course_questions', itemClass: '.question-item', message: 'No quiz questions added yet. Click the button below to add your first question.' }
+            { selector: '#course_prices', itemClass: '.price-item', icon: 'fa-solid fa-tag', message: 'No price yet. Add one when the course is sold individually.' },
+            { selector: '#course_videos', itemClass: '.video-item', icon: 'fa-regular fa-circle-play', message: 'No lessons yet. Add the first video to start building the course.' },
+            { selector: '#course_questions', itemClass: '.question-item', icon: 'fa-regular fa-circle-question', message: 'No questions yet. Add a question to create the knowledge check.' }
         ];
 
         containers.forEach(config => {
-            const container = document.querySelector(config.selector);
+            const container = editor.querySelector(config.selector);
             if (container) {
                 const items = container.querySelectorAll(config.itemClass);
                 const emptyState = container.querySelector('.empty-state');
@@ -731,7 +1630,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (!emptyState) {
                         const emptyDiv = document.createElement('div');
                         emptyDiv.className = 'empty-state';
-                        emptyDiv.innerHTML = `<p>${config.message}</p>`;
+                        emptyDiv.innerHTML = `<i class="${config.icon}" aria-hidden="true"></i><p>${config.message}</p>`;
                         container.appendChild(emptyDiv);
                     }
                 } else if (emptyState) {
@@ -739,20 +1638,21 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
         });
+
+        updateCounts();
     }
 
-    /**
-     * =========================
-     * Ajout / suppression d’items
-     * =========================
-     */
     function addItem(button) {
-        const target = document.querySelector(button.dataset.target);
-        const index = parseInt(target.dataset.index);
-        let proto = target.dataset.prototype.replace(/__name__/g, index);
+        const target = editor.querySelector(button.dataset.target);
+        if (!target) return;
+
+        const index = parseInt(target.dataset.index || '0', 10);
+        const proto = target.dataset.prototype.replace(/__name__/g, index);
         const wrapper = document.createElement('div');
         wrapper.innerHTML = proto;
         const div = wrapper.firstElementChild;
+
+        if (!div) return;
 
         target.appendChild(div);
         target.dataset.index = index + 1;
@@ -765,84 +1665,139 @@ document.addEventListener('DOMContentLoaded', function () {
         if (emptyState) emptyState.remove();
 
         updateItemNumbers();
+        markDirty();
+
+        requestAnimationFrame(() => {
+            div.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            div.querySelector('input:not([type="hidden"]), textarea, select')?.focus({ preventScroll: true });
+        });
     }
 
     function removeItem(button) {
         const item = button.closest('.video-item, .question-item, .answer-item, .price-item');
         if (item) {
-            item.style.animation = 'slideOut 0.3s ease';
+            item.style.animation = 'slideOut 0.22s ease forwards';
             setTimeout(() => {
                 item.remove();
                 updateItemNumbers();
                 toggleEmptyStates();
-            }, 300);
+                markDirty();
+            }, 220);
         }
     }
 
     function addAnswer(button) {
         const answers = button.closest('.question-item').querySelector('.answers');
-        const index = parseInt(answers.dataset.index);
-        let proto = answers.dataset.prototype.replace(/__name__/g, index);
+        const index = parseInt(answers.dataset.index || '0', 10);
+        const proto = answers.dataset.prototype.replace(/__answer_name__/g, index);
+        const prototypeWrapper = document.createElement('div');
+        prototypeWrapper.innerHTML = proto;
+        const prototypeRoot = prototypeWrapper.firstElementChild;
+
+        if (!prototypeRoot) return;
 
         const div = document.createElement('div');
         div.className = 'answer-item';
-        div.innerHTML = `
-            <div class="answer-content">
-                ${proto}
-                <div class="answer-controls">
-                    <button type="button" class="btn btn-danger btn-small remove-item" title="Remove this answer">
-                        <span class="btn-icon">×</span>
-                    </button>
-                </div>
-            </div>
-        `;
+        const content = document.createElement('div');
+        content.className = 'answer-content';
+        const translations = document.createElement('div');
+        translations.className = 'answer-translations';
+        const controls = document.createElement('div');
+        controls.className = 'answer-controls';
+        const fieldRows = Array.from(prototypeRoot.children);
+
+        fieldRows.slice(0, 3).forEach(field => translations.appendChild(field));
+        fieldRows.slice(3).forEach(field => controls.appendChild(field));
+        controls.insertAdjacentHTML('beforeend', '<button type="button" class="btn btn-danger btn-small remove-item" title="Remove this answer" aria-label="Remove this answer"><i class="fa-regular fa-trash-can" aria-hidden="true"></i></button>');
+        content.append(translations, controls);
+        div.appendChild(content);
         answers.appendChild(div);
         answers.dataset.index = index + 1;
+
+        markDirty();
+        div.querySelector('input[type="text"]')?.focus();
     }
 
-    /**
-     * =========================
-     * Initialisation
-     * =========================
-     */
+    function markDirty() {
+        if (!saveStatus || form.dataset.submitting === 'true') return;
+
+        saveStatus.innerHTML = '<i class="fa-solid fa-circle" aria-hidden="true"></i><span>Unsaved changes</span>';
+        saveStatus.classList.add('is-dirty');
+    }
+
+    function setActiveSection(sectionId) {
+        editor.querySelectorAll('[data-section-link]').forEach(link => {
+            link.classList.toggle('is-active', link.dataset.sectionLink === sectionId);
+        });
+    }
+
     setupDurationInputs(document);
     toggleEmptyStates();
+    updateItemNumbers();
 
-    /**
-     * =========================
-     * Events globaux
-     * =========================
-     */
-    document.addEventListener('click', function (e) {
-        if (e.target.classList.contains('add-item')) {
-            addItem(e.target);
-        }
-        if (e.target.classList.contains('remove-item')) {
+    editor.querySelectorAll('[data-section-link]').forEach(link => {
+        link.addEventListener('click', event => {
+            const section = document.getElementById(link.dataset.sectionLink);
+            if (!section) return;
+
+            event.preventDefault();
+            setActiveSection(section.id);
+            section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+    });
+
+    if ('IntersectionObserver' in window) {
+        const observer = new IntersectionObserver(entries => {
+            const visibleSection = entries
+                .filter(entry => entry.isIntersecting)
+                .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+
+            if (visibleSection) setActiveSection(visibleSection.target.id);
+        }, { rootMargin: '-15% 0px -65% 0px', threshold: [0, .15, .4] });
+
+        editor.querySelectorAll('[data-editor-section]').forEach(section => observer.observe(section));
+    }
+
+    editor.addEventListener('click', function (e) {
+        const addItemButton = e.target.closest('.add-item');
+        const removeItemButton = e.target.closest('.remove-item');
+        const addAnswerButton = e.target.closest('.add-answer');
+
+        if (addItemButton) {
             e.preventDefault();
-            removeItem(e.target);
-        }
-        if (e.target.classList.contains('add-answer')) {
-            addAnswer(e.target);
+            addItem(addItemButton);
+        } else if (removeItemButton) {
+            e.preventDefault();
+            removeItem(removeItemButton);
+        } else if (addAnswerButton) {
+            e.preventDefault();
+            addAnswer(addAnswerButton);
         }
     });
 
-    /**
-     * =========================
-     * Validation formulaire
-     * =========================
-     */
-    document.addEventListener('submit', function(e) {
-        const form = e.target;
-        if (form.classList.contains('course-form')) {
-            document.querySelectorAll('.duration-minutes').forEach(input => {
-                const targetName = input.dataset.target;
-                const secondsInput = document.querySelector(`[name="${targetName}"]`);
-                if (secondsInput && input.value) {
-                    const minutes = parseFloat(input.value) || 0;
-                    const seconds = Math.round(minutes * 60);
-                    secondsInput.value = seconds;
-                }
-            });
+    form.addEventListener('input', markDirty);
+    form.addEventListener('change', markDirty);
+
+    form.addEventListener('submit', function() {
+        form.querySelectorAll('.duration-minutes').forEach(input => {
+            const targetName = input.dataset.target;
+            const secondsInput = form.querySelector(`[name="${targetName}"]`);
+            if (secondsInput && input.value) {
+                const minutes = parseFloat(input.value) || 0;
+                secondsInput.value = Math.round(minutes * 60);
+            }
+        });
+
+        form.dataset.submitting = 'true';
+
+        if (submitButton) {
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i><span>Saving…</span>';
+        }
+
+        if (saveStatus) {
+            saveStatus.innerHTML = '<i class="fa-solid fa-cloud-arrow-up" aria-hidden="true"></i><span>Saving your course…</span>';
+            saveStatus.classList.remove('is-dirty');
         }
     });
 });

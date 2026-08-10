@@ -170,6 +170,7 @@ $formattedDuration = sprintf('%02d:%02d', $minutes, $seconds);
         $videos = $course->getVideos();
         $locale = $request->getLocale();
         $hasFrench = false;
+        $hasItalian = false;
 
         // Préparer les données des vidéos
         $videosData = [];
@@ -181,12 +182,12 @@ $formattedDuration = sprintf('%02d:%02d', $minutes, $seconds);
             if (!empty($video->getUrlFr())) {
                 $hasFrench = true;
             }
+            if (!empty($video->getUrlIt())) {
+                $hasItalian = true;
+            }
 
             // Choisir l'URL selon la locale
-            $videoUrl = $video->getUrl();
-            if ($locale === 'fr' && $video->getUrlFr()) {
-                $videoUrl = $video->getUrlFr();
-            }
+            $videoUrl = $video->getUrlForLocale($locale);
 
             // Progression
             $videoProgress = null;
@@ -214,6 +215,7 @@ $formattedDuration = sprintf('%02d:%02d', $minutes, $seconds);
                 'title' => $video->getTitle(),
                 'url' => $videoUrl,
                 'urlFr' => $video->getUrlFr(),
+                'urlIt' => $video->getUrlIt(),
                 'duration' => $video->getDuration(),
                 // 'position' => $video->getPosition(),
                 'progress' => $videoProgress,
@@ -247,6 +249,7 @@ $formattedDuration = sprintf('%02d:%02d', $minutes, $seconds);
             ],
             'videos' => $videosData,
             'hasFrench' => $hasFrench,
+            'hasItalian' => $hasItalian,
             'progressPercent' => $progressPercent,
         ]);
     }
@@ -292,10 +295,7 @@ $formattedDuration = sprintf('%02d:%02d', $minutes, $seconds);
 
         // Choisir l'URL selon la locale
         $locale = $request->getLocale();
-        $videoUrl = $video->getUrl();
-        if ($locale === 'fr' && $video->getUrlFr()) {
-            $videoUrl = $video->getUrlFr();
-        }
+        $videoUrl = $video->getUrlForLocale($locale);
 
         // Progression
         $videoProgress = null;
@@ -315,6 +315,7 @@ $formattedDuration = sprintf('%02d:%02d', $minutes, $seconds);
                 'title' => $video->getTitle(),
                 'url' => $videoUrl,
                 'urlFr' => $video->getUrlFr(),
+                'urlIt' => $video->getUrlIt(),
                 'duration' => $video->getDuration(),
                 // 'position' => $video->getPosition(),
                 'progress' => $videoProgress,

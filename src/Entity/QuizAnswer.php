@@ -25,6 +25,9 @@ class QuizAnswer
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $text_fr = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $text_it = null;
+
     public function getId(): ?int { return $this->id; }
 
     public function getText(): ?string { return $this->text; }
@@ -46,5 +49,26 @@ class QuizAnswer
         $this->text_fr = $text_fr;
 
         return $this;
+    }
+
+    public function getTextIt(): ?string
+    {
+        return $this->text_it;
+    }
+
+    public function setTextIt(?string $text_it): static
+    {
+        $this->text_it = $text_it;
+
+        return $this;
+    }
+
+    public function getTextForLocale(string $locale): ?string
+    {
+        return match ($locale) {
+            'fr' => $this->text_fr ?: $this->text,
+            'it' => $this->text_it ?: $this->text,
+            default => $this->text,
+        };
     }
 }

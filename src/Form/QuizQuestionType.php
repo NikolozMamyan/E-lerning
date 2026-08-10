@@ -18,8 +18,18 @@ class QuizQuestionType extends AbstractType
     {
         $builder
             ->add('question', TextareaType::class, [
-                'label' => 'Question',
+                'label' => 'Question (English)',
                 'attr' => ['rows' => 3]
+            ])
+            ->add('questionFr', TextareaType::class, [
+                'label' => 'Question (French)',
+                'required' => false,
+                'attr' => ['rows' => 3],
+            ])
+            ->add('questionIt', TextareaType::class, [
+                'label' => 'Question (Italian)',
+                'required' => false,
+                'attr' => ['rows' => 3],
             ])
             ->add('answers', CollectionType::class, [
                 'entry_type' => QuizAnswerType::class,
@@ -27,6 +37,7 @@ class QuizQuestionType extends AbstractType
                 'allow_delete' => true,
                 'by_reference' => false,
                 'prototype' => true,
+                'prototype_name' => '__answer_name__',
                 'label' => false,
                 'attr' => ['class' => 'answers-collection'],
                 // Retire prototype_data d'ici, c'est géré par l'event listener
