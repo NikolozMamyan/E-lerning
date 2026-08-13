@@ -4,13 +4,12 @@ namespace App\Controller;
 
 use App\Entity\User;
 use App\Service\MailerService;
-use Symfony\Component\Mime\Address;
+use App\Service\SessionTokenService;
 use App\Form\ChangePasswordFormType;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Form\ResetPasswordRequestFormType;
-use Symfony\Bridge\Twig\Mime\TemplatedEmail;
+use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -75,7 +74,13 @@ public function request(Request $request, MailerService $mailService, Translator
      * Validates and process the reset URL that the user clicked in their email.
      */
     #[Route('/reset/{token}', name: 'app_reset_password')]
-    public function reset(Request $request, UserPasswordHasherInterface $passwordHasher, TranslatorInterface $translator, string $token = null): Response
+    public function reset(
+        Request $request,
+        UserPasswordHasherInterface $passwordHasher,
+        TranslatorInterface $translator,
+        SessionTokenService $sessionTokenService,
+        ?string $token = null
+    ): Response
     {
         if ($token) {
             // We store the token in session and remove it from the URL, to avoid the URL being
@@ -121,7 +126,27 @@ public function request(Request $request, MailerService $mailService, Translator
             // The session is cleaned up after the password has been changed.
             $this->cleanSessionAfterReset();
 
-            return $this->redirectToRoute('show_login');
+            $createdSession = $sessionTokenService->createSession($user, 'web', 90);
+            $plainToken = $createdSession['plainToken'];
+            $expiresAt = $createdSession['session']->getExpiresAt();
+
+            $roles = $user->getRoles();
+            $dashboardRoute = in_array('ROLE_ADMIN', $roles, true)
+                ? 'admin_course_index'
+                : (in_array('ROLE_COMPANY', $roles, true) ? 'company_dashboard' : 'app_dashboard');
+
+            $response = $this->redirectToRoute($dashboardRoute);
+            $response->headers->setCookie(
+                Cookie::create('AUTH_TOKEN')
+                    ->withValue($plainToken)
+                    ->withHttpOnly(true)
+                    ->withSecure(true)
+                    ->withSameSite('none')
+                    ->withPath('/')
+                    ->withExpires($expiresAt->getTimestamp())
+            );
+
+            return $response;
         }
 
         return $this->render('reset_password/reset.html.twig', [

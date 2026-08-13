@@ -1,0 +1,123 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Email centre{% endblock %}
+
+{% block stylesheets %}
+<style>
+.email-centre {
+    min-height: calc(100vh - 90px);
+    padding: 2rem 0;
+}
+
+.email-centre-header,
+.email-type-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+}
+
+.email-centre-header {
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+}
+
+.email-centre-header h1 {
+    margin: 0 0 .5rem;
+    font-size: 1.75rem;
+}
+
+.email-centre-header p,
+.email-type-card p {
+    color: var(--grey);
+}
+
+.email-type-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.5rem;
+}
+
+.email-type-card {
+    display: flex;
+    flex-direction: column;
+    padding: 2rem;
+    border: 2px solid transparent;
+    transition: transform .2s ease, border-color .2s ease;
+}
+
+.email-type-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--teal);
+}
+
+.email-type-icon {
+    width: 58px;
+    height: 58px;
+    display: grid;
+    place-items: center;
+    border-radius: 18px;
+    margin-bottom: 1.25rem;
+    background: var(--mint);
+    color: var(--green);
+    font-size: 1.5rem;
+}
+
+.email-type-card h2 {
+    margin: 0 0 .75rem;
+    font-size: 1.35rem;
+}
+
+.email-type-card p {
+    flex: 1;
+    margin: 0 0 1.5rem;
+    line-height: 1.55;
+}
+
+.email-type-link {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    padding: .9rem 1.25rem;
+    border-radius: var(--radius);
+    background: var(--teal);
+    color: white;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+@media (max-width: 767px) {
+    .email-type-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="email-centre">
+    <header class="email-centre-header">
+        <h1>Email centre</h1>
+        <p>Choose the type of message you want to send.</p>
+    </header>
+
+    <div class="email-type-grid">
+        <article class="email-type-card">
+            <div class="email-type-icon" aria-hidden="true">
+                <i class="fa-solid fa-envelope"></i>
+            </div>
+            <h2>Standard group email</h2>
+            <p>Send the same message to several selected users, with optional visible copies.</p>
+            <a class="email-type-link" href="{{ path('admin_bulk_email') }}">Open standard email</a>
+        </article>
+
+        <article class="email-type-card">
+            <div class="email-type-icon" aria-hidden="true">
+                <i class="fa-solid fa-key"></i>
+            </div>
+            <h2>Password setup invitation</h2>
+            <p>Send each selected user an individual email containing a secure, personal password setup link.</p>
+            <a class="email-type-link" href="{{ path('admin_email_password_setup') }}">Create invitations</a>
+        </article>
+    </div>
+</div>
+{% endblock %}

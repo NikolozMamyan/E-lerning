@@ -513,7 +513,7 @@ public function importUsers(
     return $this->render('admin/user_import.html.twig');
 }
 
-#[Route('/emails/group', name: 'bulk_email', methods: ['GET', 'POST'])]
+#[Route('/emails/group/classic', name: 'bulk_email', methods: ['GET', 'POST'])]
 public function bulkEmail(
     Request $request,
     UserRepository $userRepository,
@@ -534,7 +534,12 @@ public function bulkEmail(
     )));
 
     if ($request->isMethod('POST')) {
-        if ($selectedUserIds === []) {
+        if (!$this->isCsrfTokenValid(
+            'admin_bulk_email',
+            (string) $request->request->get('_token')
+        )) {
+            $this->addFlash('danger', 'Le formulaire a expiré. Veuillez réessayer.');
+        } elseif ($selectedUserIds === []) {
             $this->addFlash('danger', 'Sélectionnez au moins un utilisateur.');
         } elseif ($subject === '') {
             $this->addFlash('danger', 'Le sujet est obligatoire.');

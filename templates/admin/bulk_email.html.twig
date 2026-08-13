@@ -9,6 +9,14 @@
     padding: 2rem 0;
 }
 
+.back-link {
+    display: inline-block;
+    margin-bottom: 1rem;
+    color: var(--teal);
+    font-weight: 600;
+    text-decoration: none;
+}
+
 .mail-header,
 .mail-card,
 .mail-users-panel {
@@ -230,12 +238,15 @@
 
 {% block body %}
 <div class="bulk-mail-container">
+    <a class="back-link" href="{{ path('admin_email_choice') }}">&larr; Retour au centre d'emails</a>
+
     <div class="mail-header">
         <h1>Envoi d'email groupé</h1>
         <p>Sélectionnez des utilisateurs, ajoutez si besoin des emails en copie, puis envoyez votre message.</p>
     </div>
 
     <form method="post" id="bulk-mail-form">
+        <input type="hidden" name="_token" value="{{ csrf_token('admin_bulk_email') }}">
         <div class="mail-layout">
             <aside class="mail-users-panel">
                 <div class="panel-header">

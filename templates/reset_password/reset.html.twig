@@ -31,6 +31,21 @@ body {
   box-shadow: var(--shadow);
 }
 
+.reset-logo {
+  display: block;
+  width: 180px;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto 1.5rem;
+}
+
+.reset-intro {
+  margin: -0.75rem 0 1.5rem;
+  color: var(--grey);
+  line-height: 1.5;
+  text-align: center;
+}
+
 .reset-container h1 {
   font-size: 1.5rem;
   margin-bottom: 1.5rem;
@@ -83,12 +98,14 @@ button.btn:hover {
 {% block body %}
 {% import 'reset_password/_macros.html.twig' as ui %}
 <div class="reset-container">
+  <img class="reset-logo" src="{{ asset('images/logo.png') }}" alt="Les Consultants">
   {{ ui.backHeader('show_login', 'Back to login') }}
-    <h1>Reset your password</h1>
+    <h1>Choose your password</h1>
+    <p class="reset-intro">Use at least 5 characters. Once saved, you will be signed in automatically.</p>
 
     {{ form_start(resetForm) }}
         {{ form_row(resetForm.plainPassword) }}
-        <button class="btn">Reset password</button>
+        <button class="btn">Save my password</button>
     {{ form_end(resetForm) }}
 </div>
 {% endblock %}
