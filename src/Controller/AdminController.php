@@ -23,6 +23,7 @@ use App\Repository\UserRepository;
 use App\Repository\CourseRepository;
 use App\Repository\ArticleRepository;
 use App\Service\MailerService;
+use App\Service\UserImportCsvHeaderParser;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\CertificateRepository;
 use App\Repository\QuizAttemptRepository;
@@ -402,16 +403,38 @@ public function createSubscription(
     ]);
 }
 
-#[Route('/users/import', name: 'user_import')]
+#[Route('/users/import/example', name: 'user_import_example', methods: ['GET'])]
+public function downloadUserImportExample(): Response
+{
+    $csv = "\xEF\xBB\xBF";
+    $csv .= "email;username;phone;country;city;postalCode;password;role\r\n";
+    $csv .= "john.doe@example.com;John Doe;+33123456789;France;Paris;75001;abcde;ROLE_EMPLOYEE\r\n";
+
+    return new Response($csv, Response::HTTP_OK, [
+        'Content-Type' => 'text/csv; charset=UTF-8',
+        'Content-Disposition' => 'attachment; filename="modele_import_utilisateurs.csv"',
+        'X-Content-Type-Options' => 'nosniff',
+    ]);
+}
+
+#[Route('/users/import', name: 'user_import', methods: ['GET', 'POST'])]
 public function importUsers(
     Request $request,
     EntityManagerInterface $em,
     UserPasswordHasherInterface $passwordHasher,
-    UserRepository $userRepository
+    UserRepository $userRepository,
+    UserImportCsvHeaderParser $csvHeaderParser
 ): Response {
     $results = [];
 
     if ($request->isMethod('POST')) {
+        if (!$this->isCsrfTokenValid(
+            'admin_user_import',
+            (string) $request->request->get('_token')
+        )) {
+            $this->addFlash('error', 'Le formulaire a expiré. Veuillez réessayer.');
+            return $this->redirectToRoute('admin_user_import');
+        }
 
         $file = $request->files->get('csv_file');
 
@@ -420,38 +443,46 @@ public function importUsers(
             return $this->redirectToRoute('admin_user_import');
         }
 
-        if ($file->getClientOriginalExtension() !== 'csv') {
+        if (strtolower($file->getClientOriginalExtension()) !== 'csv') {
             $this->addFlash('error', 'Le fichier doit être un CSV.');
             return $this->redirectToRoute('admin_user_import');
         }
 
-        $handle = fopen($file->getRealPath(), 'r');
+        $handle = fopen($file->getRealPath(), 'rb');
 
-        // --- AUTO-DÉTECTION DU SÉPARATEUR ---
+        if ($handle === false) {
+            $this->addFlash('error', 'Impossible de lire le fichier CSV.');
+            return $this->redirectToRoute('admin_user_import');
+        }
+
+        // --- AUTO-DÉTECTION DU SÉPARATEUR ET LECTURE DE L'ENTÊTE ---
         $firstLine = fgets($handle);
-        rewind($handle);
+        $required = ['email', 'username', 'password', 'role'];
+        $parsedHeader = $firstLine === false ? null : $csvHeaderParser->parse($firstLine, $required);
 
-        $separator = str_contains($firstLine, ';') ? ';' : ',';
+        if ($parsedHeader === null) {
+            fclose($handle);
+            $this->addFlash('error', 'Le fichier CSV est vide ou son en-tête est illisible.');
+            return $this->redirectToRoute('admin_user_import');
+        }
 
-        // --- LECTURE DYNAMIQUE DE L'ENTÊTE ---
-        $header = fgetcsv($handle, 0, $separator);
-        $header = array_map('trim', $header);
+        $separator = $parsedHeader['delimiter'];
+        $header = $parsedHeader['header'];
 
         // Création d’un mapping colonne → index
         $map = array_flip($header);
 
         // Vérifie que les colonnes obligatoires existent
-        $required = ['email','username','password','role'];
-
         foreach ($required as $col) {
             if (!isset($map[$col])) {
+                fclose($handle);
                 $this->addFlash('error', "Colonne manquante dans le CSV : $col");
                 return $this->redirectToRoute('admin_user_import');
             }
         }
 
         // --- LECTURE LIGNE PAR LIGNE ---
-        while (($data = fgetcsv($handle, 0, $separator)) !== false) {
+        while (($data = fgetcsv($handle, null, $separator, '"', '')) !== false) {
 
             $email       = $data[$map['email']]      ?? null;
             $username    = $data[$map['username']]   ?? null;

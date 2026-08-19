@@ -10,9 +10,29 @@
         <p style="color: var(--grey); font-size: 1rem;">
             Glissez-déposez votre fichier CSV ou cliquez pour le sélectionner
         </p>
+        <a href="{{ path('admin_user_import_example') }}" download style="
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            margin-top: 1rem;
+            padding: 0.75rem 1.15rem;
+            border: 2px solid var(--teal);
+            border-radius: var(--radius);
+            background: var(--white);
+            color: var(--green);
+            font-weight: 600;
+            text-decoration: none;
+            box-shadow: var(--shadow);
+        ">
+            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"></path>
+            </svg>
+            Télécharger le fichier exemple (.csv avec ;)
+        </a>
     </div>
 
     <form action="{{ path('admin_user_import') }}" method="post" enctype="multipart/form-data">
+        <input type="hidden" name="_token" value="{{ csrf_token('admin_user_import') }}">
         
         <div style="background: var(--white); padding: 2rem; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 1.5rem;">
             
@@ -38,11 +58,13 @@
                 </div>
             </div>
 
-            <input type="file" id="csv_file" name="csv_file" accept=".csv" style="display:none;">
+            <input type="file" id="csv_file" name="csv_file" accept=".csv,text/csv" required style="display:none;">
 
             <div style="margin-top: 1rem; padding: 1rem; background: var(--bg); border-radius: 8px; border-left: 3px solid var(--teal);">
                 <p style="color: var(--grey); font-size: 0.875rem; margin: 0;">
-                    <strong style="color: var(--black);">Format attendu :</strong> Fichier CSV avec colonnes séparées par des virgules ou point virgules
+                    <strong style="color: var(--black);">Format attendu :</strong> fichier CSV avec les colonnes
+                    email, username, phone, country, city, postalCode, password et role. Les séparateurs
+                    <strong>,</strong> et <strong>;</strong> sont détectés automatiquement.
                 </p>
             </div>
         </div>
