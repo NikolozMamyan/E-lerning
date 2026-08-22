@@ -39,7 +39,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[Route('/admin', name: 'admin_')]
 class AdminController extends AbstractController
 {
-    private const ADMIN_MAIL_SENDER = 'contact@les-consultants.com';
+    private const ADMIN_MAIL_SENDER = 'contact@elearning-lesconsultants.com';
 
     #[Route('/courses', name: 'course_index', methods: ['GET'])]
     public function index(CourseRepository $repo): Response

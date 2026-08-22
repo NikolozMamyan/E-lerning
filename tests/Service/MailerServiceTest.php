@@ -45,7 +45,7 @@ class MailerServiceTest extends TestCase
 
         self::assertInstanceOf(Email::class, $capturedEmail);
         self::assertSame('Sujet test', $capturedEmail->getSubject());
-        self::assertSame(['contact@les-consultants.com'], array_map(
+        self::assertSame(['contact@elearning-lesconsultants.com'], array_map(
             static fn ($address) => $address->getAddress(),
             $capturedEmail->getTo()
         ));

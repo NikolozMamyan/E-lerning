@@ -23,7 +23,7 @@ final class ContactController extends AbstractController
 
             // contenu envoyé à ton adresse
             $mailService->send(
-                'contact@les-consultants.com', // destinataire (ton email de réception)
+                'contact@elearning-lesconsultants.com', // destinataire (ton email de réception)
                 '📩 Nouveau message de contact',
                 'emails/contact.html.twig',
                 [
