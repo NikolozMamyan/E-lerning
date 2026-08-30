@@ -9,6 +9,7 @@ use App\Repository\ProgressRepository;
 use App\Repository\EnrollmentRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\QuizAttemptRepository;
+use App\Repository\SubscriptionRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -189,7 +190,8 @@ public function progress(
 
 #[Route('/app/transactions', name: 'app_transactions')]
 public function transactions(
-    EnrollmentRepository $enrollmentRepo
+    EnrollmentRepository $enrollmentRepo,
+    SubscriptionRepository $subscriptionRepo
 ): Response {
     $user = $this->getUser();
 
@@ -199,12 +201,20 @@ public function transactions(
 
     // récupère les enrollments de l’utilisateur avec leurs cours
     $enrollments = $enrollmentRepo->findByUserWithCourse($user);
-    $subscription = $user->hasActiveSubscription();
+    $activeSubscription = $subscriptionRepo->findOneBy(
+        ['user' => $user, 'isActive' => true],
+        ['startDate' => 'DESC']
+    );
+
+    if ($activeSubscription && !$activeSubscription->isActive()) {
+        $activeSubscription = null;
+    }
 
 
     return $this->render('progress/transactions.html.twig', [
         'enrollments' => $enrollments,
-        'hasSubscription' => $subscription,
+        'hasSubscription' => $activeSubscription !== null,
+        'activeSubscription' => $activeSubscription,
     ]);
 }
 

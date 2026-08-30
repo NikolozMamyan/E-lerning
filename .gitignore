@@ -33,6 +33,7 @@ yarn-error.log
 
 # Uploaded files (avatars, etc.)
 /public/uploads/avatars/
+/public/uploads/covers/
 /public/uploads/articles/
 /public/uploads/videos/
 /public/uploads/courses/

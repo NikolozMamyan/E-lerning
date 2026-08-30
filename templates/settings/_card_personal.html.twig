@@ -1,6 +1,19 @@
-<div class="card-body grid-2">
-  <div><strong>User name</strong><p>{{ user.username }}</p></div>
-  <div><strong>Email Address</strong><p>{{ user.email }}</p></div>
-  <div><strong>Phone Number</strong><p>{{ user.phone ?? 'Not set' }}</p></div>
-  <div><strong>Role</strong><p>{{ user.bio ?? 'Not set' }}</p></div>
+<div class="settings-detail-grid" data-settings-section-content="personal">
+  <div class="settings-detail" data-settings-field="username">
+    <span class="settings-detail__icon"><i class="fa-regular fa-user" aria-hidden="true"></i></span>
+    <div><small>User name</small><strong>{{ user.username }}</strong></div>
+  </div>
+  <div class="settings-detail" data-settings-field="email">
+    <span class="settings-detail__icon"><i class="fa-regular fa-envelope" aria-hidden="true"></i></span>
+    <div><small>Email address</small><strong>{{ user.email }}</strong></div>
+    <span class="settings-detail__lock" title="Email cannot be edited"><i class="fa-solid fa-lock" aria-hidden="true"></i></span>
+  </div>
+  <div class="settings-detail {{ not user.phone ? 'is-empty' : '' }}" data-settings-field="phone">
+    <span class="settings-detail__icon"><i class="fa-solid fa-phone" aria-hidden="true"></i></span>
+    <div><small>Phone number</small><strong>{{ user.phone ?? 'Add your phone number' }}</strong></div>
+  </div>
+  <div class="settings-detail {{ not user.bio ? 'is-empty' : '' }}" data-settings-field="bio">
+    <span class="settings-detail__icon"><i class="fa-solid fa-briefcase" aria-hidden="true"></i></span>
+    <div><small>Professional headline</small><strong>{{ user.bio ?? 'Add a professional headline' }}</strong></div>
+  </div>
 </div>

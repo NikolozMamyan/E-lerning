@@ -1,0 +1,324 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ profileUser.username }} | Professional Learning Profile{% endblock %}
+{% block meta_description %}{{ profileUser.bio ?? (profileUser.username ~ ' shares professional learning activity, community insights and verified course achievements on Les Consultants E-learning.') }}{% endblock %}
+{% block meta_robots %}{{ app.request.attributes.get('_route') == 'app_public_profile' ? 'index, follow, max-image-preview:large' : 'noindex, follow' }}{% endblock %}
+{% block canonical_url %}{{ url('app_public_profile', {id: profileUser.id}) }}{% endblock %}
+{% block meta_type %}profile{% endblock %}
+{% block meta_image %}{{ profileUser.avatar ? absolute_url(asset('uploads/avatars/' ~ profileUser.avatar)) : absolute_url(asset('images/logo.png')) }}{% endblock %}
+
+{% block structured_data %}
+  {% set profileEntity = {
+    '@type': 'ROLE_COMPANY' in profileUser.roles ? 'Organization' : 'Person',
+    '@id': url('app_public_profile', {id: profileUser.id}) ~ '#profile',
+    'identifier': profileUser.id,
+    'name': profileUser.username,
+    'url': url('app_public_profile', {id: profileUser.id}),
+    'description': profileUser.bio ?? 'Professional learner and community member on Les Consultants E-learning.',
+    'interactionStatistic': [
+      {
+        '@type': 'InteractionCounter',
+        'interactionType': 'https://schema.org/WriteAction',
+        'userInteractionCount': postStats.posts
+      },
+      {
+        '@type': 'InteractionCounter',
+        'interactionType': 'https://schema.org/LikeAction',
+        'userInteractionCount': postStats.likesReceived
+      }
+    ]
+  } %}
+  {% if profileUser.avatar %}
+    {% set profileEntity = profileEntity|merge({'image': absolute_url(asset('uploads/avatars/' ~ profileUser.avatar))}) %}
+  {% endif %}
+  {% set profileData = {
+    '@context': 'https://schema.org',
+    '@type': 'ProfilePage',
+    'url': url('app_public_profile', {id: profileUser.id}),
+    'mainEntity': profileEntity
+  } %}
+  <script type="application/ld+json">{{ profileData|json_encode(constant('JSON_HEX_TAG'))|raw }}</script>
+{% endblock %}
+
+{% block stylesheets %}
+  {{ parent() }}
+  <link rel="stylesheet" href="{{ asset('styles/profile.css') }}">
+{% endblock %}
+
+{% block body %}
+{% set profileRole = 'Learner' %}
+{% set profileRoleIcon = 'fa-user-graduate' %}
+{% if 'ROLE_ADMIN' in profileUser.roles %}
+  {% set profileRole = 'Administrator' %}
+  {% set profileRoleIcon = 'fa-shield-halved' %}
+{% elseif 'ROLE_COMPANY' in profileUser.roles %}
+  {% set profileRole = 'Company' %}
+  {% set profileRoleIcon = 'fa-building' %}
+{% endif %}
+
+{% set locationParts = [] %}
+{% if profileUser.city %}{% set locationParts = locationParts|merge([profileUser.city]) %}{% endif %}
+{% if profileUser.country %}{% set locationParts = locationParts|merge([profileUser.country]) %}{% endif %}
+{% set profileLocation = locationParts is not empty ? locationParts|join(', ') : 'Location not added' %}
+{% set profileRoute = isOwnProfile ? 'app_profile' : 'app_public_profile' %}
+{% set profileRouteParams = isOwnProfile ? {} : {id: profileUser.id} %}
+
+<div class="profile-page" data-profile-page>
+  {% if not app.user %}
+    <header class="public-profile-nav">
+      <a href="{{ path('app_landing_page') }}" class="public-profile-nav__brand" aria-label="Les Consultants home">
+        <img src="{{ asset('images/logo.png') }}" alt="Les Consultants">
+        <span><strong>Learning Community</strong><small>by Les Consultants</small></span>
+      </a>
+      <div class="public-profile-nav__context">
+        <span><i class="fa-solid fa-earth-europe" aria-hidden="true"></i>Public member profile</span>
+        <p>Discover the people learning and sharing with our community.</p>
+      </div>
+      <nav class="public-profile-nav__actions" aria-label="Guest account actions">
+        <a href="{{ path('article_feed') }}" class="public-profile-nav__feed"><i class="fa-regular fa-newspaper" aria-hidden="true"></i>Feed</a>
+        <a href="{{ path('show_login') }}" class="public-profile-nav__login">Sign in</a>
+        <a href="{{ path('show_register') }}" class="public-profile-nav__register"><i class="fa-solid fa-star" aria-hidden="true"></i><span>Join for free</span><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+      </nav>
+    </header>
+  {% endif %}
+
+  <section class="profile-identity-card">
+    <div class="profile-cover {{ profileUser.coverImage ? 'profile-cover--custom' : '' }}"{% if profileUser.coverImage %} style="--profile-cover-image: url('{{ asset('uploads/covers/' ~ profileUser.coverImage) }}');"{% endif %}>
+      <span class="profile-cover__grid" aria-hidden="true"></span>
+      <span class="profile-cover__orb profile-cover__orb--one" aria-hidden="true"></span>
+      <span class="profile-cover__orb profile-cover__orb--two" aria-hidden="true"></span>
+      {% if isOwnProfile %}
+        <form class="profile-cover__edit" action="{{ path('app_profile_cover_upload') }}" method="post" enctype="multipart/form-data" data-profile-cover-form>
+          <input type="hidden" name="_token" value="{{ csrf_token('profile_cover') }}">
+          <input id="profile-cover-file" class="profile-cover__file" type="file" name="cover" accept="image/jpeg,image/png,image/webp" data-profile-cover-input>
+          <label for="profile-cover-file" title="Change cover image">
+            <i class="fa-solid fa-pen" aria-hidden="true"></i>
+            <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
+            <span>Change cover</span>
+          </label>
+        </form>
+      {% endif %}
+      <div class="profile-cover__message">
+        <i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i>
+        <span><small>Learning profile</small><strong>Knowledge becomes more valuable when it is shared.</strong></span>
+      </div>
+    </div>
+
+    <div class="profile-identity">
+      <div class="profile-identity__main">
+        <div class="profile-avatar-shell">
+          <img src="{{ asset(profileUser.avatar ? 'uploads/avatars/' ~ profileUser.avatar : 'images/User.svg') }}" alt="{{ profileUser.username }}">
+          <span aria-label="Verified platform member"><i class="fa-solid fa-check" aria-hidden="true"></i></span>
+        </div>
+
+        <div class="profile-identity__copy">
+          <div class="profile-identity__name-row">
+            <h1>{{ profileUser.username }}</h1>
+            <span><i class="fa-solid {{ profileRoleIcon }}" aria-hidden="true"></i>{{ profileRole }}</span>
+          </div>
+          <p>{{ profileUser.bio ?? 'Learning, progressing and sharing knowledge with the community.' }}</p>
+          <div class="profile-identity__meta">
+            <span><i class="fa-solid fa-location-dot" aria-hidden="true"></i>{{ profileLocation }}</span>
+            {% if isOwnProfile %}
+              <span><i class="fa-regular fa-envelope" aria-hidden="true"></i>{{ profileUser.email }}</span>
+            {% else %}
+              <span><i class="fa-solid fa-earth-europe" aria-hidden="true"></i>Public learning profile</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div class="profile-identity__actions">
+        {% if isOwnProfile %}
+          <a href="{{ path('app_settings') }}" class="profile-action profile-action--primary">
+            <i class="fa-regular fa-pen-to-square" aria-hidden="true"></i>
+            Edit profile
+          </a>
+        {% elseif not app.user %}
+          <a href="{{ path('show_register') }}" class="profile-action profile-action--primary">
+            <i class="fa-solid fa-user-plus" aria-hidden="true"></i>
+            Join the community
+          </a>
+        {% endif %}
+        {% if isOwnProfile and is_granted('ROLE_EMPLOYEE') %}
+          <a href="{{ path('article_feed') }}" class="profile-action profile-action--secondary">
+            <i class="fa-solid fa-plus" aria-hidden="true"></i>
+            Create a post
+          </a>
+        {% elseif not isOwnProfile %}
+          <a href="{{ path('article_feed') }}" class="profile-action profile-action--secondary">
+            <i class="fa-regular fa-newspaper" aria-hidden="true"></i>
+            View community feed
+          </a>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="profile-stats" aria-label="Profile activity summary">
+      <div><strong>{{ postStats.posts }}</strong><span>Posts shared</span></div>
+      <div><strong>{{ postStats.likesReceived }}</strong><span>Reactions received</span></div>
+      <div><strong>{{ postStats.commentsReceived }}</strong><span>Comments received</span></div>
+      <div><strong>{{ certificateCount }}</strong><span>Certificates earned</span></div>
+    </div>
+  </section>
+
+  <nav class="profile-quick-nav" aria-label="Profile sections">
+    <div>
+      <a href="#activity" class="is-active"><i class="fa-regular fa-rectangle-list" aria-hidden="true"></i>Activity <span>{{ postStats.posts }}</span></a>
+      <a href="#achievements"><i class="fa-solid fa-award" aria-hidden="true"></i>Certificates <span>{{ certificateCount }}</span></a>
+      <a href="#about"><i class="fa-regular fa-user" aria-hidden="true"></i>About</a>
+    </div>
+    <span class="profile-visibility"><i class="fa-solid fa-earth-europe" aria-hidden="true"></i>Public profile</span>
+  </nav>
+
+  <section class="profile-achievements" id="achievements">
+    <header class="profile-section-heading">
+      <div>
+        <span class="profile-section-heading__eyebrow"><i class="fa-solid fa-trophy" aria-hidden="true"></i>Verified learning</span>
+        <h2>Certificates and achievements</h2>
+        <p>A visual record of completed courses and validated skills.</p>
+      </div>
+      {% if isOwnProfile and is_granted('ROLE_EMPLOYEE') %}
+        <a href="{{ path('app_certificates') }}">View full collection <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+      {% endif %}
+    </header>
+
+    {% if certificates is not empty %}
+      <div class="profile-certificates-grid">
+        {% for attempt in certificates %}
+          <article class="profile-certificate-card">
+            <a href="{{ path('app_public_course_show', {id: attempt.course.id, slug: attempt.course.slug}) }}" class="profile-certificate-card__course-link" aria-label="Open course {{ attempt.course.title }}"></a>
+            <div class="profile-certificate-card__visual">
+              {% if attempt.course.thumb %}
+                <img src="{{ asset('uploads/courses/' ~ attempt.course.thumb) }}" alt="" loading="lazy">
+              {% else %}
+                <span class="profile-certificate-card__placeholder"><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i></span>
+              {% endif %}
+              <span class="profile-certificate-card__shade"></span>
+              <span class="profile-certificate-card__verified"><i class="fa-solid fa-circle-check" aria-hidden="true"></i>Verified</span>
+              <span class="profile-certificate-card__seal"><i class="fa-solid fa-award" aria-hidden="true"></i></span>
+              <div class="profile-certificate-card__score"><strong>{{ attempt.score }}%</strong><small>Final score</small></div>
+            </div>
+            <div class="profile-certificate-card__body">
+              <div class="profile-certificate-card__meta">
+                <span>{{ attempt.course.category ? attempt.course.category.name : 'Professional training' }}</span>
+                <small>{{ attempt.createdAt|date('M Y') }}</small>
+              </div>
+              <h3>{{ attempt.course.title }}</h3>
+              <p>Awarded to <strong>{{ profileUser.username }}</strong> after successful course completion.</p>
+              <div class="profile-certificate-card__footer">
+                <span><i class="fa-solid fa-shield-halved" aria-hidden="true"></i>Achievement #{{ attempt.id }}</span>
+                <div class="profile-certificate-card__actions">
+                  <span title="Open course"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></span>
+                  {% if isOwnProfile and is_granted('ROLE_EMPLOYEE') %}
+                    <a href="{{ path('generate_certificate', {id: attempt.id}) }}" aria-label="Download certificate for {{ attempt.course.title }}"><i class="fa-solid fa-download" aria-hidden="true"></i></a>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="profile-achievements__empty">
+        <span><i class="fa-solid fa-award" aria-hidden="true"></i></span>
+        <div><h3>{{ isOwnProfile ? 'Your achievement collection starts here' : 'No public certificates yet' }}</h3><p>{{ isOwnProfile ? 'Completed courses and verified certificates will appear on your profile.' : 'Verified course achievements will appear here when they are earned.' }}</p></div>
+        {% if isOwnProfile and is_granted('ROLE_EMPLOYEE') %}<a href="{{ path('app_courses') }}">Explore courses</a>{% endif %}
+      </div>
+    {% endif %}
+  </section>
+
+  <div class="profile-content-grid">
+    <main class="profile-activity" id="activity">
+      <header class="profile-activity__header">
+        <div>
+          <span>Personal feed</span>
+          <h2>Recent activity</h2>
+          <p>Ideas, resources and conversations shared with the community.</p>
+        </div>
+        <span class="profile-activity__count">{{ posts|length }} shown</span>
+      </header>
+
+      <nav class="profile-feed-filters" aria-label="Sort profile posts">
+        <a href="{{ path(profileRoute, profileRouteParams|merge({sort: 'latest'})) }}#activity" class="{{ activeSort == 'latest' ? 'is-active' : '' }}"><i class="fa-regular fa-clock" aria-hidden="true"></i>Latest</a>
+        <a href="{{ path(profileRoute, profileRouteParams|merge({sort: 'trending'})) }}#activity" class="{{ activeSort == 'trending' ? 'is-active' : '' }}"><i class="fa-solid fa-arrow-trend-up" aria-hidden="true"></i>Trending</a>
+        <a href="{{ path(profileRoute, profileRouteParams|merge({sort: 'discussed'})) }}#activity" class="{{ activeSort == 'discussed' ? 'is-active' : '' }}"><i class="fa-regular fa-comments" aria-hidden="true"></i>Most discussed</a>
+      </nav>
+
+      <div class="profile-posts">
+        {% for article in posts %}
+          <article class="profile-post">
+            <header class="profile-post__author">
+              <img src="{{ asset(profileUser.avatar ? 'uploads/avatars/' ~ profileUser.avatar : 'images/User.svg') }}" alt="">
+              <div><strong>{{ profileUser.username }}</strong><span>{{ profileRole }} <i aria-hidden="true"></i> {{ article.createdAt|date('d M Y, H:i') }}</span></div>
+              <span class="profile-post__status"><i class="fa-solid fa-earth-europe" aria-hidden="true"></i>Community</span>
+            </header>
+
+            <div class="profile-post__content">
+              <h3>{{ article.titre }}</h3>
+              <p>{{ article.description|striptags|slice(0, 360) }}{% if article.description|striptags|length > 360 %}&hellip;{% endif %}</p>
+            </div>
+
+            {% if article.image %}
+              <div class="profile-post__media"><img src="{{ asset('uploads/articles/' ~ article.image) }}" alt="{{ article.titre }}" loading="lazy"></div>
+            {% elseif article.video %}
+              <div class="profile-post__media"><video controls preload="metadata"><source src="{{ asset('uploads/videos/' ~ article.video) }}" type="video/mp4"></video></div>
+            {% endif %}
+
+            <footer class="profile-post__footer">
+              <div class="profile-post__engagement">
+                <span><i class="fa-solid fa-heart" aria-hidden="true"></i>{{ article.likesCount }} reaction{{ article.likesCount == 1 ? '' : 's' }}</span>
+                <span><i class="fa-regular fa-comment" aria-hidden="true"></i>{{ article.comments|length }} comment{{ article.comments|length == 1 ? '' : 's' }}</span>
+              </div>
+              <a href="{{ path('app_public_article', {id: article.id, slug: article.slug}) }}">View conversation <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+            </footer>
+          </article>
+        {% else %}
+          <div class="profile-posts__empty">
+            <span><i class="fa-regular fa-message" aria-hidden="true"></i></span>
+            <h3>No posts to show yet</h3>
+            <p>{{ isOwnProfile ? 'Your published ideas and community conversations will appear here.' : 'This member has not shared anything with the community yet.' }}</p>
+            {% if isOwnProfile and is_granted('ROLE_EMPLOYEE') %}<a href="{{ path('article_feed') }}">Create your first post <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>{% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    </main>
+
+    <aside class="profile-sidebar">
+      <section class="profile-side-card" id="about">
+        <header><span><i class="fa-regular fa-user" aria-hidden="true"></i></span><div><small>Profile details</small><h2>About</h2></div></header>
+        <p>{{ profileUser.bio ?? (isOwnProfile ? 'Add a short professional introduction from your profile settings.' : 'This member has not added a professional introduction yet.') }}</p>
+        <dl>
+          <div><dt><i class="fa-solid fa-location-dot" aria-hidden="true"></i>Location</dt><dd>{{ profileLocation }}</dd></div>
+          <div><dt><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i>Education</dt><dd>{{ profileUser.masterDegree ?? profileUser.bachelorDegree ?? 'Not added yet' }}</dd></div>
+          <div><dt><i class="fa-solid {{ profileRoleIcon }}" aria-hidden="true"></i>Role</dt><dd>{{ profileRole }}</dd></div>
+        </dl>
+        {% if isOwnProfile %}<a href="{{ path('app_settings') }}">Complete profile <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>{% endif %}
+      </section>
+
+      <section class="profile-side-card profile-side-card--visibility">
+        <div class="profile-visibility-visual">
+          <span><i class="fa-solid fa-user-shield" aria-hidden="true"></i></span>
+          <i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i>
+        </div>
+        <span class="profile-side-card__eyebrow">Profile visibility</span>
+        <h2>A verified learning identity, open to the community.</h2>
+        <p>Activity and earned certificates are publicly visible, making skills and contributions easy to discover.</p>
+        <span class="profile-side-card__status"><i class="fa-solid fa-earth-europe" aria-hidden="true"></i>Publicly visible</span>
+      </section>
+    </aside>
+  </div>
+</div>
+{% if isOwnProfile %}
+  <script>
+    document.querySelectorAll('[data-profile-cover-form]').forEach((form) => {
+      const input = form.querySelector('[data-profile-cover-input]');
+      input?.addEventListener('change', () => {
+        if (!input.files?.length) return;
+        form.classList.add('is-uploading');
+        form.requestSubmit();
+      });
+    });
+  </script>
+{% endif %}
+{% endblock %}

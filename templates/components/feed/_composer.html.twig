@@ -1,32 +1,24 @@
-{# templates/feed/_composer.html.twig #}
-<div class="composer-card">
-    <div class="composer-top">
-        <img class="user-avatar" src="{{ asset(app.user.avatar ? 'uploads/avatars/' ~ app.user.avatar : 'images/User.svg') }}"
-             class="composer-avatar"
-             alt="Avatar"/>
-        <div class="composer-input js-open-modal">
-            Start a post...
-        </div>
-    </div>
+<section class="composer-card" aria-label="Create a post">
+  <div class="composer-top">
+    <img class="composer-avatar" src="{{ asset(app.user.avatar ? 'uploads/avatars/' ~ app.user.avatar : 'images/User.svg') }}" alt="">
+    <button type="button" class="composer-input js-open-modal">
+      <span>Share something with the community...</span>
+      <i class="fa-regular fa-pen-to-square" aria-hidden="true"></i>
+    </button>
+  </div>
 
-    <div class="composer-actions">
-        <button type="button"
-                class="composer-action-btn js-open-modal-with-image">
-            <i class="fa-regular fa-image"></i>
-            <span>Photo</span>
-        </button>   
-        <button type="button"
-        class="composer-action-btn"
-        id="video-btn"
-        title="Add video">
-    <i class="fa-solid fa-video"></i>
-    <span>Video</span>
-</button>
-
-        <button type="button"
-                class="composer-action-btn js-open-modal">
-            <i class="fa-solid fa-pen-to-square"></i>
-            <span>Write article</span>
-        </button>
-    </div>
-</div>
+  <div class="composer-actions">
+    <button type="button" class="composer-action-btn js-open-modal-with-image">
+      <span class="composer-action-btn__icon composer-action-btn__icon--photo"><i class="fa-regular fa-image" aria-hidden="true"></i></span>
+      <span>Photo</span>
+    </button>
+    <button type="button" class="composer-action-btn" id="video-btn" title="Add video">
+      <span class="composer-action-btn__icon composer-action-btn__icon--video"><i class="fa-solid fa-video" aria-hidden="true"></i></span>
+      <span>Video</span>
+    </button>
+    <button type="button" class="composer-action-btn js-open-modal">
+      <span class="composer-action-btn__icon composer-action-btn__icon--article"><i class="fa-solid fa-align-left" aria-hidden="true"></i></span>
+      <span>Write article</span>
+    </button>
+  </div>
+</section>

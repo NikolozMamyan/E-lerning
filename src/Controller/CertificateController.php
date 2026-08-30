@@ -19,10 +19,26 @@ public function certificate(QuizAttemptRepository $quizAttemptRepo): Response
     $user = $this->getUser();
 
     // on va chercher *tous* les quiz attempts de cet utilisateur
-     $userAttempts = $quizAttemptRepo->findByUser($user);
+    $userAttempts = $quizAttemptRepo->findByUser($user);
+    $passedAttempts = array_values(array_filter(
+        $userAttempts,
+        static fn ($attempt): bool => $attempt->isPassed()
+    ));
+    $totalScore = array_sum(array_map(
+        static fn ($attempt): int => $attempt->getScore(),
+        $userAttempts
+    ));
 
     return $this->render('certificates/index.html.twig', [
-        'userAttempts' => $userAttempts
+        'userAttempts' => $userAttempts,
+        'featuredAttempt' => $passedAttempts[0] ?? null,
+        'certificateStats' => [
+            'earned' => count($passedAttempts),
+            'attempts' => count($userAttempts),
+            'averageScore' => count($userAttempts) > 0
+                ? (int) round($totalScore / count($userAttempts))
+                : 0,
+        ],
     ]);
 }
 

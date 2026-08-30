@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>{{ url('app_landing_page') }}</loc>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>{{ url('article_feed') }}</loc>
+    {% if latestArticle %}<lastmod>{{ latestArticle.createdAt|date('c') }}</lastmod>{% endif %}
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>{{ url('app_public_catalog') }}</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  {% for course in courses %}
+    <url>
+      <loc>{{ url('app_public_course_show', {id: course.id, slug: course.slug}) }}</loc>
+      {% if course.updatedAt %}<lastmod>{{ course.updatedAt|date('c') }}</lastmod>{% endif %}
+      <changefreq>monthly</changefreq>
+      <priority>0.8</priority>
+    </url>
+  {% endfor %}
+  {% for article in articles %}
+    <url>
+      <loc>{{ url('app_public_article', {id: article.id, slug: article.slug}) }}</loc>
+      <lastmod>{{ article.createdAt|date('c') }}</lastmod>
+      <changefreq>monthly</changefreq>
+      <priority>0.7</priority>
+    </url>
+  {% endfor %}
+  <url>
+    <loc>{{ url('show_login') }}</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  {% for profile in profiles %}
+    <url>
+      <loc>{{ url('app_public_profile', {id: profile.id}) }}</loc>
+      <changefreq>weekly</changefreq>
+      <priority>0.6</priority>
+    </url>
+  {% endfor %}
+</urlset>

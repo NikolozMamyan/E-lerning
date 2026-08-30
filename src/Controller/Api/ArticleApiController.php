@@ -128,7 +128,7 @@ public function list(Request $request, ArticleRepository $repo): JsonResponse
             relatedEntity: $article,
             message: "Your article {$article->getTitre()} is now visible in the feed.",
             type: "success",
-            actionUrl: "/app/articles#article-" . $article->getId(),
+            actionUrl: $this->generateUrl('app_public_article', ['id' => $article->getId(), 'slug' => $article->getSlug()]),
             icon: "fa-solid fa-newspaper"
         );
 
@@ -288,11 +288,11 @@ public function list(Request $request, ArticleRepository $repo): JsonResponse
             if ($author !== $user) {
                 $notificationService->createEntityNotification(
                     user: $author,
-                    title: "A user liked your article",
+                    title: $user->getUsername() . " liked your article",
                     relatedEntity: $article,
-                    message: "Your article {$article->getTitre()} received a new like.",
+                    message: $user->getUsername() . " reacted to " . $article->getTitre() . ".",
                     type: "info",
-                    actionUrl: "/app/articles#article-" . $article->getId(),
+                    actionUrl: $this->generateUrl('app_public_article', ['id' => $article->getId(), 'slug' => $article->getSlug()]),
                     icon: "fa-solid fa-heart",
                     priority: "normal"
                 );
@@ -344,12 +344,12 @@ public function list(Request $request, ArticleRepository $repo): JsonResponse
         if ($author !== $user) {
             $notificationService->createEntityNotification(
                 user: $author,
-                title: "A user commented on your article",
-                message: "Someone left a new comment on {$article->getTitre()}.",
+                title: $user->getUsername() . " commented on your article",
+                message: $user->getUsername() . " left a comment on " . $article->getTitre() . ".",
                 relatedEntity: $article,
                 type: "info",
                 icon: "fa-solid fa-comment",
-                actionUrl: "/app/articles#article-" . $article->getId(),
+                actionUrl: $this->generateUrl('app_public_article', ['id' => $article->getId(), 'slug' => $article->getSlug()]),
             );
         }
 
@@ -454,7 +454,10 @@ public function list(Request $request, ArticleRepository $repo): JsonResponse
                         $comment,
                         'Vous avez reçu un like sur votre commentaire.',
                         Notification::TYPE_INFO,
-                        $comment->getArticle() ? '/app/articles#article-' . $comment->getArticle()->getId() : null,
+                        $comment->getArticle() ? $this->generateUrl('app_public_article', [
+                            'id' => $comment->getArticle()->getId(),
+                            'slug' => $comment->getArticle()->getSlug(),
+                        ]) : null,
                         'comment-like',
                         Notification::PRIORITY_NORMAL
                     );

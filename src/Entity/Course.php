@@ -6,6 +6,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\HttpFoundation\File\File;
+use Symfony\Component\String\Slugger\AsciiSlugger;
 use Vich\UploaderBundle\Mapping\Annotation as Vich;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -94,6 +95,13 @@ private ?Category $category = null;
     {
         $this->title = $title;
         return $this;
+    }
+
+    public function getSlug(): string
+    {
+        $slug = (new AsciiSlugger())->slug((string) $this->title)->lower()->toString();
+
+        return $slug !== '' ? $slug : 'course';
     }
 
     public function getDescription(): ?string

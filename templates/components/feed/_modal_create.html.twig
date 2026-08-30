@@ -1,84 +1,49 @@
-{# templates/feed/_modal_create.html.twig #}
-<div class="modal" id="create-modal" aria-hidden="true">
-    <div class="modal-content linkedin-modal">
-        <div class="modal-header">
-            <div class="user-line">
-                <img class="user-avatar" 
-                     src="{{ asset(app.user.avatar ? 'uploads/avatars/' ~ app.user.avatar : 'images/User.svg') }}"
-                     alt="Avatar"/>
-                <div class="user-info">
-                    <strong>{{ app.user.username }}</strong>
-                    <span class="visibility">
-                        <i class="fa-solid fa-globe"></i> Visibility: anonymous
-                    </span>
-                </div>
-            </div>
-            <button class="btn-close js-close-modal"
-                    type="button"
-                    aria-label="Close">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
+<div class="modal" id="create-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="create-post-title">
+  <div class="modal-content linkedin-modal">
+    <div class="modal-header">
+      <div class="user-line">
+        <img class="modal-avatar" src="{{ asset(app.user.avatar ? 'uploads/avatars/' ~ app.user.avatar : 'images/User.svg') }}" alt="">
+        <div class="user-info">
+          <strong id="create-post-title">Create a post</strong>
+          <span class="visibility"><i class="fa-solid fa-user-check" aria-hidden="true"></i>Published with your profile</span>
         </div>
-
-        <form action="{{ path('article_create') }}"
-              method="POST"
-              enctype="multipart/form-data"
-              id="article-create-form">
-            <div class="modal-body">
-                <input type="text"
-                       name="title"
-                       id="article-title"
-                       placeholder="Article title"
-                       class="input-field"
-                       required>
-
-                <div id="editor"></div>
-                <textarea name="description"
-                          id="editor-output"
-                          hidden></textarea>
-
-                <input type="file"
-                       name="image"
-                       id="modal-image-input"
-                       accept="image/*"
-                       hidden>
-
-                <input type="file"
-                       name="video"
-                       id="modal-video-input"
-                       accept="video/mp4,video/webm,video/ogg"
-                       hidden>
-
-                <div id="image-preview-container"></div>
-                <div id="video-preview-container"></div>
-            </div>
-
-            <div class="linkedin-footer">
-                <div class="left-icons">
-                    <button type="button"
-                            class="icon-btn"
-                            id="image-btn"
-                            title="Add image">
-                        <i class="fa-regular fa-image"></i>
-                    </button>
-                    <button type="button"
-                            class="icon-btn"
-                            id="video-btn-modal"
-                            title="Add video">
-                        <i class="fa-solid fa-video"></i>
-                    </button>
-                    <span class="upload-hint">
-                        <i class="fa-solid fa-circle-info"></i>
-                        Max video: 50MB
-                    </span>
-                </div>
-                <button type="submit"
-                        id="publish-btn"
-                        class="publish-btn"
-                        disabled>
-                    Publish
-                </button>
-            </div>
-        </form>
+      </div>
+      <button class="btn-close js-close-modal" type="button" aria-label="Close">
+        <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+      </button>
     </div>
+
+    <form action="{{ path('article_create') }}" method="POST" enctype="multipart/form-data" id="article-create-form">
+      <div class="modal-body">
+        <label for="article-title">Post title</label>
+        <input type="text" name="title" id="article-title" placeholder="Give your post a clear title" class="input-field" required>
+
+        <label for="editor">What would you like to share?</label>
+        <div id="editor"></div>
+        <textarea name="description" id="editor-output" hidden></textarea>
+
+        <input type="file" name="image" id="modal-image-input" accept="image/*" hidden>
+        <input type="file" name="video" id="modal-video-input" accept="video/mp4,video/webm,video/ogg" hidden>
+
+        <div id="image-preview-container"></div>
+        <div id="video-preview-container"></div>
+      </div>
+
+      <div class="linkedin-footer">
+        <div class="left-icons">
+          <button type="button" class="icon-btn" id="image-btn" title="Add image" aria-label="Add image">
+            <i class="fa-regular fa-image" aria-hidden="true"></i>
+          </button>
+          <button type="button" class="icon-btn" id="video-btn-modal" title="Add video" aria-label="Add video">
+            <i class="fa-solid fa-video" aria-hidden="true"></i>
+          </button>
+          <span class="upload-hint"><i class="fa-solid fa-circle-info" aria-hidden="true"></i>Video up to 50MB</span>
+        </div>
+        <button type="submit" id="publish-btn" class="publish-btn" disabled>
+          Publish post
+          <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+        </button>
+      </div>
+    </form>
+  </div>
 </div>

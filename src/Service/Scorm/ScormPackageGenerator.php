@@ -14,6 +14,8 @@ final class ScormPackageGenerator
         'index.html' => 'index.html',
         'assets/css/app.css' => 'assets/css/app.css',
         'assets/js/scorm-api.js' => 'assets/js/scorm-api.js',
+        'assets/js/course-policy.js' => 'assets/js/course-policy.js',
+        'assets/js/quiz-engine.js' => 'assets/js/quiz-engine.js',
         'assets/js/course.js' => 'assets/js/course.js',
     ];
 
@@ -25,7 +27,10 @@ final class ScormPackageGenerator
         private readonly int $maxPackageSize,
         private readonly int $completionThreshold,
         private readonly int $commitIntervalSeconds,
+        ?ScormQuizParser $quizParser = null,
     ) {
+        $this->quizParser = $quizParser ?? new ScormQuizParser();
+
         if ($this->maxPackageSize <= 0) {
             throw new \InvalidArgumentException('The maximum SCORM package size must be positive.');
         }
@@ -37,54 +42,38 @@ final class ScormPackageGenerator
         }
     }
 
+    private readonly ScormQuizParser $quizParser;
+
     public function generate(
         string $courseIdentifier,
         string $courseTitle,
         array $videos,
         string $outputPath,
     ): string {
-        $courseIdentifier = trim($courseIdentifier);
-        $courseTitle = trim($courseTitle);
-
-        if ($courseIdentifier === '') {
-            throw new ScormGenerationException('The course identifier is required.');
-        }
-        if ($courseTitle === '') {
-            throw new ScormGenerationException('The course title is required.');
-        }
+        [$courseIdentifier, $courseTitle] = $this->validatePackageRequest($courseIdentifier, $courseTitle, $outputPath);
         if ($videos === []) {
             throw new ScormGenerationException('The SCORM package must contain at least one video.');
-        }
-        if (strtolower(pathinfo($outputPath, PATHINFO_EXTENSION)) !== 'zip') {
-            throw new ScormGenerationException('The output path must end with .zip.');
-        }
-
-        $outputDirectory = dirname($outputPath);
-        $this->ensureDirectory($outputDirectory);
-        if (file_exists($outputPath)) {
-            throw new ScormGenerationException('The output ZIP file already exists.');
         }
 
         $normalizedVideos = $this->validateAndNormalizeVideos($videos);
         $videoCount = count($normalizedVideos);
         $padding = max(2, strlen((string) $videoCount));
         $packageVideos = [];
-        $resourcePaths = array_values(self::STATIC_FILES);
+        $sourceFiles = $this->staticSourceFiles();
 
         foreach ($normalizedVideos as $index => &$video) {
             $number = str_pad((string) ($index + 1), $padding, '0', STR_PAD_LEFT);
             $relativePath = 'videos/video-'.$number.'.mp4';
             $video['relativePath'] = $relativePath;
+            $sourceFiles[$relativePath] = $video['path'];
             $packageVideos[] = [
                 'id' => 'video-'.$number,
                 'title' => $video['title'],
                 'src' => $relativePath,
                 'position' => $index + 1,
             ];
-            $resourcePaths[] = $relativePath;
         }
         unset($video);
-        $resourcePaths[] = 'data/course.json';
 
         $courseJson = $this->courseDataGenerator->generate(
             $courseIdentifier,
@@ -93,22 +82,149 @@ final class ScormPackageGenerator
             $this->commitIntervalSeconds,
             $packageVideos,
         );
-        $manifestXml = $this->manifestGenerator->generate($courseIdentifier, $courseTitle, $resourcePaths);
-        $estimatedSize = strlen($courseJson) + strlen($manifestXml);
 
-        foreach (array_keys(self::STATIC_FILES) as $source) {
-            $sourcePath = $this->resourcesPath($source);
+        return $this->buildPackage(
+            $courseIdentifier,
+            $courseTitle,
+            $sourceFiles,
+            ['data/course.json' => $courseJson],
+            $outputPath,
+        );
+    }
+
+    public function generateBilingual(
+        string $courseIdentifier,
+        string $courseTitle,
+        array $languages,
+        string $outputPath,
+        int $quizPassThreshold = 80,
+    ): string {
+        [$courseIdentifier, $courseTitle] = $this->validatePackageRequest($courseIdentifier, $courseTitle, $outputPath);
+        if (count($languages) < 2) {
+            throw new ScormGenerationException('The bilingual SCORM package requires at least two languages.');
+        }
+        if ($quizPassThreshold < 1 || $quizPassThreshold > 100) {
+            throw new ScormGenerationException('The quiz pass threshold must be between 1 and 100.');
+        }
+
+        $sourceFiles = $this->staticSourceFiles();
+        $generatedFiles = [];
+        $packageLanguages = [];
+
+        foreach ($languages as $languageCode => $language) {
+            $code = strtolower(trim((string) $languageCode));
+            if (preg_match('/^[a-z]{2}$/', $code) !== 1 || !is_array($language)) {
+                throw new ScormGenerationException('Each SCORM language must use a two-letter language code.');
+            }
+
+            $label = trim((string) ($language['label'] ?? strtoupper($code)));
+            $title = trim((string) ($language['title'] ?? ''));
+            $videoPath = trim((string) ($language['videoPath'] ?? ''));
+            $quiz = $language['quiz'] ?? null;
+            if ($label === '' || $title === '' || !is_array($quiz)) {
+                throw new ScormGenerationException(sprintf('The %s language title, video and quiz are required.', strtoupper($code)));
+            }
+
+            $video = $this->validateAndNormalizeVideos([[
+                'title' => $title,
+                'path' => $videoPath,
+                'position' => 1,
+            ]])[0];
+            $videoDestination = 'videos/video-'.$code.'.mp4';
+            $quizDestination = 'data/quiz-'.$code.'.json';
+            $sourceFiles[$videoDestination] = $video['path'];
+            $generatedFiles[$quizDestination] = $this->quizParser->encode($quiz);
+            $packageLanguages[] = [
+                'code' => $code,
+                'label' => $label,
+                'title' => $title,
+                'video' => [
+                    'id' => 'video-'.$code,
+                    'title' => $title,
+                    'src' => $videoDestination,
+                ],
+                'quizSrc' => $quizDestination,
+            ];
+        }
+
+        $generatedFiles['data/course.json'] = $this->courseDataGenerator->generateBilingual(
+            $courseIdentifier,
+            $courseTitle,
+            $this->completionThreshold,
+            $this->commitIntervalSeconds,
+            $quizPassThreshold,
+            $packageLanguages,
+        );
+
+        return $this->buildPackage($courseIdentifier, $courseTitle, $sourceFiles, $generatedFiles, $outputPath);
+    }
+
+    public function completionThreshold(): int
+    {
+        return $this->completionThreshold;
+    }
+
+    public function maxPackageSize(): int
+    {
+        return $this->maxPackageSize;
+    }
+
+    private function validatePackageRequest(string $identifier, string $title, string $outputPath): array
+    {
+        $identifier = trim($identifier);
+        $title = trim($title);
+
+        if ($identifier === '') {
+            throw new ScormGenerationException('The course identifier is required.');
+        }
+        if ($title === '') {
+            throw new ScormGenerationException('The course title is required.');
+        }
+        if (strtolower(pathinfo($outputPath, PATHINFO_EXTENSION)) !== 'zip') {
+            throw new ScormGenerationException('The output path must end with .zip.');
+        }
+
+        $this->ensureDirectory(dirname($outputPath));
+        if (file_exists($outputPath)) {
+            throw new ScormGenerationException('The output ZIP file already exists.');
+        }
+
+        return [$identifier, $title];
+    }
+
+    private function staticSourceFiles(): array
+    {
+        $files = [];
+        foreach (self::STATIC_FILES as $source => $destination) {
+            $files[$destination] = $this->resourcesPath($source);
+        }
+
+        return $files;
+    }
+
+    private function buildPackage(
+        string $courseIdentifier,
+        string $courseTitle,
+        array $sourceFiles,
+        array $generatedFiles,
+        string $outputPath,
+    ): string {
+        $resourcePaths = array_values(array_unique(array_merge(array_keys($sourceFiles), array_keys($generatedFiles))));
+        $manifestXml = $this->manifestGenerator->generate($courseIdentifier, $courseTitle, $resourcePaths);
+        $estimatedSize = strlen($manifestXml);
+
+        foreach ($sourceFiles as $destination => $sourcePath) {
             if (!is_file($sourcePath) || !is_readable($sourcePath)) {
-                throw new ScormGenerationException(sprintf('The SCORM resource "%s" is missing or unreadable.', $source));
+                throw new ScormGenerationException(sprintf('The SCORM resource "%s" is missing or unreadable.', $destination));
             }
             $size = filesize($sourcePath);
             if ($size === false) {
-                throw new ScormGenerationException(sprintf('Unable to determine the size of resource "%s".', $source));
+                throw new ScormGenerationException(sprintf('Unable to determine the size of resource "%s".', $destination));
             }
             $estimatedSize += $size;
         }
-        foreach ($normalizedVideos as $video) {
-            $estimatedSize += $video['size'];
+        foreach ($generatedFiles as $content) {
+            $estimatedSize += strlen($content);
         }
 
         if ($estimatedSize > $this->maxPackageSize) {
@@ -124,18 +240,13 @@ final class ScormPackageGenerator
         }
 
         try {
-            foreach (self::STATIC_FILES as $source => $destination) {
-                $this->copyFile($this->resourcesPath($source), $workingDirectory.DIRECTORY_SEPARATOR.$this->filesystemPath($destination));
+            foreach ($sourceFiles as $destination => $sourcePath) {
+                $this->copyFile($sourcePath, $workingDirectory.DIRECTORY_SEPARATOR.$this->filesystemPath($destination));
             }
-            $this->writeFile($workingDirectory.DIRECTORY_SEPARATOR.'data'.DIRECTORY_SEPARATOR.'course.json', $courseJson);
+            foreach ($generatedFiles as $destination => $content) {
+                $this->writeFile($workingDirectory.DIRECTORY_SEPARATOR.$this->filesystemPath($destination), $content);
+            }
             $this->writeFile($workingDirectory.DIRECTORY_SEPARATOR.'imsmanifest.xml', $manifestXml);
-
-            foreach ($normalizedVideos as $video) {
-                $this->copyFile(
-                    $video['path'],
-                    $workingDirectory.DIRECTORY_SEPARATOR.$this->filesystemPath($video['relativePath']),
-                );
-            }
 
             $this->createArchive($workingDirectory, $resourcePaths, $temporaryArchive);
             $archiveSize = filesize($temporaryArchive);
@@ -156,16 +267,6 @@ final class ScormPackageGenerator
                 @unlink($temporaryArchive);
             }
         }
-    }
-
-    public function completionThreshold(): int
-    {
-        return $this->completionThreshold;
-    }
-
-    public function maxPackageSize(): int
-    {
-        return $this->maxPackageSize;
     }
 
     private function validateAndNormalizeVideos(array $videos): array

@@ -1,469 +1,174 @@
-<!-- Header -->
-<style>
-/* Ton CSS existant... */
-.burger {
-  font-size: 24px;
-  background: none;
-  border: none;
-  cursor: pointer;
-    display: none; 
-}
-/* Zone d'actions header (notifications + profil) */
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
+{% set currentRoute = app.request.attributes.get('_route') %}
+{% set routeTitles = {
+  'app_dashboard': 'Dashboard',
+  'app_courses': 'Available courses',
+  'app_certificates': 'Certificates',
+  'app_subscription': 'Subscription',
+  'app_transactions': 'Payment history',
+  'app_progress': 'Progress tracking',
+  'article_feed': 'Feed',
+  'app_profile': 'My profile',
+  'app_public_profile': 'Member profile',
+  'app_settings': 'Settings',
+  'app_contact': 'Help & support',
+  'app_notifications': 'Notifications',
+  'company_dashboard': 'Company dashboard'
+} %}
 
-/* Wrapper des notifications */
-.notification-wrapper {
-  position: relative;
-}
+<header class="header" aria-label="Page header">
+  <div class="topbar-leading">
+    <button class="burger" id="burger-btn" type="button" aria-label="Open navigation" aria-expanded="false">
+      <i class="fa-solid fa-bars" aria-hidden="true"></i>
+    </button>
 
-/* Bouton de notifications */
-.notification-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 8px;
-  border-radius: 50%;
-  transition: background-color 0.2s ease;
-  position: relative;
-}
+    <div class="topbar-context">
+      <span class="topbar-eyebrow">Learning workspace</span>
+      <p class="topbar-title">{{ routeTitles[currentRoute] ?? 'Workspace' }}</p>
+    </div>
+  </div>
 
-.notification-btn:hover {
-  background-color: rgba(0,0,0,0.1);
-}
-
-/* Icône de notifications */
-.notification-icon {
-  width: 32px;
-  height: 32px;
-  opacity: 0.7;
-  transition: opacity 0.2s ease;
-}
-
-.notification-btn:hover .notification-icon {
-  opacity: 1;
-}
-
-/* Badge de notification */
-.notification-badge {
-  position: absolute;
-  top: 4px;
-  right: 4px;
-  background: #ff4757;
-  color: white;
-  font-size: 10px;
-  font-weight: bold;
-  padding: 2px 6px;
-  border-radius: 10px;
-  min-width: 18px;
-  text-align: center;
-  line-height: 14px;
-}
-
-.notification-badge.hidden {
-  display: none;
-}
-
-/* Menu déroulant des notifications */
-.notification-dropdown {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  background: white;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  width: 320px;
-  max-height: 400px;
-  overflow-y: auto;
-  z-index: 1001;
-  opacity: 0;
-  visibility: hidden;
-  transform: translateY(-10px);
-  transition: all 0.2s ease;
-}
-
-.notification-dropdown.active {
-  opacity: 1;
-  visibility: visible;
-  transform: translateY(0);
-}
-
-/* Items de notification */
-.notification-item {
-  padding: 12px 16px;
-  border-bottom: 1px solid #f0f0f0;
-  display: flex;
-  align-items: flex-start;
-  margin: auto;
-  gap: 12px;
-}
-
-.notification-item:last-of-type {
-  border-bottom: none;
-}
-
-.notification-item:hover {
-  background-color: #f8f9fa;
-}
-
-.notification-item-icon {
-  font-size: 20px;
-  flex-shrink: 0;
-  margin-top: 2px;
-}
-
-.notification-content {
-  flex: 1;
-}
-
-.notification-content p {
-  margin: 0 0 4px 0;
-  font-weight: 500;
-  color: #333;
-  font-size: 14px;
-}
-
-.notification-content .notification-message {
-  color: #666;
-  font-size: 12px;
-  margin: 4px 0;
-}
-
-.notification-content .notification-time {
-  color: #999;
-  font-size: 11px;
-}
-
-.notification-item.unread {
-  background-color: #f8f9ff;
-  border-left: 3px solid #007bff;
-}
-
-.notification-item[data-type="success"] {
-  border-left: 3px solid #28a745;
-}
-
-.notification-item[data-type="warning"] {
-  border-left: 3px solid #ffc107;
-}
-
-.notification-item[data-type="error"] {
-  border-left: 3px solid #dc3545;
-}
-
-/* Empty state */
-.notification-empty {
-  padding: 20px;
-  text-align: center;
-  color: #666;
-}
-
-/* Lien "Voir tout" */
-.view-all-notifications {
-  display: block;
-  padding: 12px 16px;
-  text-align: center;
-  color: #007bff;
-  text-decoration: none;
-  font-weight: 500;
-  border-top: 1px solid #f0f0f0;
-  transition: background-color 0.2s ease;
-}
-
-.view-all-notifications:hover {
-  background-color: #f8f9fa;
-}
-
-/* Responsive mobile */
-@media (max-width: 1024px) {
-  .header-actions {
-    gap: 0.5rem;
-  }
-  
-  .notification-dropdown {
-    width: 300px;
-    right: -20px;
-  }
-  
-  .user-info {
-    display: none;
-  }
-}
-
-@media (max-width: 768px) {
-  .notification-dropdown {
-    width: calc(100vw - 40px);
-    right: -50px;
-  }
-}
-/* Overlay (caché par défaut) */
-.overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.5); /* noir semi-transparent */
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.3s ease;
-  z-index: 900; /* juste en dessous de la sidebar (qui est z-index:1000) */
-}
-
-.overlay.active {
-  opacity: 1;
-  visibility: visible;
-}
-
-
-/* Mobile */
-@media (min-width: 1025px) {
-  .close-btn {
-    display: none; /* pas besoin en desktop */
-  }
-}
-@media (max-width: 1024px) {
-  .burger {
-    display: block;
-  }
-  
-  .welcome-title{
-    display:none;
-  }
-      .header {
-      flex-direction: row;
-      align-items: flex-start;
-      gap: 1rem;
-    }
-
-  .sidebar {
-    position: fixed;
-    top: 0;
-    left: -260px; /* cachée */
-    width: 250px;
-    height: 100%;
-    background: var(--mint);
-    transition: left 0.3s ease;
-    z-index: 1000;
-  }
-
-  .sidebar.active {
-    left: 0; /* affichée */
-  }
-
-  .main-content {
-    margin-left: 0; /* pas de sidebar collée */
-  }
-}
-/* Actions en haut/bas du dropdown */
-.notification-dropdown-actions{
-  padding: 10px 12px;
-  border-top: 1px solid #f0f0f0;
-  background: #fff;
-  position: sticky;
-  bottom: 0;
-}
-
-.mark-all-read-btn{
-  width: 100%;
-  background: #f8f9fa;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 10px 12px;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 13px;
-  color: #333;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  transition: background 0.2s ease, transform 0.1s ease;
-}
-
-.mark-all-read-btn:hover{
-  background: #eef2ff;
-}
-
-.mark-all-read-btn:active{
-  transform: scale(0.98);
-}
-
-</style>
-
-<header class="header">
-  <button class="burger" id="burger-btn">
-    &#9776;
-  </button>
-
-  <h1 class="welcome-title">Welcome in, {{app.user.userName}}</h1>
-  
-  <!-- Zone notifications et profil utilisateur -->
   <div class="header-actions">
-    <!-- Icône de notifications -->
     <div class="notification-wrapper">
-      <button class="notification-btn" id="notification-btn">
-        <img src="{{ asset('images/Bell.svg') }}" alt="Notifications" class="notification-icon">
-        <!-- Badge de notification -->
-        {% set unreadCount = app.user.unreadNotificationsCount %}
+      {% set unreadCount = app.user.unreadNotificationsCount %}
+      <button
+        class="notification-btn"
+        id="notification-btn"
+        type="button"
+        aria-label="Notifications{{ unreadCount > 0 ? ', ' ~ unreadCount ~ ' unread' : '' }}"
+        aria-expanded="false"
+        aria-controls="notification-dropdown"
+      >
+        <i class="fa-regular fa-bell" aria-hidden="true"></i>
         <span class="notification-badge {{ unreadCount == 0 ? 'hidden' : '' }}" id="notification-badge">
           {{ unreadCount > 9 ? '9+' : unreadCount }}
         </span>
       </button>
-      
-      <!-- Menu déroulant des notifications -->
-      <div class="notification-dropdown" id="notification-dropdown">
+
+      <div class="notification-dropdown" id="notification-dropdown" aria-label="Recent notifications">
         {% set recentNotifications = app.user.notifications|reverse|slice(0, 5) %}
 
-        
-        {% if recentNotifications|length > 0 %}
-<div class="notification-dropdown-actions">
-  <button type="button" class="mark-all-read-btn" id="mark-all-read-btn">
-    <i class="fa-solid fa-check-double"></i>
-    Mark all as read
-  </button>
-</div>
-
-{% for notification in recentNotifications %}
-    <a 
-       href="{{ notification.actionUrl }}"
-       class="notification-item-link"
-       data-id="{{ notification.id }}"
-    >
-        <div class="notification-item {{ not notification.isRead ? 'unread' : '' }}"
-             data-type="{{ notification.type }}">
-             
-             <!-- Icône -->
-             <div class="notification-item-icon">
-                 {% if notification.icon %}
-                     <i class="{{ notification.icon }}"></i>
-                 {% else %}
-                     <i class="fa-solid fa-info-circle"></i>
-                 {% endif %}
-             </div>
-
-             <!-- Contenu -->
-             <div class="notification-content">
-                 <p>{{ notification.title }}</p>
-                 {% if notification.message %}
-                     <div class="notification-message">{{ notification.message }}</div>
-                 {% endif %}
-                 <small class="notification-time">{{ notification.timeAgo }}</small>
-             </div>
-        </div>
-    </a>
-{% endfor %}
-
-          </a>
-          <a href="{{ path('app_notifications') }}" class="view-all-notifications">
-            View all notifications
-          </a>
-        {% else %}
-          <div class="notification-empty">
-            <p>No notifications</p>
+        <div class="notification-dropdown__header">
+          <div>
+            <strong>Notifications</strong>
+            <span>{{ unreadCount }} unread</span>
           </div>
-        {% endif %}
+          {% if recentNotifications|length > 0 and unreadCount > 0 %}
+            <button type="button" class="mark-all-read-btn" id="mark-all-read-btn">
+              <i class="fa-solid fa-check-double" aria-hidden="true"></i>
+              Mark all read
+            </button>
+          {% endif %}
+        </div>
+
+        <div class="notification-dropdown__list">
+          {% for notification in recentNotifications %}
+            <a
+              href="{{ notification.actionUrl ?: path('app_notifications') }}"
+              class="notification-item-link"
+              data-id="{{ notification.id }}"
+            >
+              <div class="notification-item {{ not notification.isRead ? 'unread' : '' }}" data-type="{{ notification.type }}">
+                <span class="notification-item-icon">
+                  <i class="{{ notification.icon ?: 'fa-solid fa-info-circle' }}" aria-hidden="true"></i>
+                </span>
+                <span class="notification-content">
+                  <strong>{{ notification.title }}</strong>
+                  {% if notification.message %}
+                    <span class="notification-message">{{ notification.message }}</span>
+                  {% endif %}
+                  <small class="notification-time">{{ notification.timeAgo }}</small>
+                </span>
+                {% if not notification.isRead %}
+                  <span class="notification-unread-dot" aria-label="Unread"></span>
+                {% endif %}
+              </div>
+            </a>
+          {% else %}
+            <div class="notification-empty">
+              <span><i class="fa-regular fa-bell-slash" aria-hidden="true"></i></span>
+              <strong>You are all caught up</strong>
+              <p>No notifications for the moment.</p>
+            </div>
+          {% endfor %}
+        </div>
+
+        <a href="{{ path('app_notifications') }}" class="view-all-notifications">
+          View all notifications
+          <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+        </a>
       </div>
     </div>
 
-    <!-- Profil utilisateur -->
-    <a href="{{path(('app_settings'))}}" >
-    <div class="user-profile">
-      <img class="user-avatar" src="{{ asset(app.user.avatar ? 'uploads/avatars/' ~ app.user.avatar : 'images/User.svg') }}" />
-      <div class="user-info">
-        <h3>{{app.user.userName}}</h3>
-      </div>
-    </div>
+    <a href="{{ path('app_profile') }}" class="user-profile" aria-label="Open your profile">
+      <img
+        class="user-avatar"
+        src="{{ asset(app.user.avatar ? 'uploads/avatars/' ~ app.user.avatar : 'images/User.svg') }}"
+        alt="{{ app.user.userName }}"
+      >
+      <span class="user-info">
+        <strong>{{ app.user.userName }}</strong>
+        <small>View profile</small>
+      </span>
+      <i class="fa-solid fa-chevron-right user-profile__arrow" aria-hidden="true"></i>
     </a>
   </div>
 </header>
 
 <script>
-document.addEventListener("DOMContentLoaded", () => {
-  // Code existant...
+document.addEventListener('DOMContentLoaded', () => {
   const burger = document.getElementById('burger-btn');
   const sidebar = document.querySelector('.sidebar');
   const overlay = document.getElementById('overlay');
   const closeBtn = document.getElementById('close-btn');
-
-  // Nouveau code pour les notifications
   const notificationBtn = document.getElementById('notification-btn');
   const notificationDropdown = document.getElementById('notification-dropdown');
-  const notificationBadge = document.getElementById('notification-badge');
+  const markAllReadBtn = document.getElementById('mark-all-read-btn');
 
-  function openMenu() {
-    sidebar.classList.add('active');
-    overlay.classList.add('active');
-  }
+  const setNavigationOpen = (isOpen) => {
+    sidebar?.classList.toggle('active', isOpen);
+    overlay?.classList.toggle('active', isOpen);
+    burger?.setAttribute('aria-expanded', String(isOpen));
+  };
 
-  function closeMenu() {
-    sidebar.classList.remove('active');
-    overlay.classList.remove('active');
-  }
+  const setNotificationsOpen = (isOpen) => {
+    notificationDropdown?.classList.toggle('active', isOpen);
+    notificationBtn?.setAttribute('aria-expanded', String(isOpen));
+  };
 
-  // Gestion du menu des notifications
-  function toggleNotifications() {
-    notificationDropdown.classList.toggle('active');
-  }
+  burger?.addEventListener('click', () => setNavigationOpen(true));
+  closeBtn?.addEventListener('click', () => setNavigationOpen(false));
+  overlay?.addEventListener('click', () => setNavigationOpen(false));
 
-  // Fermer les notifications en cliquant ailleurs
-  function closeNotifications(e) {
-    if (notificationDropdown && !notificationBtn.contains(e.target) && !notificationDropdown.contains(e.target)) {
-      notificationDropdown.classList.remove('active');
+  notificationBtn?.addEventListener('click', (event) => {
+    event.stopPropagation();
+    setNotificationsOpen(!notificationDropdown?.classList.contains('active'));
+  });
+
+  document.addEventListener('click', (event) => {
+    if (notificationDropdown && !notificationDropdown.contains(event.target)) {
+      setNotificationsOpen(false);
     }
-  }
+  });
 
-  // Event listeners existants
-  if (burger) {
-    burger.addEventListener('click', openMenu);
-  }
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+      setNotificationsOpen(false);
+      setNavigationOpen(false);
+    }
+  });
 
-  if (closeBtn) {
-    closeBtn.addEventListener('click', closeMenu);
-  }
+  document.querySelectorAll('.notification-item-link').forEach((link) => {
+    link.addEventListener('click', function (event) {
+      event.preventDefault();
+      const notificationId = this.dataset.id;
+      const destination = this.getAttribute('href');
 
-  if (overlay) {
-    overlay.addEventListener('click', closeMenu);
-  }
-
-  // Nouveaux event listeners pour les notifications
-  if (notificationBtn) {
-    notificationBtn.addEventListener('click', toggleNotifications);
-  }
-
-  // Fermer dropdown en cliquant ailleurs
-  document.addEventListener('click', closeNotifications);
-
-  // Marquer les notifications comme lues quand on ouvre le dropdown (optionnel)
-  document.querySelectorAll('.notification-item-link').forEach(link => {
-    link.addEventListener('click', function (e) {
-        e.preventDefault();
-
-        const id = this.dataset.id;
-        const url = this.getAttribute('href');
-
-        fetch(`/notifications/${id}/mark-read`, {
-            method: 'POST'
-        })
-        .finally(() => {
-            // Navigation vers l'actionUrl peu importe le résultat
-            window.location.href = url;
-        });
+      fetch(`/notifications/${notificationId}/mark-read`, { method: 'POST' })
+        .finally(() => window.location.assign(destination));
     });
-});
+  });
 
-});
-
-const markAllReadBtn = document.getElementById('mark-all-read-btn');
-
-if (markAllReadBtn) {
-  markAllReadBtn.addEventListener('click', async (e) => {
-    e.preventDefault();
-
+  markAllReadBtn?.addEventListener('click', async () => {
     markAllReadBtn.disabled = true;
 
     try {
@@ -472,10 +177,8 @@ if (markAllReadBtn) {
         headers: { 'X-Requested-With': 'XMLHttpRequest' }
       });
     } finally {
-      // ✅ recharge pour que le badge cloche soit recalculé serveur
       window.location.reload();
     }
   });
-}
-
+});
 </script>

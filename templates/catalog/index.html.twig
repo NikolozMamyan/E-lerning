@@ -1,0 +1,152 @@
+{% extends 'base_auth.html.twig' %}
+
+{% block title %}Online Compliance Training Catalogue Luxembourg | Les Consultants{% endblock %}
+{% block meta_description %}Buy professional AML/CFT, compliance, risk, GDPR and cybersecurity e-learning courses online in Luxembourg. Secure guest checkout and instant learner account activation.{% endblock %}
+{% block meta_robots %}index, follow, max-image-preview:large, max-snippet:-1{% endblock %}
+{% block canonical_url %}{{ url('app_public_catalog') }}{% endblock %}
+{% block body_class %}catalog-document{% endblock %}
+
+{% block stylesheets %}
+  {{ parent() }}
+  <link rel="stylesheet" href="{{ asset('styles/landing.css') }}">
+  <link rel="stylesheet" href="{{ asset('styles/catalog.css') }}">
+{% endblock %}
+
+{% block structured_data %}
+  {% set catalogItems = [] %}
+  {% for course in courses %}
+    {% set euroPrice = null %}
+    {% for coursePrice in course.coursePrices %}
+      {% if coursePrice.currency|upper == 'EUR' %}{% set euroPrice = coursePrice.price %}{% endif %}
+    {% endfor %}
+    {% set courseSchema = {
+      '@type': 'Course',
+      'name': course.title,
+      'description': course.description|striptags,
+      'url': url('app_public_course_show', {id: course.id, slug: course.slug}),
+      'provider': {'@type': 'Organization', 'name': 'Les Consultants E-learning', 'sameAs': url('app_landing_page')}
+    } %}
+    {% if euroPrice %}
+      {% set courseSchema = courseSchema|merge({'offers': {'@type': 'Offer', 'price': (euroPrice / 100)|number_format(2, '.', ''), 'priceCurrency': 'EUR', 'availability': 'https://schema.org/InStock', 'url': url('app_public_course_show', {id: course.id, slug: course.slug})}}) %}
+    {% endif %}
+    {% set catalogItems = catalogItems|merge([{'@type': 'ListItem', 'position': loop.index, 'url': url('app_public_course_show', {id: course.id, slug: course.slug}), 'item': courseSchema}]) %}
+  {% endfor %}
+  {% set catalogSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    'name': 'Professional e-learning course catalogue',
+    'url': url('app_public_catalog'),
+    'mainEntity': {'@type': 'ItemList', 'itemListElement': catalogItems}
+  } %}
+  <script type="application/ld+json">{{ catalogSchema|json_encode(constant('JSON_HEX_TAG'))|raw }}</script>
+{% endblock %}
+
+{% block body %}
+<div class="catalog-page">
+  <header class="landing-header">
+    <div class="landing-header__inner">
+      <a href="{{ path('app_landing_page') }}" class="landing-brand" aria-label="Les Consultants E-learning home">
+        <img src="{{ asset('images/logo.png') }}" alt="Les Consultants E-learning">
+        <span><strong>Les Consultants</strong><small>E-learning Luxembourg</small></span>
+      </a>
+      <nav class="landing-nav" aria-label="Primary navigation">
+        <a href="{{ path('app_public_catalog') }}" aria-current="page">Catalogue</a>
+        <a href="{{ path('app_landing_page') }}#solutions">Solutions</a>
+        <a href="{{ path('article_feed') }}">Community</a>
+        <a href="{{ path('app_landing_page') }}#faq">FAQ</a>
+      </nav>
+      <div class="landing-header__actions">
+        {% if app.user %}
+          <a href="{{ path('app_dashboard') }}" class="landing-button landing-button--primary">My learning space</a>
+        {% else %}
+          <a href="{{ path('show_login') }}" class="landing-button landing-button--ghost">Sign in</a>
+          <a href="{{ path('show_register') }}" class="landing-button landing-button--primary">Create account</a>
+        {% endif %}
+      </div>
+      <details class="landing-mobile-menu">
+        <summary aria-label="Open navigation"><i class="fa-solid fa-bars" aria-hidden="true"></i></summary>
+        <nav aria-label="Mobile navigation">
+          <a href="{{ path('app_public_catalog') }}">Catalogue</a>
+          <a href="{{ path('article_feed') }}">Community</a>
+          <a href="{{ path('show_login') }}">Sign in</a>
+        </nav>
+      </details>
+    </div>
+  </header>
+
+  <main>
+    <section class="catalog-hero">
+      <div class="catalog-hero__copy">
+        <span class="catalog-eyebrow"><i class="fa-solid fa-sparkles" aria-hidden="true"></i>Public course catalogue</span>
+        <h1>Choose the expertise you need. Start learning today.</h1>
+        <p>Practical digital training for regulated professionals in Luxembourg and worldwide. Buy as a guest with secure Stripe checkout; your learner account is created automatically after payment.</p>
+        <div class="catalog-hero__proof">
+          <span><i class="fa-solid fa-lock" aria-hidden="true"></i><strong>Secure payment</strong><small>Stripe hosted checkout</small></span>
+          <span><i class="fa-solid fa-user-check" aria-hidden="true"></i><strong>Instant account</strong><small>Activation link by email</small></span>
+          <span><i class="fa-solid fa-award" aria-hidden="true"></i><strong>Verified learning</strong><small>Progress and certificates</small></span>
+        </div>
+      </div>
+      <aside class="catalog-hero__card" aria-label="Guest checkout process">
+        <span class="catalog-hero__card-icon"><i class="fa-solid fa-bag-shopping" aria-hidden="true"></i></span>
+        <div><small>Simple guest checkout</small><strong>No account needed before payment.</strong></div>
+        <ol>
+          <li><span>01</span>Choose your course</li>
+          <li><span>02</span>Pay securely on Stripe</li>
+          <li><span>03</span>Activate your learning account</li>
+        </ol>
+      </aside>
+    </section>
+
+    <section class="catalog-content" aria-labelledby="catalog-title">
+      <header class="catalog-content__heading">
+        <div><span>Professional learning</span><h2 id="catalog-title">Available courses</h2></div>
+        <p>{{ courses|length }} course{{ courses|length == 1 ? '' : 's' }} available <span aria-hidden="true">•</span> Prices shown in EUR</p>
+      </header>
+
+      <div class="catalog-grid">
+        {% for course in courses %}
+          {% set euroPrice = null %}
+          {% for coursePrice in course.coursePrices %}
+            {% if coursePrice.currency|upper == 'EUR' %}{% set euroPrice = coursePrice.price %}{% endif %}
+          {% endfor %}
+          <article class="catalog-card" id="course-{{ course.id }}">
+            <a href="{{ path('app_public_course_show', {id: course.id, slug: course.slug}) }}" class="catalog-card__media" aria-label="Preview {{ course.title }}">
+              <img src="{{ asset(course.thumb ? 'uploads/courses/' ~ course.thumb : 'card.png') }}" alt="{{ course.title }} online training" loading="lazy">
+              <span class="catalog-card__category">{{ course.category ? course.category.name : 'Professional training' }}</span>
+              <span class="catalog-card__lessons"><i class="fa-solid fa-circle-play" aria-hidden="true"></i>{{ course.videos|length }} lesson{{ course.videos|length == 1 ? '' : 's' }}</span>
+            </a>
+            <div class="catalog-card__body">
+              <div class="catalog-card__meta"><span><i class="fa-solid fa-globe" aria-hidden="true"></i>Online</span><span><i class="fa-solid fa-award" aria-hidden="true"></i>Certificate</span></div>
+              <h3><a href="{{ path('app_public_course_show', {id: course.id, slug: course.slug}) }}">{{ course.title }}</a></h3>
+              <p>{{ course.description|striptags|slice(0, 155) }}{% if course.description|striptags|length > 155 %}&hellip;{% endif %}</p>
+              <footer class="catalog-card__footer">
+                <div class="catalog-card__price">
+                  <small>One-time purchase</small>
+                  {% if euroPrice %}<strong>{{ (euroPrice / 100)|number_format(2, '.', ' ') }} €</strong>{% else %}<strong>On request</strong>{% endif %}
+                </div>
+                {% if euroPrice %}
+                  <form method="post" action="{{ path('app_catalog_course_checkout', {id: course.id}) }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('catalog_checkout_' ~ course.id) }}">
+                    <button type="submit"><span>{{ app.user ? 'Buy course' : 'Buy as guest' }}</span><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>
+                  </form>
+                {% else %}
+                  <a href="mailto:pruffin@les-consultants.lu?subject=Course%20enquiry%20-%20{{ course.title|url_encode }}">Contact us <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+                {% endif %}
+              </footer>
+            </div>
+          </article>
+        {% else %}
+          <div class="catalog-empty"><i class="fa-solid fa-book-open" aria-hidden="true"></i><h2>New courses are being prepared.</h2><p>Contact us to discuss your training needs.</p></div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="catalog-assurance">
+      <div><span>Need a team solution?</span><h2>Build a tailored learning path for your organisation.</h2></div>
+      <a href="mailto:pruffin@les-consultants.lu?subject=Team%20training%20request" class="landing-button landing-button--primary landing-button--large">Talk to our team <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+    </section>
+  </main>
+
+  <footer class="catalog-footer"><span>© {{ 'now'|date('Y') }} Les Consultants E-learning</span><a href="{{ path('article_feed') }}">Community feed</a><a href="{{ path('app_landing_page') }}">About the platform</a></footer>
+</div>
+{% endblock %}

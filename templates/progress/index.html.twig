@@ -1,53 +1,314 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}User Progress{% endblock %}
+{% block title %}My Progress{% endblock %}
 
 {% block body %}
+{% set totalCourses = coursesData|length %}
+{% set totalProgress = 0 %}
+{% set completedCount = 0 %}
+{% set activeCount = 0 %}
+{% set notStartedCount = 0 %}
+{% set certifiedCount = 0 %}
+{% set totalQuizScore = 0 %}
+{% set scoredCourses = 0 %}
+{% set focusItem = null %}
 
-<div class="courses-wrapper">
-  <h2>User Progress</h2>
-  <table class="progress-table" style="margin-bottom:50px;">
-    <thead>
-      <tr>
-        <th>Course Name</th>
-        <th>Start On</th>
-        <th>Quiz Score</th>
-        <th>Progress on Course</th>
-        <th>Certification Status</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for item in coursesData %}
-        <tr>
-          <td>{{ item.course.title ?? 'Untitled Course' }}</td>
-          
-          <td>
-            {% if item.enrollment %}
-              {{ item.enrollment.createdAt|date('d/m/Y') }}
+{% for item in coursesData %}
+  {% set totalProgress = totalProgress + item.progressPercent %}
+
+  {% if item.progressPercent >= 100 %}
+    {% set completedCount = completedCount + 1 %}
+  {% elseif item.progressPercent > 0 %}
+    {% set activeCount = activeCount + 1 %}
+    {% if focusItem is null %}
+      {% set focusItem = item %}
+    {% endif %}
+  {% else %}
+    {% set notStartedCount = notStartedCount + 1 %}
+  {% endif %}
+
+  {% if item.certified %}
+    {% set certifiedCount = certifiedCount + 1 %}
+  {% endif %}
+
+  {% if item.quizScore is not null %}
+    {% set totalQuizScore = totalQuizScore + item.quizScore %}
+    {% set scoredCourses = scoredCourses + 1 %}
+  {% endif %}
+{% endfor %}
+
+{% if focusItem is null and coursesData is not empty %}
+  {% set focusItem = coursesData|first %}
+{% endif %}
+
+{% set overallProgress = totalCourses > 0 ? (totalProgress / totalCourses)|round : 0 %}
+{% set averageQuizScore = scoredCourses > 0 ? (totalQuizScore / scoredCourses)|round : 0 %}
+
+<div class="learning-progress" data-learning-progress>
+  <header class="learning-progress__hero">
+    <div class="learning-progress__hero-copy">
+      <span class="learning-progress__eyebrow">
+        <i class="fa-solid fa-chart-line" aria-hidden="true"></i>
+        Learning progress
+      </span>
+      <h1>Your learning, clearly in motion.</h1>
+      <p>See what you have completed, pick up your current course and keep every learning goal within reach.</p>
+
+      <div class="learning-progress__hero-actions">
+        {% if focusItem %}
+          <a href="{{ path('app_course_show', {id: focusItem.course.id}) }}" class="learning-progress__button learning-progress__button--primary">
+            <i class="fa-solid fa-play" aria-hidden="true"></i>
+            {{ focusItem.progressPercent > 0 and focusItem.progressPercent < 100 ? 'Continue learning' : 'Open next course' }}
+          </a>
+        {% endif %}
+        <a href="{{ path('app_courses') }}" class="learning-progress__button learning-progress__button--ghost">
+          <i class="fa-solid fa-compass" aria-hidden="true"></i>
+          Browse courses
+        </a>
+      </div>
+    </div>
+
+    <div class="learning-progress__overall" aria-label="Overall learning progress: {{ overallProgress }}%">
+      <div class="learning-progress__overall-ring" style="--progress-value: {{ overallProgress }}">
+        <div>
+          <strong>{{ overallProgress }}%</strong>
+          <span>overall</span>
+        </div>
+      </div>
+      <div class="learning-progress__overall-copy">
+        <span>Learning overview</span>
+        <strong>{{ completedCount }} of {{ totalCourses }} courses completed</strong>
+        <small>{{ activeCount > 0 ? activeCount ~ ' course' ~ (activeCount == 1 ? '' : 's') ~ ' currently active' : 'Choose a course to start learning' }}</small>
+      </div>
+    </div>
+  </header>
+
+  <section class="learning-progress__stats" aria-label="Progress summary">
+    <article class="learning-progress__stat">
+      <span class="learning-progress__stat-icon learning-progress__stat-icon--active"><i class="fa-solid fa-bolt" aria-hidden="true"></i></span>
+      <div><strong>{{ activeCount }}</strong><span>Active courses</span></div>
+      <small>{{ activeCount > 0 ? 'Keep the momentum' : 'Ready when you are' }}</small>
+    </article>
+
+    <article class="learning-progress__stat">
+      <span class="learning-progress__stat-icon learning-progress__stat-icon--complete"><i class="fa-solid fa-circle-check" aria-hidden="true"></i></span>
+      <div><strong>{{ completedCount }}</strong><span>Completed</span></div>
+      <small>Out of {{ totalCourses }} available</small>
+    </article>
+
+    <article class="learning-progress__stat">
+      <span class="learning-progress__stat-icon learning-progress__stat-icon--award"><i class="fa-solid fa-award" aria-hidden="true"></i></span>
+      <div><strong>{{ certifiedCount }}</strong><span>Certificates</span></div>
+      <a href="{{ path('app_certificates') }}">View collection <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+    </article>
+
+    <article class="learning-progress__stat">
+      <span class="learning-progress__stat-icon learning-progress__stat-icon--score"><i class="fa-solid fa-chart-simple" aria-hidden="true"></i></span>
+      <div><strong>{{ scoredCourses > 0 ? averageQuizScore ~ '%' : '—' }}</strong><span>Average quiz score</span></div>
+      <small>{{ scoredCourses }} quiz{{ scoredCourses == 1 ? '' : 'zes' }} completed</small>
+    </article>
+  </section>
+
+  <div class="learning-progress__layout">
+    <section class="learning-progress__panel learning-progress__courses" aria-labelledby="progress-courses-heading">
+      <div class="learning-progress__section-head">
+        <div>
+          <span>Course activity</span>
+          <h2 id="progress-courses-heading">Your learning journey</h2>
+        </div>
+        <span class="learning-progress__result-count" id="progress-result-count">{{ totalCourses }} course{{ totalCourses == 1 ? '' : 's' }}</span>
+      </div>
+
+      {% if coursesData is not empty %}
+        <div class="learning-progress__toolbar" role="group" aria-label="Filter course progress">
+          <button type="button" class="is-active" data-progress-filter="all">
+            <i class="fa-solid fa-layer-group" aria-hidden="true"></i>All <span>{{ totalCourses }}</span>
+          </button>
+          <button type="button" data-progress-filter="active">
+            <i class="fa-solid fa-play" aria-hidden="true"></i>In progress <span>{{ activeCount }}</span>
+          </button>
+          <button type="button" data-progress-filter="completed">
+            <i class="fa-solid fa-check" aria-hidden="true"></i>Completed <span>{{ completedCount }}</span>
+          </button>
+          <button type="button" data-progress-filter="not-started">
+            <i class="fa-regular fa-circle" aria-hidden="true"></i>Not started <span>{{ notStartedCount }}</span>
+          </button>
+        </div>
+
+        <div class="learning-progress__course-list">
+          {% for item in coursesData %}
+            {% set status = item.progressPercent >= 100 ? 'completed' : (item.progressPercent > 0 ? 'active' : 'not-started') %}
+            <article class="learning-progress__course" data-progress-status="{{ status }}">
+              <a href="{{ path('app_course_show', {id: item.course.id}) }}" class="learning-progress__course-cover" aria-label="Open {{ item.course.title }}">
+                {% if item.course.thumb %}
+                  <img src="{{ asset('uploads/courses/' ~ item.course.thumb) }}" alt="" loading="lazy">
+                {% else %}
+                  <span><i class="fa-solid fa-book-open" aria-hidden="true"></i></span>
+                {% endif %}
+                <span class="learning-progress__course-cover-shade"></span>
+                <span class="learning-progress__course-status learning-progress__course-status--{{ status }}">
+                  <i class="fa-solid {{ status == 'completed' ? 'fa-check' : (status == 'active' ? 'fa-play' : 'fa-circle') }}" aria-hidden="true"></i>
+                  {{ status == 'completed' ? 'Completed' : (status == 'active' ? 'In progress' : 'Not started') }}
+                </span>
+              </a>
+
+              <div class="learning-progress__course-body">
+                <div class="learning-progress__course-topline">
+                  <span>{{ item.course.category ? item.course.category.name : 'Professional training' }}</span>
+                  <small>
+                    {% if item.enrollment %}
+                      Started {{ item.enrollment.createdAt|date('d M Y') }}
+                    {% else %}
+                      Subscription access
+                    {% endif %}
+                  </small>
+                </div>
+
+                <h3><a href="{{ path('app_course_show', {id: item.course.id}) }}">{{ item.course.title }}</a></h3>
+
+                <div class="learning-progress__course-progress">
+                  <div>
+                    <span>Course progress</span>
+                    <strong>{{ item.progressPercent|round }}%</strong>
+                  </div>
+                  <div class="learning-progress__bar" role="progressbar" aria-label="{{ item.course.title }} progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ item.progressPercent|round }}">
+                    <span style="width: {{ item.progressPercent }}%"></span>
+                  </div>
+                </div>
+
+                <div class="learning-progress__course-footer">
+                  <div class="learning-progress__course-meta">
+                    <span><i class="fa-solid fa-circle-play" aria-hidden="true"></i>{{ item.course.videos|length }} lesson{{ item.course.videos|length == 1 ? '' : 's' }}</span>
+                    <span><i class="fa-solid fa-list-check" aria-hidden="true"></i>{{ item.quizScore is not null ? 'Quiz ' ~ item.quizScore ~ '%' : 'Quiz pending' }}</span>
+                    <span class="{{ item.certified ? 'is-certified' : '' }}"><i class="fa-solid {{ item.certified ? 'fa-award' : 'fa-lock' }}" aria-hidden="true"></i>{{ item.certified ? 'Certified' : 'Certificate locked' }}</span>
+                  </div>
+
+                  <a href="{{ path('app_course_show', {id: item.course.id}) }}" class="learning-progress__course-action" aria-label="{{ status == 'active' ? 'Continue' : 'Open' }} {{ item.course.title }}">
+                    {{ status == 'active' ? 'Continue' : (status == 'completed' ? 'Review' : 'Start') }}
+                    <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                  </a>
+                </div>
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+
+        <div class="learning-progress__no-match" id="progress-no-match" hidden>
+          <span><i class="fa-regular fa-folder-open" aria-hidden="true"></i></span>
+          <h3>No courses in this view</h3>
+          <p>Choose another status to continue exploring your learning activity.</p>
+        </div>
+      {% else %}
+        <div class="learning-progress__empty">
+          <span><i class="fa-solid fa-route" aria-hidden="true"></i></span>
+          <h2>Your learning journey starts here</h2>
+          <p>Choose your first course and your progress will appear on this page automatically.</p>
+          <a href="{{ path('app_courses') }}">Explore available courses <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+        </div>
+      {% endif %}
+    </section>
+
+    <aside class="learning-progress__aside" aria-label="Learning insights">
+      <section class="learning-progress__panel learning-progress__focus">
+        <div class="learning-progress__aside-head">
+          <span>Current focus</span>
+          <i class="fa-solid fa-crosshairs" aria-hidden="true"></i>
+        </div>
+
+        {% if focusItem %}
+          <a href="{{ path('app_course_show', {id: focusItem.course.id}) }}" class="learning-progress__focus-cover">
+            {% if focusItem.course.thumb %}
+              <img src="{{ asset('uploads/courses/' ~ focusItem.course.thumb) }}" alt="" loading="lazy">
             {% else %}
-              <em>subscription</em>
+              <span><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i></span>
             {% endif %}
-          </td>
+          </a>
+          <span class="learning-progress__focus-category">{{ focusItem.course.category ? focusItem.course.category.name : 'Professional training' }}</span>
+          <h2>{{ focusItem.course.title }}</h2>
+          <div class="learning-progress__focus-progress">
+            <div><span>Progress</span><strong>{{ focusItem.progressPercent|round }}%</strong></div>
+            <div class="learning-progress__bar"><span style="width: {{ focusItem.progressPercent }}%"></span></div>
+          </div>
+          <a href="{{ path('app_course_show', {id: focusItem.course.id}) }}" class="learning-progress__focus-action">
+            <i class="fa-solid {{ focusItem.progressPercent > 0 and focusItem.progressPercent < 100 ? 'fa-play' : 'fa-arrow-up-right-from-square' }}" aria-hidden="true"></i>
+            {{ focusItem.progressPercent > 0 and focusItem.progressPercent < 100 ? 'Resume course' : 'Open course' }}
+          </a>
+        {% else %}
+          <div class="learning-progress__aside-empty">
+            <span><i class="fa-solid fa-book-open" aria-hidden="true"></i></span>
+            <p>Your active course will appear here.</p>
+          </div>
+        {% endif %}
+      </section>
 
-          <td>{{ item.quizScore ?? '-' }}</td>
-
-          <td>
-            <div class="progress-bar">
-              <span style="width: {{ item.progressPercent }}%"></span>
-            </div>
-          </td>
-
-          <td>
-            {% if item.certified %}
-              <span class="certified">Certified</span>
+      <section class="learning-progress__panel learning-progress__milestone">
+        <div class="learning-progress__aside-head">
+          <span>Next milestone</span>
+          <i class="fa-solid fa-flag-checkered" aria-hidden="true"></i>
+        </div>
+        {% if focusItem %}
+          <div class="learning-progress__milestone-icon">
+            <i class="fa-solid {{ focusItem.progressPercent >= 100 ? (focusItem.certified ? 'fa-trophy' : 'fa-list-check') : 'fa-mountain-sun' }}" aria-hidden="true"></i>
+          </div>
+          <h2>
+            {% if focusItem.certified %}
+              Achievement unlocked
+            {% elseif focusItem.progressPercent >= 100 %}
+              Complete the final quiz
             {% else %}
-              <span class="in-learning">In Learning</span>
+              Reach 100% completion
             {% endif %}
-          </td>
-        </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+          </h2>
+          <p>
+            {% if focusItem.certified %}
+              Your certificate is ready in your achievements collection.
+            {% elseif focusItem.progressPercent >= 100 %}
+              Pass the course quiz to unlock your certificate.
+            {% else %}
+              You are {{ 100 - focusItem.progressPercent|round }}% away from completing this course.
+            {% endif %}
+          </p>
+          <a href="{{ focusItem.certified ? path('app_certificates') : path('app_course_show', {id: focusItem.course.id}) }}">
+            {{ focusItem.certified ? 'View certificate' : 'Work toward milestone' }}
+            <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+          </a>
+        {% else %}
+          <div class="learning-progress__aside-empty">
+            <span><i class="fa-solid fa-flag" aria-hidden="true"></i></span>
+            <p>Start a course to set your first milestone.</p>
+          </div>
+        {% endif %}
+      </section>
+    </aside>
+  </div>
 </div>
 
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const page = document.querySelector('[data-learning-progress]');
+  if (!page) return;
+
+  const buttons = Array.from(page.querySelectorAll('[data-progress-filter]'));
+  const courses = Array.from(page.querySelectorAll('[data-progress-status]'));
+  const count = page.querySelector('#progress-result-count');
+  const noMatch = page.querySelector('#progress-no-match');
+
+  buttons.forEach((button) => {
+    button.addEventListener('click', () => {
+      const filter = button.dataset.progressFilter;
+      let visible = 0;
+
+      buttons.forEach((item) => item.classList.toggle('is-active', item === button));
+      courses.forEach((course) => {
+        const show = filter === 'all' || course.dataset.progressStatus === filter;
+        course.hidden = !show;
+        if (show) visible += 1;
+      });
+
+      if (count) count.textContent = `${visible} course${visible === 1 ? '' : 's'}`;
+      if (noMatch) noMatch.hidden = visible !== 0;
+    });
+  });
+});
+</script>
 {% endblock %}

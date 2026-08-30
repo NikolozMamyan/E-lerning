@@ -4,6 +4,8 @@
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
     uploads_directory: '%kernel.project_dir%/public/uploads/avatars'
+    profile_covers_directory: '%kernel.project_dir%/public/uploads/covers'
+    job_application_cvs_directory: '%kernel.project_dir%/var/private/job-applications'
     articles_dir: '%kernel.project_dir%/public/uploads/articles'
     videos_dir: '%kernel.project_dir%/public/uploads/videos'
     app.scorm.max_package_size: 5153960755
@@ -41,10 +43,23 @@ services:
         arguments:
             $exportDirectory: '%kernel.cache_dir%/scorm/exports'
 
+    App\Service\Scorm\BilingualScormExportService:
+        arguments:
+            $stagingDirectory: '%kernel.cache_dir%/scorm/bilingual-uploads'
+            $exportDirectory: '%kernel.cache_dir%/scorm/exports'
+
     App\Service\Scorm\ScormVideoStorage:
         arguments:
             $publicDirectory: '%kernel.project_dir%/public'
             $maxFileSize: '%app.scorm.max_package_size%'
+
+    App\Service\ProfileCoverStorage:
+        arguments:
+            $directory: '%profile_covers_directory%'
+
+    App\Service\JobApplicationCvStorage:
+        arguments:
+            $directory: '%job_application_cvs_directory%'
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

@@ -50,7 +50,9 @@ class ApiTokenAuthenticator extends AbstractAuthenticator
             || (str_starts_with($path, '/company/') && $request->cookies->has('AUTH_TOKEN'))
             || (str_starts_with($path, '/settings/') && $request->cookies->has('AUTH_TOKEN'))
             || (str_starts_with($path, '/notifications/') && $request->cookies->has('AUTH_TOKEN'))
-            || (str_starts_with($path, '/contact/') && $request->cookies->has('AUTH_TOKEN'));
+            || (str_starts_with($path, '/contact/') && $request->cookies->has('AUTH_TOKEN'))
+            || (str_starts_with($path, '/catalog') && $request->cookies->has('AUTH_TOKEN'))
+            || (str_starts_with($path, '/community/') && $request->cookies->has('AUTH_TOKEN'));
     }
 
     public function authenticate(Request $request): Passport

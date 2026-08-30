@@ -35,6 +35,18 @@ security:
         - { path: ^/api/logout, roles: PUBLIC_ACCESS }
         - { path: ^/api/stripe/webhook$, roles: PUBLIC_ACCESS }
 
+        # Public catalogue and public community actions (controllers require a member for mutations)
+        - { path: ^/catalog(?:/|$), roles: PUBLIC_ACCESS }
+        - { path: ^/community(?:/|$), roles: PUBLIC_ACCESS }
+        - { path: ^/courses/[0-9]+-[a-z0-9-]+/?$, roles: PUBLIC_ACCESS, methods: [GET] }
+        - { path: ^/articles/[0-9]+-[a-z0-9-]+/?$, roles: PUBLIC_ACCESS, methods: [GET] }
+
+        # Public community feed (read-only)
+        - { path: ^/app/articles(?:/load-more)?/?$, roles: PUBLIC_ACCESS, methods: [GET] }
+        - { path: ^/app/course/[0-9]+/?$, roles: PUBLIC_ACCESS, methods: [GET] }
+        - { path: ^/profile/[0-9]+/?$, roles: PUBLIC_ACCESS, methods: [GET] }
+        - { path: ^/profile/cover/?$, roles: IS_AUTHENTICATED_FULLY, methods: [POST] }
+
         # API sécurisée
         - { path: ^/api/, roles: IS_AUTHENTICATED_FULLY }
 

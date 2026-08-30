@@ -1,0 +1,143 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ article.titre }} | Learning Community{% endblock %}
+{% block meta_description %}{{ article.description|striptags|slice(0, 155) }}{% endblock %}
+{% block meta_robots %}index, follow, max-image-preview:large, max-snippet:-1{% endblock %}
+{% block canonical_url %}{{ url('app_public_article', {id: article.id, slug: article.slug}) }}{% endblock %}
+{% block meta_image %}{{ article.image ? absolute_url(asset('uploads/articles/' ~ article.image)) : absolute_url(asset('images/logo.png')) }}{% endblock %}
+{% block meta_type %}article{% endblock %}
+
+{% block structured_data %}
+  {% set authorData = {'@type': 'Person', 'name': article.author.userName} %}
+  {% if 'ROLE_ADMIN' not in article.author.roles %}
+    {% set authorData = authorData|merge({'url': url('app_public_profile', {id: article.author.id})}) %}
+  {% endif %}
+  {% set articleData = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    'headline': article.titre,
+    'description': article.description|striptags,
+    'url': url('app_public_article', {id: article.id, slug: article.slug}),
+    'mainEntityOfPage': url('app_public_article', {id: article.id, slug: article.slug}),
+    'datePublished': article.createdAt|date('c'),
+    'author': authorData,
+    'publisher': {
+      '@type': 'Organization',
+      'name': 'Les Consultants E-learning',
+      'url': url('app_landing_page'),
+      'logo': {'@type': 'ImageObject', 'url': absolute_url(asset('images/logo.png'))}
+    }
+  } %}
+  {% if article.image %}
+    {% set articleData = articleData|merge({'image': absolute_url(asset('uploads/articles/' ~ article.image))}) %}
+  {% endif %}
+  <script type="application/ld+json">{{ articleData|json_encode(constant('JSON_HEX_TAG'))|raw }}</script>
+{% endblock %}
+
+{% block stylesheets %}
+  {{ parent() }}
+  <link rel="stylesheet" href="{{ asset('styles/articleFeed.css') }}">
+{% endblock %}
+
+{% block body %}
+<section class="community-feed article-public-page">
+  {% if not app.user %}
+    <header class="community-feed__guest-nav">
+      <a href="{{ path('app_landing_page') }}" class="guest-nav__brand" aria-label="Les Consultants home">
+        <img src="{{ asset('images/logo.png') }}" alt="Les Consultants">
+        <span><strong>Learning Community</strong><small>by Les Consultants</small></span>
+      </a>
+      <div class="guest-nav__message">
+        <span><i class="fa-solid fa-globe" aria-hidden="true"></i>Public article</span>
+        <p>Professional insights from our learning community.</p>
+      </div>
+      <nav class="guest-nav__actions" aria-label="Guest account actions">
+        <a href="{{ path('app_public_catalog') }}" class="guest-nav__login">Catalogue</a>
+        <a href="{{ path('show_login') }}" class="guest-nav__login">Sign in</a>
+        <a href="{{ path('show_register') }}" class="guest-nav__register"><i class="fa-solid fa-star" aria-hidden="true"></i><span>Create free account</span><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+      </nav>
+    </header>
+  {% endif %}
+
+  <div class="article-public__toolbar">
+    <a href="{{ path('article_feed') }}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i>Back to community feed</a>
+    <button type="button" data-copy-article-url><i class="fa-solid fa-arrow-up-from-bracket" aria-hidden="true"></i><span>Share article</span></button>
+  </div>
+
+  <div class="article-public__layout">
+    <article class="article-public__card">
+      {% set authorHasPublicProfile = 'ROLE_ADMIN' not in article.author.roles %}
+      <header class="article-header">
+        <div class="user-info">
+          {% if authorHasPublicProfile %}
+            <a href="{{ path('app_public_profile', {id: article.author.id}) }}" class="user-avatar user-profile-link" aria-label="View {{ article.author.userName }}'s profile">
+              <img src="{{ asset(article.author.avatar ? 'uploads/avatars/' ~ article.author.avatar : 'images/User.svg') }}" alt="{{ article.author.userName }}">
+            </a>
+          {% else %}
+            <span class="user-avatar"><img src="{{ asset(article.author.avatar ? 'uploads/avatars/' ~ article.author.avatar : 'images/User.svg') }}" alt="{{ article.author.userName }}"></span>
+          {% endif %}
+          <div class="user-details">
+            {% if authorHasPublicProfile %}<a href="{{ path('app_public_profile', {id: article.author.id}) }}" class="username user-profile-link">{{ article.author.userName }}</a>{% else %}<span class="username">{{ article.author.userName }}</span>{% endif %}
+            <span class="date">Published {{ article.createdAt|date('d M Y, H:i') }}</span>
+          </div>
+        </div>
+      </header>
+
+      <div class="article-public__content">
+        <span class="article-public__eyebrow"><i class="fa-solid fa-newspaper" aria-hidden="true"></i>Community insight</span>
+        <h1>{{ article.titre }}</h1>
+        <div class="article-body expanded">{{ article.description|raw }}</div>
+      </div>
+
+      {% if article.image %}
+        <figure class="article-public__media"><img src="{{ asset('uploads/articles/' ~ article.image) }}" alt="{{ article.titre }}"></figure>
+      {% elseif article.video %}
+        <div class="article-public__media"><video controls preload="metadata"><source src="{{ asset('uploads/videos/' ~ article.video) }}" type="video/mp4">Your browser does not support video.</video></div>
+      {% endif %}
+
+      <div class="article-engagement article-public__engagement">
+        <span class="article-engagement__item"><span class="article-engagement__icon article-engagement__icon--like"><i class="fa-solid fa-heart" aria-hidden="true"></i></span><strong>{{ article.likesCount }}</strong><span>reactions</span></span>
+        <span class="article-engagement__item"><span class="article-engagement__icon article-engagement__icon--comment"><i class="fa-solid fa-comment" aria-hidden="true"></i></span><strong>{{ article.comments|length }}</strong><span>comments</span></span>
+      </div>
+
+      {% if article.comments|length %}
+        <section class="article-public__comments" aria-labelledby="article-comments-title">
+          <div class="comments-section__heading"><div class="comments-section__title"><span class="comments-section__icon"><i class="fa-solid fa-comments" aria-hidden="true"></i></span><div><strong id="article-comments-title">Conversation</strong><small>{{ article.comments|length }} response{{ article.comments|length == 1 ? '' : 's' }}</small></div></div></div>
+          {% for comment in article.comments %}
+            <div class="comment">
+              <span class="user-avatar user-avatar--small"><img src="{{ asset(comment.author.avatar ? 'uploads/avatars/' ~ comment.author.avatar : 'images/User.svg') }}" alt="{{ comment.author.userName }}"></span>
+              <div class="comment-content"><div class="comment-header"><div class="comment-author"><strong>{{ comment.author.userName }}</strong><span class="date"><i class="fa-regular fa-clock" aria-hidden="true"></i>{{ comment.createdAt|date('d M Y') }}</span></div></div><p class="comment-text">{{ comment.content }}</p></div>
+            </div>
+          {% endfor %}
+        </section>
+      {% endif %}
+    </article>
+
+    <aside class="article-public__cta">
+      <span><i class="fa-solid fa-users" aria-hidden="true"></i></span>
+      <small>Learning community</small>
+      <h2>Continue the conversation</h2>
+      <p>Explore more insights, connect with professionals and share your experience.</p>
+      <a href="{{ path('article_feed') }}#article-{{ article.id }}">View in the feed <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+      {% if not app.user %}<a href="{{ path('show_register') }}" class="article-public__cta-secondary">Create free account</a>{% endif %}
+    </aside>
+  </div>
+</section>
+
+<script>
+document.querySelector('[data-copy-article-url]')?.addEventListener('click', async (event) => {
+  const button = event.currentTarget;
+  try {
+    await navigator.clipboard.writeText(window.location.href);
+    button.classList.add('is-copied');
+    button.querySelector('span').textContent = 'Link copied';
+    setTimeout(() => {
+      button.classList.remove('is-copied');
+      button.querySelector('span').textContent = 'Share article';
+    }, 1800);
+  } catch (error) {
+    window.prompt('Copy this article link:', window.location.href);
+  }
+});
+</script>
+{% endblock %}

@@ -1,23 +1,40 @@
 :root{
-  --green:#1A6D55;
-  --teal:#0D8383;
-  --black:#071717;
-  --mint:#E7F3F3;
-  --grey:#606060;
+  --green:#157A61;
+  --teal:#0F8276;
+  --black:#10211D;
+  --mint:#E3F3EE;
+  --grey:#53665F;
   --white:#FFFFFF;
-  --bg:#f4f9f8;
-  --radius:12px;
-  --shadow:0 4px 12px rgba(7,23,23,.08);
+  --bg:#F2F7F5;
+  --text:#10211D;
+  --brand-600:#157A61;
+  --radius:6px;
+  --shadow:0 12px 32px rgba(16,33,29,.08);
 
 }
 
 * { box-sizing:border-box; }
-html,body,#app{ height:100%; }
+html{
+  height:100%;
+  font-size:17px;
+  -webkit-text-size-adjust:100%;
+  text-size-adjust:100%;
+}
+body,#app{ height:100%; }
 body{
   margin:0;
   font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", sans-serif;
+  font-weight:400;
+  line-height:1.55;
+  font-kerning:normal;
+  font-feature-settings:"cv02", "cv03", "cv04", "cv11";
+  text-rendering:optimizeLegibility;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
   color:var(--text);
-  background:linear-gradient(180deg, #f6fbfb, #f3f7f6 40%, #eef5f4);
+  background:
+    radial-gradient(circle at 82% 2%, rgba(47, 168, 140, .10), transparent 26rem),
+    linear-gradient(180deg, #f7faf9, #f1f7f5 46%, #edf4f2);
 }
 
 a{ color:var(--brand-600); text-decoration:none; }
@@ -89,6 +106,16 @@ margin-left: 295px;
 margin-right: 20px;
   }        
 
+.wrapper-layout.wrapper-layout--guest {
+  margin-right: 0;
+  margin-left: 0;
+}
+
+.wrapper-layout--guest .main-content {
+  min-width: 0;
+  padding: 0 clamp(0.55rem, 2vw, 1.5rem);
+}
+
   .spinner {
   display: inline-block;
   width: 22px;
@@ -114,4 +141,42 @@ margin-right: 20px;
 margin-left: 5px;
 margin-right: 5px;
   }
+}
+
+button,
+input,
+select,
+textarea{
+  font:inherit;
+}
+
+p,
+small,
+label{
+  text-wrap:pretty;
+}
+
+::placeholder{
+  color:#819089;
+  opacity:1;
+}
+
+/* Keep recurring interface labels readable across the learning workspace. */
+.main-content :is(
+  [class*="__eyebrow"],
+  [class*="__kicker"],
+  [class*="__caption"],
+  [class*="__label"],
+  [class*="__hint"]
+){
+  font-size:max(.7rem, 12px);
+  line-height:1.45;
+}
+
+.main-content :is(
+  [class*="__meta"],
+  [class*="__status"]
+){
+  font-size:max(.72rem, 12px);
+  line-height:1.45;
 }

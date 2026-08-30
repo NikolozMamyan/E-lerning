@@ -57,7 +57,7 @@ class QuizAttemptRepository extends ServiceEntityRepository
             ->getOneOrNullResult();
     }
 
-            public function findByUser(User $user): array
+    public function findByUser(User $user): array
     {
         return $this->createQueryBuilder('qa')
             ->andWhere('qa.user = :user')
@@ -65,6 +65,44 @@ class QuizAttemptRepository extends ServiceEntityRepository
             ->orderBy('qa.createdAt', 'DESC')
             ->getQuery()
             ->getResult();
+    }
+
+    /**
+     * @return QuizAttempt[]
+     */
+    public function findPassedByUser(User $user, int $limit = 4): array
+    {
+        return $this->createQueryBuilder('qa')
+            ->addSelect('course', 'category')
+            ->leftJoin('qa.course', 'course')
+            ->leftJoin('course.category', 'category')
+            ->andWhere('qa.user = :user')
+            ->andWhere('qa.passed = true')
+            ->andWhere('qa.id IN (
+                SELECT MAX(qa2.id)
+                FROM App\Entity\QuizAttempt qa2
+                JOIN qa2.course course2
+                WHERE qa2.user = :user AND qa2.passed = true
+                GROUP BY course2.id
+            )')
+            ->setParameter('user', $user)
+            ->orderBy('qa.createdAt', 'DESC')
+            ->addOrderBy('qa.id', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function countPassedCoursesByUser(User $user): int
+    {
+        return (int) $this->createQueryBuilder('qa')
+            ->select('COUNT(DISTINCT course.id)')
+            ->join('qa.course', 'course')
+            ->andWhere('qa.user = :user')
+            ->andWhere('qa.passed = true')
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 /**
  * @param int[] $userIds

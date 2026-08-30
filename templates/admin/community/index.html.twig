@@ -1,0 +1,49 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Jobs & agenda | Admin{% endblock %}
+{% block stylesheets %}{{ parent() }}<link rel="stylesheet" href="{{ asset('styles/adminCommunity.css') }}">{% endblock %}
+
+{% block body %}
+<section class="admin-community">
+  <header class="admin-community__hero">
+    <div><span><i class="fa-solid fa-bullhorn" aria-hidden="true"></i>Community publishing</span><h1>Jobs &amp; agenda</h1><p>Publish opportunities and events directly in the public community feed, then follow applications and registrations from one place.</p></div>
+    <a href="{{ path('article_feed') }}" target="_blank" rel="noopener"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>Preview public feed</a>
+  </header>
+
+  <div class="admin-community__forms">
+    <section class="admin-community__panel">
+      <header><span class="admin-community__panel-icon admin-community__panel-icon--job"><i class="fa-solid fa-briefcase" aria-hidden="true"></i></span><div><small>Opportunity widget</small><h2>Publish a job offer</h2></div></header>
+      {{ form_start(jobForm, {attr: {class: 'admin-community__form'}}) }}
+        {{ form_row(jobForm.title) }}
+        {{ form_row(jobForm.description) }}
+        <div class="admin-community__form-footer">{{ form_row(jobForm.isActive) }}<button type="submit">Publish opportunity <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button></div>
+      {{ form_end(jobForm) }}
+    </section>
+    <section class="admin-community__panel">
+      <header><span class="admin-community__panel-icon admin-community__panel-icon--event"><i class="fa-solid fa-calendar-days" aria-hidden="true"></i></span><div><small>Agenda widget</small><h2>Create an event</h2></div></header>
+      {{ form_start(eventForm, {attr: {class: 'admin-community__form'}}) }}
+        {{ form_row(eventForm.title) }}
+        {{ form_row(eventForm.description) }}
+        <div class="admin-community__form-grid">{{ form_row(eventForm.startsAt) }}{{ form_row(eventForm.location) }}</div>
+        <div class="admin-community__form-footer">{{ form_row(eventForm.isPublished) }}<button type="submit">Add to agenda <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button></div>
+      {{ form_end(eventForm) }}
+    </section>
+  </div>
+
+  <section class="admin-community__panel admin-community__panel--wide" id="job-list">
+    <header><span class="admin-community__panel-icon admin-community__panel-icon--job"><i class="fa-solid fa-list-check" aria-hidden="true"></i></span><div><small>Recruitment</small><h2>Offers &amp; applications</h2></div><span class="admin-community__count">{{ applications|length }} CV</span></header>
+    <div class="admin-community__table-wrap"><table><thead><tr><th>Offer</th><th>Status</th><th>Applications</th><th>Published</th><th>Action</th></tr></thead><tbody>
+      {% for offer in jobOffers %}<tr><td><strong>{{ offer.title }}</strong></td><td><span class="admin-community__status {{ offer.active ? 'is-live' : '' }}">{{ offer.active ? 'Live' : 'Closed' }}</span></td><td>{{ offer.applications|length }}</td><td>{{ offer.createdAt|date('d M Y') }}</td><td><form method="post" action="{{ path('admin_community_job_toggle', {id: offer.id}) }}"><input type="hidden" name="_token" value="{{ csrf_token('toggle_job_' ~ offer.id) }}"><button class="admin-community__table-action">{{ offer.active ? 'Close' : 'Publish' }}</button></form></td></tr>{% else %}<tr><td colspan="5">No job offer yet.</td></tr>{% endfor %}
+    </tbody></table></div>
+    {% if applications %}<div class="admin-community__sublist"><h3>Recent CV submissions</h3>{% for application in applications %}<article><span class="admin-community__avatar">{{ application.applicant.userName|first|upper }}</span><div><strong>{{ application.applicant.userName }}</strong><small>{{ application.applicant.email }} · {{ application.jobOffer.title }}</small></div><time>{{ application.createdAt|date('d M Y, H:i') }}</time><a href="{{ path('admin_community_application_cv', {id: application.id}) }}"><i class="fa-solid fa-download" aria-hidden="true"></i>Download CV</a></article>{% endfor %}</div>{% endif %}
+  </section>
+
+  <section class="admin-community__panel admin-community__panel--wide" id="event-list">
+    <header><span class="admin-community__panel-icon admin-community__panel-icon--event"><i class="fa-solid fa-calendar-check" aria-hidden="true"></i></span><div><small>Community agenda</small><h2>Events &amp; members</h2></div><span class="admin-community__count">{{ registrations|length }} registrations</span></header>
+    <div class="admin-community__table-wrap"><table><thead><tr><th>Event</th><th>Date</th><th>Location</th><th>Members</th><th>Action</th></tr></thead><tbody>
+      {% for event in events %}<tr><td><strong>{{ event.title }}</strong><span class="admin-community__status {{ event.published ? 'is-live' : '' }}">{{ event.published ? 'Published' : 'Hidden' }}</span></td><td>{{ event.startsAt|date('d M Y, H:i') }}</td><td>{{ event.location ?: 'Online / TBC' }}</td><td>{{ event.registrations|length }}</td><td><form method="post" action="{{ path('admin_community_event_toggle', {id: event.id}) }}"><input type="hidden" name="_token" value="{{ csrf_token('toggle_event_' ~ event.id) }}"><button class="admin-community__table-action">{{ event.published ? 'Hide' : 'Publish' }}</button></form></td></tr>{% else %}<tr><td colspan="5">No event yet.</td></tr>{% endfor %}
+    </tbody></table></div>
+    {% if registrations %}<div class="admin-community__sublist"><h3>Recent registrations</h3>{% for registration in registrations %}<article><span class="admin-community__avatar"><i class="fa-solid fa-user-check" aria-hidden="true"></i></span><div><strong>{{ registration.member.userName }}</strong><small>{{ registration.member.email }} · {{ registration.communityEvent.title }}</small></div><time>{{ registration.registeredAt|date('d M Y, H:i') }}</time></article>{% endfor %}</div>{% endif %}
+  </section>
+</section>
+{% endblock %}

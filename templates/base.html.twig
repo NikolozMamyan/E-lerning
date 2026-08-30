@@ -3,16 +3,36 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}Tableau de bord{% endblock %}</title>
+  {% set seoTitle %}{% block title %}Les Consultants E-learning{% endblock %}{% endset %}
+  {% set seoDescription %}{% block meta_description %}Professional digital learning for compliance, risk and regulated teams in Luxembourg.{% endblock %}{% endset %}
+  {% set seoRobots %}{% block meta_robots %}noindex, nofollow{% endblock %}{% endset %}
+  {% set seoCanonical %}{% block canonical_url %}{{ absolute_url(app.request.pathInfo) }}{% endblock %}{% endset %}
+  {% set seoImage %}{% block meta_image %}{{ absolute_url(asset('images/logo.png')) }}{% endblock %}{% endset %}
+  {% set seoType %}{% block meta_type %}website{% endblock %}{% endset %}
+  <title>{{ seoTitle|striptags|trim }}</title>
+  <meta name="description" content="{{ seoDescription|striptags|trim }}">
+  <meta name="robots" content="{{ seoRobots|striptags|trim }}">
+  <link rel="canonical" href="{{ seoCanonical|striptags|trim }}">
+  <meta property="og:site_name" content="Les Consultants E-learning">
+  <meta property="og:type" content="{{ seoType|striptags|trim }}">
+  <meta property="og:title" content="{{ seoTitle|striptags|trim }}">
+  <meta property="og:description" content="{{ seoDescription|striptags|trim }}">
+  <meta property="og:url" content="{{ seoCanonical|striptags|trim }}">
+  <meta property="og:image" content="{{ seoImage|striptags|trim }}">
+  <meta property="og:locale" content="en_LU">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{{ seoTitle|striptags|trim }}">
+  <meta name="twitter:description" content="{{ seoDescription|striptags|trim }}">
+  <meta name="twitter:image" content="{{ seoImage|striptags|trim }}">
   <link rel="icon" href="/build/images/favicon.png" type="image/x-icon">
-  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;600;700&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <!-- Font Awesome -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <!-- ✅ AJOUTE CES CDN AVANT TON SCRIPT -->
 <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
 <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
 
+  {% block structured_data %}{% endblock %}
 
   {% block stylesheets %}{% endblock %}
   {% block javascripts %}
@@ -20,7 +40,7 @@
   {% endblock %}
 </head>
 <body>
-<div class="wrapper-layout">
+<div class="wrapper-layout {{ not app.user ? 'wrapper-layout--guest' : '' }}">
 {% for type, messages in app.flashes %}
     {% for message in messages %}
         <div class="flash flash-{{ type }}">
@@ -35,13 +55,13 @@
         </div>
     {% endfor %}
 {% endfor %}
-{% if "ROLE_ADMIN" in app.user.roles %}
+{% if app.user and "ROLE_ADMIN" in app.user.roles %}
     {% include 'admin/components/sidebar.html.twig' %}
     <div class="overlay" id="overlay"></div>
-{% elseif "ROLE_EMPLOYEE" in app.user.roles %}
+{% elseif app.user and "ROLE_EMPLOYEE" in app.user.roles %}
     {% include 'components/sidebar.html.twig' %}
     <div class="overlay" id="overlay"></div>
-    {% elseif "ROLE_COMPANY" in app.user.roles %}
+    {% elseif app.user and "ROLE_COMPANY" in app.user.roles %}
     {% include 'company/components/sidebar.html.twig' %}
     <div class="overlay" id="overlay"></div>
 {% endif %}

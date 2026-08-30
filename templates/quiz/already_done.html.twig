@@ -1,200 +1,99 @@
 {% extends 'base.html.twig' %}
 
+{% block title %}Quiz Attempt - {{ course.title }}{% endblock %}
+
 {% block body %}
-<style>
-.quiz-already-completed {
-  background: white;
-  border-radius: 20px;
-  padding: 3rem 2rem;
-  text-align: center;
-  max-width: 500px;
-  margin: 2rem auto;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-  border: 2px solid #10b981;
-  position: relative;
-  overflow: hidden;
-}
-
-.quiz-already-completed::before {
-  content: '';
-  position: absolute;
-  inset: 0 0 auto 0;
-  height: 4px;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-}
-
-.completion-icon-container {
-  margin-bottom: 2rem;
-}
-
-.completion-icon {
-  width: 80px;
-  height: 80px;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto;
-  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
-  animation: pulseSuccess 2s infinite;
-}
-
-.completion-icon svg {
-  width: 40px;
-  height: 40px;
-  fill: white;
-}
-
-@keyframes pulseSuccess {
-  0%, 100% {
-    transform: scale(1);
-    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
-  }
-  50% {
-    transform: scale(1.05);
-    box-shadow: 0 12px 35px rgba(16, 185, 129, 0.4);
-  }
-}
-
-.completion-title {
-  font-size: 1.8rem;
-  font-weight: 700;
-  color: #1f2937;
-  margin: 0 0 1rem;
-  line-height: 1.2;
-}
-
-.completion-score {
-  font-size: 1.3rem;
-  color: #6b7280;
-  margin-bottom: 0.5rem;
-}
-
-.completion-score strong {
-  color: #10b981;
-  font-weight: 700;
-  font-size: 1.4rem;
-}
-
-.completion-actions {
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
-  flex-wrap: wrap;
-  margin-top: 2rem;
-}
-
-.dashboard-link {
-  background: transparent;
-  color: #10b981;
-  border: 2px solid #10b981;
-  padding: 1rem 1.5rem;
-  border-radius: 12px;
-  font-size: 1rem;
-  font-weight: 600;
-  text-decoration: none;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  min-width: 120px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.dashboard-link:hover {
-  background: #10b981;
-  color: white;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
-}
-
-.retake-button {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  color: white;
-  border: none;
-  padding: 1rem 1.5rem;
-  border-radius: 12px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  min-width: 180px;
-  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.retake-button:hover {
-  background: linear-gradient(135deg, #059669 0%, #047857 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
-}
-
-@media (max-width: 768px) {
-  .quiz-already-completed {
-    margin: 1rem;
-    padding: 2rem 1.5rem;
-  }
-
-  .completion-title {
-    font-size: 1.5rem;
-  }
-
-  .completion-score {
-    font-size: 1.2rem;
-  }
-
-  .completion-score strong {
-    font-size: 1.3rem;
-  }
-
-  .completion-actions {
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .dashboard-link,
-  .retake-button {
-    width: 100%;
-    max-width: 250px;
-  }
-}
-</style>
-
 {% if attempt %}
-<div class="quiz-already-completed">
-  <div class="completion-icon-container">
-    <div class="completion-icon">
-      <svg viewBox="0 0 24 24">
-        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
-      </svg>
+  <div class="quiz-outcome quiz-outcome--{{ attempt.passed ? 'success' : 'retry' }}">
+    <a href="{{ path('app_course_show', {id: course.id}) }}" class="quiz-outcome__back">
+      <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+      Back to course
+    </a>
+
+    <section class="quiz-outcome__card">
+      <div class="quiz-outcome__visual">
+        <span class="quiz-outcome__visual-label">Previous attempt</span>
+        <div class="quiz-outcome__icon">
+          <i class="fa-solid {{ attempt.passed ? 'fa-award' : 'fa-lock' }}" aria-hidden="true"></i>
+        </div>
+        <div class="quiz-outcome__score-ring" style="--score-value: {{ attempt.score }}">
+          <div><strong>{{ attempt.score }}%</strong><span>Recorded score</span></div>
+        </div>
+        <div class="quiz-outcome__visual-status">
+          <i class="fa-solid {{ attempt.passed ? 'fa-circle-check' : 'fa-circle-info' }}" aria-hidden="true"></i>
+          <span>{{ attempt.passed ? 'Quiz already passed' : 'Attempt currently locked' }}</span>
+        </div>
+      </div>
+
+      <div class="quiz-outcome__content">
+        <span class="quiz-outcome__eyebrow">
+          <i class="fa-solid {{ attempt.passed ? 'fa-shield-halved' : 'fa-clock-rotate-left' }}" aria-hidden="true"></i>
+          Your assessment history
+        </span>
+        <h1>{{ attempt.passed ? 'You already completed this quiz.' : 'Your previous attempt is recorded.' }}</h1>
+        <p>
+          {% if attempt.passed %}
+            You passed the final assessment for <strong>{{ course.title }}</strong>. There is no need to retake it — your achievement is safely stored.
+          {% else %}
+            Your last score for <strong>{{ course.title }}</strong> was below the 80% pass mark. A new attempt must be unlocked before trying again.
+          {% endif %}
+        </p>
+
+        <div class="quiz-outcome__details">
+          <div><span>Recorded score</span><strong>{{ attempt.score }}%</strong></div>
+          <div><span>Pass mark</span><strong>80%</strong></div>
+          <div><span>Status</span><strong>{{ attempt.passed ? 'Passed' : 'Locked' }}</strong></div>
+        </div>
+
+        {% if attempt.passed %}
+          <div class="quiz-outcome__notice quiz-outcome__notice--success">
+            <span><i class="fa-solid fa-certificate" aria-hidden="true"></i></span>
+            <div><strong>Certificate available</strong><p>Your verified certificate can be downloaded from your collection.</p></div>
+          </div>
+        {% else %}
+          <div class="quiz-outcome__notice quiz-outcome__notice--retry">
+            <span><i class="fa-solid fa-rotate-right" aria-hidden="true"></i></span>
+            <div><strong>Ready for another try?</strong><p>Review the lessons, then unlock one new attempt for this course.</p></div>
+          </div>
+        {% endif %}
+
+        <div class="quiz-outcome__actions">
+          <a href="{{ path('app_course_show', {id: course.id}) }}" class="quiz-outcome__button quiz-outcome__button--secondary">
+            <i class="fa-solid fa-book-open" aria-hidden="true"></i>
+            Review course
+          </a>
+
+          {% if attempt.passed %}
+            <a href="{{ path('app_certificates') }}" class="quiz-outcome__button quiz-outcome__button--primary">
+              View certificate
+              <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+            </a>
+          {% else %}
+            <form method="post" action="{{ path('app_course_checkout', {id: course.id}) }}">
+              <button type="submit" class="quiz-outcome__button quiz-outcome__button--primary">
+                Unlock new attempt
+                <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+              </button>
+            </form>
+          {% endif %}
+        </div>
+      </div>
+    </section>
+
+    <div class="quiz-outcome__footer-note">
+      <i class="fa-solid fa-lock" aria-hidden="true"></i>
+      <span>Your result is securely stored in your learning history.</span>
+      <a href="{{ path('app_progress') }}">View progress <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
     </div>
   </div>
-
-  <h2 class="completion-title">You've Got This One Covered!</h2>
-  <p class="completion-score">
-    {% if attempt.passed %}
-      You've already passed this quiz with a <strong>{{ attempt.score }}%</strong> score!
-    {% elseif attempt.score < 100 %}
-      Your last attempt scored <strong>{{ attempt.score }}%</strong>.
-    {% else %}
-      You've already aced this quiz with a <strong>{{ attempt.score }}%</strong> score!
-    {% endif %}
-  </p>
-
-  <div class="completion-actions">
-    <a href="{{ path('app_dashboard') }}" class="dashboard-link">Dashboard</a>
-    {% if attempt.passed %}
-      <a href="{{ path('app_certificates') }}" class="retake-button">Get Certificate</a>
-    {% else %}
-      <form method="post" action="{{ path('app_course_checkout', { id: course.id }) }}" style="display: inline;">
-        <button type="submit" class="retake-button">Unlock New Attempt</button>
-      </form>
-    {% endif %}
+{% else %}
+  <div class="quiz-outcome quiz-outcome--retry">
+    <section class="quiz-outcome__missing">
+      <span><i class="fa-regular fa-folder-open" aria-hidden="true"></i></span>
+      <h1>No quiz attempt found</h1>
+      <p>We could not find a previous result for this course.</p>
+      <a href="{{ path('app_course_show', {id: course.id}) }}">Back to course <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+    </section>
   </div>
-</div>
 {% endif %}
 {% endblock %}

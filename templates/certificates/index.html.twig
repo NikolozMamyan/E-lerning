@@ -1,182 +1,203 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Available Certificates{% endblock %}
+{% block title %}My Certificates{% endblock %}
+
+{% block stylesheets %}
+  {{ parent() }}
+  <link rel="stylesheet" href="{{ asset('styles/certificatePage.css') }}">
+{% endblock %}
 
 {% block body %}
+<div class="certificates-page" data-certificates-page>
+  <header class="certificates-page__hero">
+    <div class="certificates-page__hero-copy">
+      <span class="certificates-page__eyebrow">
+        <i class="fa-solid fa-award" aria-hidden="true"></i>
+        Learning achievements
+      </span>
+      <h1>My certificates</h1>
+      <p>Keep every achievement in one place, review your results and download your official completion certificates.</p>
 
-{% if userAttempts is not empty %}
-    {% for certificate in userAttempts %}
-        <div class="certificate-card" style="
-            background: var(--white);
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            padding: 2rem;
-            margin: 1rem 0;
-            border-left: 4px solid {{ certificate.passed ? 'var(--green)' : 'var(--teal)' }};
-        ">
-            <div class="certificate-header" style="
-                display: flex;
-                justify-content: space-between;
-                align-items: flex-start;
-                margin-bottom: 1.5rem;
-                flex-wrap: wrap;
-                gap: 1rem;
-            ">
-                <div class="user-info">
-                    <h3 style="
-                        color: var(--black);
-                        margin: 0 0 0.5rem 0;
-                        font-size: 1.25rem;
-                        font-weight: 600;
-                    ">{{ certificate.user.username }}</h3>
-                </div>
-                
-                <div class="status-badge-certif" style="
-                    background: {{ certificate.passed ? 'var(--green)' : 'red' }};
-                    color: var(--white);
-                    padding: 0.5rem 1rem;
-                    border-radius: var(--radius);
-                    font-size: 0.85rem;
-                    font-weight: 500;
-                ">
-                    {{ certificate.passed ? 'Passed ✓' : 'Failed ✗' }}
-                </div>
-            </div>
-
-            <div class="course-info" style="
-                background: var(--mint);
-                padding: 1rem;
-                border-radius: var(--radius);
-                margin-bottom: 1.5rem;
-            ">
-                <h4 style="
-                    color: var(--black);
-                    margin: 0 0 0.5rem 0;
-                    font-size: 1.1rem;
-                ">Course</h4>
-                <p style="
-                    color: var(--grey);
-                    margin: 0;
-                    font-size: 0.9rem;
-                ">{{ certificate.course.title ?? 'Title not available' }}</p>
-                {% if certificate.course.description %}
-                <p style="
-                    color: var(--grey);
-                    margin: 0.5rem 0 0 0;
-                    font-size: 0.85rem;
-                ">{{ certificate.course.description }}</p>
-                {% endif %}
-            </div>
-
-            <div class="certificate-details" style="
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                gap: 1rem;
-            ">
-                <div class="score-section">
-                    <label style="
-                        color: var(--grey);
-                        font-size: 0.8rem;
-                        text-transform: uppercase;
-                        font-weight: 500;
-                        display: block;
-                        margin-bottom: 0.25rem;
-                    ">Score achieved</label>
-                    <div style="
-                        color: var(--black);
-                        font-size: 1.5rem;
-                        font-weight: 600;
-                    ">{{ certificate.score }}/100</div>
-                    <div style="
-                        width: 100%;
-                        height: 6px;
-                        background: var(--mint);
-                        border-radius: 3px;
-                        margin-top: 0.5rem;
-                        overflow: hidden;
-                    ">
-                        <div style="
-                            width: {{ certificate.score }}%;
-                            height: 100%;
-                            background: {{ certificate.passed ? 'var(--green)' : 'var(--teal)' }};
-                            border-radius: 3px;
-                            transition: width 0.3s ease;
-                        "></div>
-                    </div>
-                </div>
-
-                <div class="date-section">
-                    <label style="
-                        color: var(--grey);
-                        font-size: 0.8rem;
-                        text-transform: uppercase;
-                        font-weight: 500;
-                        display: block;
-                        margin-bottom: 0.25rem;
-                    ">Date taken</label>
-                    <div style="
-                        color: var(--black);
-                        font-size: 1.1rem;
-                        font-weight: 500;
-                    ">{{ certificate.createdAt|date('M d, Y at H:i') }}</div>
-                </div>
-
-                <div class="id-section">
-                    <label style="
-                        color: var(--grey);
-                        font-size: 0.8rem;
-                        text-transform: uppercase;
-                        font-weight: 500;
-                        display: block;
-                        margin-bottom: 0.25rem;
-                    ">Certificate ID</label>
-                    <div style="
-                        color: var(--black);
-                        font-size: 1.1rem;
-                        font-weight: 500;
-                        font-family: monospace;
-                    ">#{{ certificate.id }}</div>
-                </div>
-            </div>
-
-            {% if certificate.passed %}
-            <div style="
-                margin-top: 1.5rem;
-                padding-top: 1.5rem;
-                border-top: 1px solid var(--mint);
-                text-align: center;
-            ">
-<a href="{{ path('generate_certificate', { id: certificate.id }) }}"
-   style="
-        background: var(--green);
-        color: var(--white);
-        border: none;
-        padding: 0.75rem 1.5rem;
-        border-radius: var(--radius);
-        font-weight: 500;
-        cursor: pointer;
-        transition: background 0.2s ease;
-    "
-   onmouseover="this.style.background='var(--teal)'"
-   onmouseout="this.style.background='var(--green)'">
-    📥 Download Certificate
-</a>
-
-
-            </div>
-            {% endif %}
-        </div>
-    {% endfor %}
-{% else %}
-    <div style="
-        background: var(--mint);
-        padding: 2rem;
-        border-radius: var(--radius);
-        text-align: center;
-        color: var(--grey);
-    ">
-        <p style="margin: 0; font-size: 1.1rem;">No certificates available at the moment.</p>
+      <div class="certificates-page__hero-meta">
+        <span><i class="fa-solid fa-shield-halved" aria-hidden="true"></i>Verified completion</span>
+        <span><i class="fa-regular fa-file-pdf" aria-hidden="true"></i>PDF download</span>
+        <span><i class="fa-solid fa-infinity" aria-hidden="true"></i>Available anytime</span>
+      </div>
     </div>
-{% endif %}
 
+    <div class="certificates-page__featured">
+      {% if featuredAttempt %}
+        <div class="certificates-page__featured-head">
+          <span>Latest achievement</span>
+          <i class="fa-solid fa-trophy" aria-hidden="true"></i>
+        </div>
+        <strong>{{ featuredAttempt.course.title }}</strong>
+        <div class="certificates-page__featured-footer">
+          <span>{{ featuredAttempt.createdAt|date('d M Y') }}</span>
+          <span>{{ featuredAttempt.score }}%</span>
+        </div>
+      {% else %}
+        <span class="certificates-page__featured-icon"><i class="fa-solid fa-medal" aria-hidden="true"></i></span>
+        <strong>Your next achievement starts here</strong>
+        <a href="{{ path('app_courses') }}">Explore courses <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+      {% endif %}
+    </div>
+  </header>
+
+  <section class="certificates-page__stats" aria-label="Certificate summary">
+    <article class="certificates-page__stat">
+      <span class="certificates-page__stat-icon certificates-page__stat-icon--earned"><i class="fa-solid fa-award" aria-hidden="true"></i></span>
+      <div><strong>{{ certificateStats.earned }}</strong><span>Certificates earned</span></div>
+      <small>Ready to download</small>
+    </article>
+    <article class="certificates-page__stat">
+      <span class="certificates-page__stat-icon certificates-page__stat-icon--attempts"><i class="fa-solid fa-list-check" aria-hidden="true"></i></span>
+      <div><strong>{{ certificateStats.attempts }}</strong><span>Quiz attempts</span></div>
+      <small>Complete history</small>
+    </article>
+    <article class="certificates-page__stat">
+      <span class="certificates-page__stat-icon certificates-page__stat-icon--score"><i class="fa-solid fa-chart-line" aria-hidden="true"></i></span>
+      <div><strong>{{ certificateStats.averageScore }}%</strong><span>Average score</span></div>
+      <small>Across all attempts</small>
+    </article>
+  </section>
+
+  <section class="certificates-page__collection">
+    <div class="certificates-page__collection-head">
+      <div>
+        <span>Your learning record</span>
+        <h2>Achievements and attempts</h2>
+      </div>
+      <span class="certificates-page__filter-result" id="certificate-filter-result">{{ userAttempts|length }} result{{ userAttempts|length == 1 ? '' : 's' }}</span>
+    </div>
+
+    <div class="certificates-page__toolbar" role="group" aria-label="Filter certificates">
+      <button type="button" class="is-active" data-certificate-filter="all">
+        <i class="fa-solid fa-layer-group" aria-hidden="true"></i>All
+        <span>{{ certificateStats.attempts }}</span>
+      </button>
+      <button type="button" data-certificate-filter="earned">
+        <i class="fa-solid fa-circle-check" aria-hidden="true"></i>Earned
+        <span>{{ certificateStats.earned }}</span>
+      </button>
+      <button type="button" data-certificate-filter="retry">
+        <i class="fa-solid fa-rotate-right" aria-hidden="true"></i>Needs retry
+        <span>{{ certificateStats.attempts - certificateStats.earned }}</span>
+      </button>
+    </div>
+
+    {% if userAttempts is not empty %}
+      <div class="certificates-page__grid" id="certificate-grid">
+        {% for attempt in userAttempts %}
+          <article class="certificate-item {{ attempt.passed ? 'is-earned' : 'needs-retry' }}" data-certificate-status="{{ attempt.passed ? 'earned' : 'retry' }}">
+            <div class="certificate-item__visual">
+              {% if attempt.course.thumb %}
+                <img src="{{ asset('uploads/courses/' ~ attempt.course.thumb) }}" alt="" loading="lazy">
+              {% else %}
+                <div class="certificate-item__placeholder"><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i></div>
+              {% endif %}
+              <div class="certificate-item__shade"></div>
+              <span class="certificate-item__seal"><i class="fa-solid {{ attempt.passed ? 'fa-award' : 'fa-lock' }}" aria-hidden="true"></i></span>
+              <span class="certificate-item__status">
+                <i class="fa-solid {{ attempt.passed ? 'fa-circle-check' : 'fa-rotate-right' }}" aria-hidden="true"></i>
+                {{ attempt.passed ? 'Certificate earned' : 'Retry available' }}
+              </span>
+              <div class="certificate-item__visual-copy">
+                <span>{{ attempt.passed ? 'Certificate of completion' : 'Quiz attempt' }}</span>
+                <strong>{{ app.user.username }}</strong>
+              </div>
+            </div>
+
+            <div class="certificate-item__body">
+              <div class="certificate-item__meta">
+                {% if attempt.course.category %}
+                  <span>{{ attempt.course.category.name }}</span>
+                {% else %}
+                  <span>Professional training</span>
+                {% endif %}
+                <small><i class="fa-regular fa-calendar" aria-hidden="true"></i>{{ attempt.createdAt|date('d M Y') }}</small>
+              </div>
+
+              <h3>{{ attempt.course.title }}</h3>
+              <p>{{ attempt.course.description|striptags|slice(0, 125) }}{% if attempt.course.description|striptags|length > 125 %}&hellip;{% endif %}</p>
+
+              <div class="certificate-item__score">
+                <div><span>Score achieved</span><strong>{{ attempt.score }}%</strong></div>
+                <div class="certificate-item__score-bar" role="progressbar" aria-label="Quiz score" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ attempt.score }}">
+                  <span style="width: {{ attempt.score }}%"></span>
+                </div>
+              </div>
+
+              <div class="certificate-item__details">
+                <span><small>Attempt</small><strong>#{{ attempt.id }}</strong></span>
+                <span><small>Result</small><strong>{{ attempt.passed ? 'Passed' : 'Not passed' }}</strong></span>
+                <span><small>Format</small><strong>{{ attempt.passed ? 'PDF' : 'Online quiz' }}</strong></span>
+              </div>
+
+              <div class="certificate-item__actions">
+                <a href="{{ path('app_course_show', {id: attempt.course.id}) }}" class="certificate-item__button certificate-item__button--secondary">
+                  <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+                  View course
+                </a>
+                {% if attempt.passed %}
+                  <a href="{{ path('generate_certificate', {id: attempt.id}) }}" class="certificate-item__button certificate-item__button--primary">
+                    <i class="fa-solid fa-download" aria-hidden="true"></i>
+                    Download PDF
+                  </a>
+                {% else %}
+                  <a href="{{ path('app_course_show', {id: attempt.course.id}) }}" class="certificate-item__button certificate-item__button--retry">
+                    <i class="fa-solid fa-rotate-right" aria-hidden="true"></i>
+                    Review training
+                  </a>
+                {% endif %}
+              </div>
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+
+      <div class="certificates-page__no-match" id="certificate-no-match" hidden>
+        <span><i class="fa-regular fa-folder-open" aria-hidden="true"></i></span>
+        <h3>No results in this view</h3>
+        <p>Choose another filter to see your learning history.</p>
+      </div>
+    {% else %}
+      <div class="certificates-page__empty">
+        <span><i class="fa-solid fa-award" aria-hidden="true"></i></span>
+        <h2>Your certificate collection is waiting</h2>
+        <p>Complete a course and pass its final quiz to unlock your first downloadable certificate.</p>
+        <a href="{{ path('app_courses') }}">Explore available courses <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+      </div>
+    {% endif %}
+  </section>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const page = document.querySelector('[data-certificates-page]');
+  if (!page) return;
+
+  const buttons = Array.from(page.querySelectorAll('[data-certificate-filter]'));
+  const cards = Array.from(page.querySelectorAll('[data-certificate-status]'));
+  const result = page.querySelector('#certificate-filter-result');
+  const noMatch = page.querySelector('#certificate-no-match');
+
+  buttons.forEach(button => {
+    button.addEventListener('click', () => {
+      const filter = button.dataset.certificateFilter;
+      let visibleCount = 0;
+
+      buttons.forEach(item => item.classList.toggle('is-active', item === button));
+      cards.forEach(card => {
+        const isVisible = filter === 'all' || card.dataset.certificateStatus === filter;
+        card.hidden = !isVisible;
+        if (isVisible) visibleCount += 1;
+      });
+
+      if (result) result.textContent = `${visibleCount} result${visibleCount === 1 ? '' : 's'}`;
+      if (noMatch) noMatch.hidden = visibleCount !== 0;
+    });
+  });
+});
+</script>
 {% endblock %}

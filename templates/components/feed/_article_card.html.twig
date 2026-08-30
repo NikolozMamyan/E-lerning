@@ -1,337 +1,150 @@
-{# templates/feed/_article_card.html.twig #}
-<style>
-.preview-card {
-    display: flex;
-    gap: 10px;
-    border: 1px solid #e4e6eb;
-    border-radius: 8px;
-    padding: 8px;
-    margin-top: 8px;
-    text-decoration: none;
-    color: inherit;
-    background: #fff;
-    max-width: 100%;
-}
-
-.preview-card:hover {
-    background: #f5f6f7;
-}
-
-.preview-card img {
-    width: 80px;
-    height: 80px;
-    object-fit: cover;
-    border-radius: 6px;
-    flex-shrink: 0;
-}
-
-.preview-content {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    overflow: hidden;
-}
-
-.preview-content strong {
-    font-size: 14px;
-    line-height: 1.2;
-    margin-bottom: 4px;
-
-    /* 1 ligne max */
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.preview-content p {
-    font-size: 13px;
-    color: #555;
-    margin: 0 0 4px 0;
-
-    /* 2 lignes max */
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
-
-.preview-content small {
-    font-size: 12px;
-    color: #888;
-    text-transform: lowercase;
-}
-/* ===============================
-   COMMENT ACTIONS (EDIT / DELETE)
-   =============================== */
-
-.comment-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-}
-
-.comment-actions {
-    display: flex;
-    gap: 6px;
-}
-
-/* Boutons icônes */
-.comment-actions button {
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    padding: 6px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    color: #6b7280; /* gris doux */
-    font-size: 13px;
-
-    transition: background 0.2s ease, color 0.2s ease, transform 0.15s ease;
-}
-
-/* Hover général */
-.comment-actions button:hover {
-    background: #f3f4f6;
-    transform: scale(1.1);
-}
-
-/* Icône edit */
-.edit-comment-btn:hover {
-    color: #2563eb; /* bleu */
-    background: rgba(37, 99, 235, 0.12);
-}
-
-/* Icône delete */
-.delete-comment-btn:hover {
-    color: #dc2626; /* rouge */
-    background: rgba(220, 38, 38, 0.12);
-}
-
-/* Active (clic) */
-.comment-actions button:active {
-    transform: scale(0.95);
-}
-
-/* Responsive (mobile) */
-@media (max-width: 480px) {
-    .comment-actions button {
-        padding: 8px;
-        font-size: 14px;
-    }
-}
-/* ===============================
-   COMMENT LIKE (heart + count)
-   =============================== */
-.comment-like-row{
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-top: 6px;
-    justify-content:flex-end;
-}
-
-.comment-like-btn{
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    padding: 6px;
-    border-radius: 50%;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    color: #6b7280;
-    transition: background 0.2s ease, transform 0.15s ease, color 0.2s ease;
-    font-size: 14px;
-}
-
-.comment-like-btn:hover{
-    background: #f3f4f6;
-    transform: scale(1.08);
-}
-
-.comment-like-btn.active{
-    color: #e11d48; /* rose/rouge */
-}
-
-.comment-like-btn:disabled{
-    cursor: not-allowed;
-    opacity: .5;
-    transform: none;
-}
-
-.comment-like-count{
-    font-size: 12px;
-    color: #6b7280;
-    min-width: 10px;
-}
-
-</style>
-<article class="article-card" id="article-{{ article.id }}">
-    {# HEADER #}
-    <div class="article-header">
-        <div class="user-info">
-            <div class="user-avatar">
- <img class="user-avatar"
-     src="{{ asset(article.author.avatar ? 'uploads/avatars/' ~ article.author.avatar : 'images/User.svg') }}">
-
-
-            </div>
-            <div class="user-details">
-                <span class="username">
-    {# User-{{ article.createdAt|date('Ymd') }}-{{ article.author.id }} USER NAME #}
-</span>
-
-                <span class="date">
-                    <i class="fa-regular fa-clock"></i>
-                    {{ article.createdAt|date('d/m/Y \\a\\t H:i') }}
-                </span>
-            </div>
-        </div>
-
-        {% if app.user and app.user == article.author %}
-            <div class="article-menu">
-                <a href="{{ path('article_edit', {id: article.id}) }}"
-                   class="btn-icon"
-                   title="Edit">
-                    <i class="fa-solid fa-pen"></i>
-                </a>
-                <a href="{{ path('article_delete', {id: article.id}) }}"
-                   class="btn-icon danger"
-                   title="Delete"
-                   onclick="return confirm('Are you sure you want to delete this article?');">
-                    <i class="fa-solid fa-trash"></i>
-                </a>
-            </div>
-        {% endif %}
-    </div>
-
-    {# CONTENT #}
-    <div class="article-content">
-        <h3>{{ article.titre }}</h3>
-<div class="article-body" id="article-body-{{ article.id }}">
-    {{ article.description|raw }}
-</div>
-<div class="link-preview" id="link-preview-{{ article.id }}"></div>
-
-<button class="see-more-btn" data-id="{{ article.id }}" type="button">
-    See more
-</button>
-
-    </div>
-
-    {% if article.image %}
-        <img src="/uploads/articles/{{ article.image }}"
-             class="article-image"
-             alt="{{ article.titre }}"
-             loading="lazy">
-    {% endif %}
-    {% if article.video %}
-    <video controls style="max-width:100%; border-radius:10px;">
-        <source src="{{ asset('uploads/videos/' ~ article.video) }}" type="video/mp4">
-        Your browser does not support video.
-    </video>
-{% endif %}
-
-
-    {# ACTIONS #}
-    <div class="article-actions">
-        <button class="btn-action like-btn {{ app.user and article.isLikedByUser(app.user) ? 'active' : '' }}"
-                data-article-id="{{ article.id }}"
-                type="button">
-            <i class="{{ app.user and article.isLikedByUser(app.user) ? 'fa-solid' : 'fa-regular' }} fa-heart"></i>
-            <span class="count"
-                  id="like-count-{{ article.id }}">{{ article.likesCount }}</span>
-        </button>
-
-        <button class="btn-action comment-btn"
-                data-article-id="{{ article.id }}"
-                type="button">
-            <i class="fa-regular fa-comment"></i>
-            <span class="count">{{ article.comments|length }}</span>
-        </button>
-
-        {# <button class="btn-action"
-                type="button">
-            <i class="fa-solid fa-share"></i>
-            <span>Share</span>
-        </button> #}
-    </div>
-
-    {# COMMENTS #}
-    <div class="comments-section"
-         id="comments-{{ article.id }}">
-        {% for comment in article.comments %}
-            <div class="comment" id="comment-{{ comment.id }}">
-                <div class="user-avatar user-avatar--small">
-                           <img  src="{{ asset(comment.author.avatar ? 'uploads/avatars/' ~ comment.author.avatar : 'images/User.svg') }}"
-           class="user-avatar user-avatar--small"
-             alt="Avatar"/>
-                </div>
-                <div class="comment-content">
-                    <div class="comment-header">
-                        {# User-{{ comment.createdAt|date('Ymd') }}-{{ comment.author.id }} USER NAME #}
-{% if app.user and app.user == comment.author %}
-    <div class="comment-actions">
-        <button class="edit-comment-btn"
-                data-id="{{ comment.id }}">
-            <i class="fa-solid fa-pen"></i>
-        </button>
-
-        <button class="delete-comment-btn"
-                data-id="{{ comment.id }}">
-            <i class="fa-solid fa-trash"></i>
-        </button>
-    </div>
-{% endif %}
-
-                        <span class="date">
-                            <i class="fa-regular fa-clock"></i>
-                            {{ comment.createdAt|date('m/d/Y') }}
-                        </span>
-                    </div>
-                    <p class="comment-text" data-id="{{ comment.id }}">
-    {{ comment.content }}
-</p>
-      <div class="comment-like-row">
-        <button class="comment-like-btn {{ app.user and comment.isLikedByUser(app.user) ? 'active' : '' }}"
-                type="button"
-                data-comment-id="{{ comment.id }}"
-                {% if not app.user %}disabled{% endif %}>
-          <i class="{{ app.user and comment.isLikedByUser(app.user) ? 'fa-solid' : 'fa-regular' }} fa-heart"></i>
-        </button>
-
-        <span class="comment-like-count" id="comment-like-count-{{ comment.id }}">
-          {{ comment.likesCount }}
+<article class="article-card" id="article-{{ article.id }}" data-article-id="{{ article.id }}">
+  {% set articleAuthorHasPublicProfile = 'ROLE_ADMIN' not in article.author.roles %}
+  <header class="article-header">
+    <div class="user-info">
+      {% if articleAuthorHasPublicProfile %}
+        <a href="{{ path('app_public_profile', {id: article.author.id}) }}" class="user-avatar user-profile-link" aria-label="View {{ article.author.userName }}'s profile">
+          <img src="{{ asset(article.author.avatar ? 'uploads/avatars/' ~ article.author.avatar : 'images/User.svg') }}" alt="{{ article.author.userName }}">
+        </a>
+      {% else %}
+        <span class="user-avatar"><img src="{{ asset(article.author.avatar ? 'uploads/avatars/' ~ article.author.avatar : 'images/User.svg') }}" alt="{{ article.author.userName }}"></span>
+      {% endif %}
+      <div class="user-details">
+        <span class="user-details__identity">
+          {% if articleAuthorHasPublicProfile %}<a href="{{ path('app_public_profile', {id: article.author.id}) }}" class="username user-profile-link">{{ article.author.userName }}</a>{% else %}<span class="username">{{ article.author.userName }}</span>{% endif %}
+          {% if app.user and app.user == article.author %}<small>You</small>{% endif %}
+        </span>
+        <span class="date">
+          Shared with the community <span aria-hidden="true">&bull;</span> {{ article.createdAt|date('d M Y, H:i') }}
         </span>
       </div>
-                </div>
-            </div>
-        {% endfor %}
-
-        {% if is_granted('ROLE_USER') %}
-            <form class="comment-form"
-                  data-article-id="{{ article.id }}"
-                  action="{{ path('article_comment', {id: article.id}) }}"
-                  method="POST">
-                <div class="user-avatar user-avatar--small">
-                     <img  src="{{ asset(app.user.avatar ? 'uploads/avatars/' ~ app.user.avatar : 'images/User.svg') }}"
-           class="user-avatar user-avatar--small"
-             alt="Avatar"/>
-                </div>
-                <input type="text"
-                       name="comment"
-                       placeholder="Write a comment..."
-                       class="input-field"
-                       required>
-                <button class="btn-send" type="submit">
-                    <i class="fa-solid fa-paper-plane"></i>
-                </button>
-            </form>
-        {% endif %}
     </div>
 
+    {% if app.user and app.user == article.author %}
+      <div class="article-menu" aria-label="Post actions">
+        <a href="{{ path('article_edit', {id: article.id}) }}" class="btn-icon" title="Edit post" aria-label="Edit post">
+          <i class="fa-regular fa-pen-to-square" aria-hidden="true"></i>
+        </a>
+        <a href="{{ path('article_delete', {id: article.id}) }}" class="btn-icon danger" title="Delete post" aria-label="Delete post" onclick="return confirm('Are you sure you want to delete this article?');">
+          <i class="fa-regular fa-trash-can" aria-hidden="true"></i>
+        </a>
+      </div>
+    {% endif %}
+  </header>
+
+  <div class="article-content">
+    <h2><a href="{{ path('app_public_article', {id: article.id, slug: article.slug}) }}">{{ article.titre }}</a></h2>
+    <div class="article-body" id="article-body-{{ article.id }}">
+      {{ article.description|raw }}
+    </div>
+    <div class="link-preview" id="link-preview-{{ article.id }}"></div>
+    <button class="see-more-btn" data-id="{{ article.id }}" type="button">See more</button>
+  </div>
+
+  {% if article.image %}
+    <div class="article-media article-media--image" data-article-id="{{ article.id }}" title="Double-click to like">
+      <img src="{{ asset('uploads/articles/' ~ article.image) }}" class="article-image" alt="{{ article.titre }}" loading="lazy">
+      <span class="article-like-burst" aria-hidden="true"><i class="fa-solid fa-heart"></i></span>
+    </div>
+  {% elseif article.video %}
+    <div class="article-media article-media--video" data-article-id="{{ article.id }}">
+      <video controls preload="metadata">
+        <source src="{{ asset('uploads/videos/' ~ article.video) }}" type="video/mp4">
+        Your browser does not support video.
+      </video>
+    </div>
+  {% endif %}
+
+  <div class="article-engagement">
+    <span class="article-engagement__item">
+      <span class="article-engagement__icon article-engagement__icon--like"><i class="fa-solid fa-heart" aria-hidden="true"></i></span>
+      <strong id="like-summary-{{ article.id }}">{{ article.likesCount }}</strong>
+      <span>reactions</span>
+    </span>
+    <span class="article-engagement__item">
+      <span class="article-engagement__icon article-engagement__icon--comment"><i class="fa-solid fa-comment" aria-hidden="true"></i></span>
+      <strong id="comment-summary-{{ article.id }}">{{ article.comments|length }}</strong>
+      <span>comments</span>
+    </span>
+  </div>
+
+  <div class="article-actions">
+    <button class="btn-action like-btn {{ app.user and article.isLikedByUser(app.user) ? 'active' : '' }}" data-article-id="{{ article.id }}" data-auth-required="{{ app.user ? 'false' : 'true' }}" data-auth-url="{{ path('show_login') }}" type="button" aria-label="{{ app.user ? 'React to this post' : 'Sign in to react to this post' }}" aria-pressed="{{ app.user and article.isLikedByUser(app.user) ? 'true' : 'false' }}">
+      <span class="btn-action__icon"><i class="{{ app.user and article.isLikedByUser(app.user) ? 'fa-solid' : 'fa-regular' }} fa-heart" aria-hidden="true"></i></span>
+      <span class="btn-action__copy"><strong class="btn-action__label">React</strong><small>{{ app.user ? 'Show appreciation' : 'Sign in to react' }}</small></span>
+      <span class="count" id="like-count-{{ article.id }}">{{ article.likesCount }}</span>
+    </button>
+
+    <button class="btn-action comment-btn" data-article-id="{{ article.id }}" type="button" aria-label="Open comments" aria-expanded="false" aria-controls="comments-{{ article.id }}">
+      <span class="btn-action__icon"><i class="fa-regular fa-comment-dots" aria-hidden="true"></i></span>
+      <span class="btn-action__copy"><strong class="btn-action__label">Discuss</strong><small>Join the conversation</small></span>
+      <span class="count" id="comment-count-{{ article.id }}">{{ article.comments|length }}</span>
+    </button>
+
+    <button class="btn-action share-btn" data-article-id="{{ article.id }}" data-share-url="{{ url('app_public_article', {id: article.id, slug: article.slug}) }}" type="button" aria-label="Copy post link">
+      <span class="btn-action__icon"><i class="fa-solid fa-arrow-up-from-bracket" aria-hidden="true"></i></span>
+      <span class="btn-action__copy"><strong class="btn-action__label">Share</strong><small>Copy post link</small></span>
+    </button>
+  </div>
+
+  <div class="comments-section" id="comments-{{ article.id }}">
+    <div class="comments-section__heading">
+      <div class="comments-section__title">
+        <span class="comments-section__icon"><i class="fa-solid fa-comments" aria-hidden="true"></i></span>
+        <div><strong>Conversation</strong><small>Share an idea or ask a question</small></div>
+      </div>
+      <span class="comments-section__count" id="comment-response-count-{{ article.id }}">{{ article.comments|length }}</span>
+    </div>
+
+    {% for comment in article.comments %}
+      {% set commentAuthorHasPublicProfile = 'ROLE_ADMIN' not in comment.author.roles %}
+      <div class="comment" id="comment-{{ comment.id }}">
+        {% if commentAuthorHasPublicProfile %}
+          <a href="{{ path('app_public_profile', {id: comment.author.id}) }}" class="user-avatar user-avatar--small user-profile-link" aria-label="View {{ comment.author.userName }}'s profile">
+            <img src="{{ asset(comment.author.avatar ? 'uploads/avatars/' ~ comment.author.avatar : 'images/User.svg') }}" alt="{{ comment.author.userName }}">
+          </a>
+        {% else %}
+          <span class="user-avatar user-avatar--small"><img src="{{ asset(comment.author.avatar ? 'uploads/avatars/' ~ comment.author.avatar : 'images/User.svg') }}" alt="{{ comment.author.userName }}"></span>
+        {% endif %}
+        <div class="comment-content">
+          <div class="comment-header">
+            <div class="comment-author">
+              {% if commentAuthorHasPublicProfile %}<a href="{{ path('app_public_profile', {id: comment.author.id}) }}" class="comment-author__name user-profile-link">{{ comment.author.userName }}</a>{% else %}<span class="comment-author__name">{{ comment.author.userName }}</span>{% endif %}
+              {% if app.user and app.user == comment.author %}<small class="comment-author__self">You</small>{% endif %}
+              <span class="date"><i class="fa-regular fa-clock" aria-hidden="true"></i>{{ comment.createdAt|date('d M Y') }}</span>
+            </div>
+
+            {% if app.user and app.user == comment.author %}
+              <div class="comment-actions">
+                <button class="edit-comment-btn" type="button" data-id="{{ comment.id }}" title="Edit comment" aria-label="Edit comment"><i class="fa-solid fa-pen" aria-hidden="true"></i></button>
+                <button class="delete-comment-btn" type="button" data-id="{{ comment.id }}" title="Delete comment" aria-label="Delete comment"><i class="fa-regular fa-trash-can" aria-hidden="true"></i></button>
+              </div>
+            {% endif %}
+          </div>
+
+          <p class="comment-text" data-id="{{ comment.id }}">{{ comment.content }}</p>
+          <div class="comment-like-row">
+            <button class="comment-like-btn {{ app.user and comment.isLikedByUser(app.user) ? 'active' : '' }}" type="button" data-comment-id="{{ comment.id }}" data-auth-required="{{ app.user ? 'false' : 'true' }}" data-auth-url="{{ path('show_login') }}" title="{{ app.user ? 'React to this comment' : 'Sign in to react' }}" aria-label="{{ app.user ? 'React to this comment' : 'Sign in to react to this comment' }}" aria-pressed="{{ app.user and comment.isLikedByUser(app.user) ? 'true' : 'false' }}">
+              <i class="{{ app.user and comment.isLikedByUser(app.user) ? 'fa-solid' : 'fa-regular' }} fa-heart" aria-hidden="true"></i>
+              <span class="comment-like-count" id="comment-like-count-{{ comment.id }}">{{ comment.likesCount }}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+
+    {% if is_granted('ROLE_USER') %}
+      <form class="comment-form" data-article-id="{{ article.id }}" action="{{ path('article_comment', {id: article.id}) }}" method="POST">
+        <div class="user-avatar user-avatar--small">
+          <img src="{{ asset(app.user.avatar ? 'uploads/avatars/' ~ app.user.avatar : 'images/User.svg') }}" alt="">
+        </div>
+        <label class="comment-form__field">
+          <span class="sr-only">Write a comment</span>
+          <i class="fa-regular fa-message" aria-hidden="true"></i>
+          <input type="text" name="comment" placeholder="Write a comment..." class="input-field" maxlength="220" required>
+        </label>
+        <button class="btn-send" type="submit" title="Send comment" aria-label="Send comment"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i></button>
+      </form>
+    {% endif %}
+  </div>
 </article>

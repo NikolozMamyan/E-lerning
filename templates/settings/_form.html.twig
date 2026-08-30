@@ -1,25 +1,53 @@
-<form id="ajaxForm" method="post" enctype="multipart/form-data">
-  {{ form_widget(form) }}
-  <div class="form-footer">
-    <button type="submit" class="btn-save">💾 Save</button>
-    <button type="button" class="btn-close">❌ Close</button>
-  </div>
-</form>
+{% set modalContent = {
+  personal: {
+    title: 'Personal information',
+    description: 'Update how your professional profile appears across the platform.',
+    icon: 'fa-regular fa-id-card'
+  },
+  address: {
+    title: 'Address information',
+    description: 'Keep your location and billing details accurate.',
+    icon: 'fa-regular fa-map'
+  },
+  education: {
+    title: 'Educational background',
+    description: 'Add the qualifications that support your learning profile.',
+    icon: 'fa-solid fa-graduation-cap'
+  },
+  avatar: {
+    title: 'Profile photo',
+    description: 'Choose a clear image that helps other learners recognise you.',
+    icon: 'fa-solid fa-camera'
+  }
+} %}
+{% set modal = modalContent[section] %}
 
+<div class="settings-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="settings-modal-title">
+  <header class="settings-modal__header">
+    <span class="settings-modal__icon"><i class="{{ modal.icon }}" aria-hidden="true"></i></span>
+    <div>
+      <small>Account settings</small>
+      <h2 id="settings-modal-title">{{ modal.title }}</h2>
+      <p>{{ modal.description }}</p>
+    </div>
+    <button type="button" class="settings-modal__close" data-modal-close aria-label="Close dialog"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+  </header>
 
-{% if section == 'avatar' %}
-<script>
-  const input = document.querySelector('#ajaxForm input[type="file"]');
-  input.addEventListener('change', e => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = ev => {
-        // mettre à jour l’aperçu de l’avatar directement
-        document.querySelector('#profileAvatar').src = ev.target.result;
-      };
-      reader.readAsDataURL(file);
-    }
-  });
-</script>
-{% endif %}
+  <form id="ajaxForm" method="post" enctype="multipart/form-data">
+    {% if section == 'avatar' %}
+      <div class="settings-upload-preview">
+        <img src="{{ asset(form.vars.data.avatar ? 'uploads/avatars/' ~ form.vars.data.avatar : 'images/User.svg') }}" alt="New profile preview" data-avatar-preview>
+        <span><i class="fa-solid fa-image" aria-hidden="true"></i>JPG, PNG or WEBP</span>
+      </div>
+    {% endif %}
+
+    <div class="settings-form-fields">
+      {{ form_widget(form) }}
+    </div>
+
+    <div class="settings-modal__footer">
+      <button type="button" class="btn-close" data-modal-close>Cancel</button>
+      <button type="submit" class="btn-save"><i class="fa-solid fa-check" aria-hidden="true"></i>Save changes</button>
+    </div>
+  </form>
+</div>

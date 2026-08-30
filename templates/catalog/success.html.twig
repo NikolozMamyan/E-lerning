@@ -1,0 +1,34 @@
+{% extends 'base_auth.html.twig' %}
+
+{% block title %}Payment confirmation | Les Consultants E-learning{% endblock %}
+{% block meta_robots %}noindex, nofollow{% endblock %}
+{% block body_class %}catalog-document{% endblock %}
+
+{% block stylesheets %}
+  {{ parent() }}
+  <link rel="stylesheet" href="{{ asset('styles/catalog.css') }}">
+{% endblock %}
+
+{% block body %}
+<main class="catalog-success">
+  <a href="{{ path('app_landing_page') }}" class="catalog-success__brand"><img src="{{ asset('images/logo.png') }}" alt="Les Consultants"><span>Les Consultants<small>E-learning Luxembourg</small></span></a>
+  <section class="catalog-success__card">
+    <span class="catalog-success__icon"><i class="fa-solid {{ payment.paid ? 'fa-check' : 'fa-clock' }}" aria-hidden="true"></i></span>
+    <span class="catalog-eyebrow">{{ payment.paid ? 'Payment confirmed' : 'Confirmation in progress' }}</span>
+    <h1>{{ payment.paid ? 'Your learning journey starts now.' : 'We are confirming your payment.' }}</h1>
+    <p>{% if payment.paid %}We are creating your learner access. If this is your first purchase, check your inbox for the secure link to choose your password.{% else %}You will receive an email as soon as your learner access is ready. You can safely close this page.{% endif %}</p>
+    {% if payment.courseTitle or payment.amount is not null %}
+      <div class="catalog-success__details">
+        {% if payment.courseTitle %}<span><small>Course</small><strong>{{ payment.courseTitle }}</strong></span>{% endif %}
+        {% if payment.amount is not null %}<span><small>Paid</small><strong>{{ payment.amount|number_format(2, '.', ' ') }} {{ payment.currency }}</strong></span>{% endif %}
+      </div>
+    {% endif %}
+    <div class="catalog-success__steps">
+      <span class="is-done"><i class="fa-solid fa-check" aria-hidden="true"></i><strong>Payment</strong><small>Securely processed</small></span>
+      <span><i class="fa-solid fa-envelope" aria-hidden="true"></i><strong>Activation email</strong><small>Check inbox and spam</small></span>
+      <span><i class="fa-solid fa-play" aria-hidden="true"></i><strong>Start course</strong><small>Learn at your pace</small></span>
+    </div>
+    <div class="catalog-success__actions"><a href="{{ path('show_login') }}" class="catalog-success__primary">Sign in to my account <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a><a href="{{ path('app_public_catalog') }}">Back to catalogue</a></div>
+  </section>
+</main>
+{% endblock %}

@@ -1,914 +1,181 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Abonnement Premium{% endblock %}
-
-{% block stylesheets %}
-    {{ parent() }}
-    <style>
-        :root {
-            --green: #1A6D55;
-            --teal: #0D8383;
-            --black: #071717;
-            --mint: #E7F3F3;
-            --grey: #606060;
-            --light-grey: #8F8F8F;
-            --white: #FFFFFF;
-            --bg: #f4f9f8;
-            --radius: 16px;
-            --radius-sm: 8px;
-            --shadow: 0 4px 12px rgba(7, 23, 23, .08);
-            --shadow-lg: 0 8px 24px rgba(7, 23, 23, .12);
-        }
-
-        body {
-            background-color: var(--bg);
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-            margin: 0;
-            padding: 0;
-        }
-
-        .subscription-container {
-            max-width: 1100px;
-            margin: 0 auto;
-            padding: 40px 20px;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-
-        /* Back link */
-        .back-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 24px;
-            color: var(--teal);
-            text-decoration: none;
-            font-weight: 500;
-            font-size: 0.95rem;
-            transition: all 0.2s ease;
-        }
-
-        .back-link:hover {
-            color: var(--green);
-            gap: 12px;
-        }
-
-        .back-link::before {
-            content: '←';
-            font-size: 1.2rem;
-        }
-
-        /* Layout flex principal */
-        .subscription-content {
-            display: flex;
-            gap:30px;
-            justify-content: start;
-            margin-bottom: 50px;
-        }
-
-        /* Header à gauche */
-
-
-        .subscription-header h1 {
-            color: var(--black);
-            font-size: 3rem;
-            font-weight: 700;
-            margin-bottom: 16px;
-            letter-spacing: -1px;
-            line-height: 1.1;
-        }
-
-        .subscription-header p {
-            color: var(--grey);
-            font-size: 1.15rem;
-            font-weight: 400;
-            line-height: 1.6;
-            margin-bottom: 24px;
-        }
-
-        /* Liste de bénéfices additionnels */
-        .header-benefits {
-            list-style: none;
-            padding: 0;
-            margin: 32px 0 0 0;
-        }
-
-        .header-benefits li {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 16px;
-            color: var(--grey);
-            font-size: 0.95rem;
-        }
-
-        .header-benefits li::before {
-            content: '✓';
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 24px;
-            height: 24px;
-            background: var(--mint);
-            color: var(--teal);
-            border-radius: 50%;
-            flex-shrink: 0;
-            font-weight: 700;
-            font-size: 0.8rem;
-        }
-
-        /* Card à droite */
-        .plan-card {
-            flex: 0 0 480px;
-            background: linear-gradient(135deg, #0D8383 0%, #1A6D55 100%);
-            border-radius: var(--radius);
-            padding: 40px 36px;
-            box-shadow: var(--shadow-lg);
-            color: var(--white);
-            position: relative;
-            overflow: hidden;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .plan-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 32px rgba(7, 23, 23, .16);
-        }
-
-        /* Effets de background */
-        .plan-card::before {
-            content: '';
-            position: absolute;
-            width: 200px;
-            height: 200px;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
-            top: -100px;
-            right: -100px;
-            pointer-events: none;
-        }
-
-        .plan-card::after {
-            content: '';
-            position: absolute;
-            width: 150px;
-            height: 150px;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
-            bottom: -75px;
-            left: -75px;
-            pointer-events: none;
-        }
-
-        .plan-header {
-            text-align: center;
-            margin-bottom: 32px;
-            position: relative;
-            z-index: 1;
-        }
-
-        /* Badge Premium */
-        .premium-badge {
-            display: inline-block;
-            background: rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(10px);
-            padding: 6px 16px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-            margin-bottom: 16px;
-        }
-
-        .plan-title {
-            font-size: 1.6rem;
-            font-weight: 700;
-            margin-bottom: 24px;
-            letter-spacing: -0.5px;
-        }
-
-        /* Toggle de facturation */
-        .billing-toggle {
-            display: inline-flex;
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(10px);
-            border-radius: 30px;
-            padding: 4px;
-            gap: 4px;
-            margin-bottom: 24px;
-        }
-
-        .billing-toggle label {
-            padding: 10px 20px;
-            border-radius: 26px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 0.9rem;
-            font-weight: 500;
-            position: relative;
-        }
-
-        .billing-toggle input[type="radio"] {
-            position: absolute;
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        .billing-toggle input[type="radio"]:checked + label,
-        .billing-toggle label:has(input:checked) {
-            background: var(--white);
-            color: var(--teal);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        /* Prix */
-        .plan-price {
-            font-size: 3.2rem;
-            font-weight: 800;
-            margin-bottom: 8px;
-            line-height: 1;
-            letter-spacing: -2px;
-        }
-
-        .plan-price small {
-            font-size: 1.2rem;
-            font-weight: 400;
-            opacity: 0.85;
-            letter-spacing: 0;
-        }
-
-        .price-description {
-            font-size: 0.9rem;
-            opacity: 0.85;
-            margin-top: 8px;
-        }
-
-        /* Features */
-        .plan-features {
-            list-style: none;
-            padding: 0;
-            margin: 32px 0;
-            position: relative;
-            z-index: 1;
-        }
-
-        .plan-features li {
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            margin-bottom: 16px;
-            font-size: 0.95rem;
-            line-height: 1.5;
-        }
-
-        .plan-features li::before {
-            content: '✓';
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 24px;
-            height: 24px;
-            background: rgba(255, 255, 255, 0.25);
-            backdrop-filter: blur(10px);
-            border-radius: 50%;
-            flex-shrink: 0;
-            font-weight: 700;
-            font-size: 0.85rem;
-        }
-
-        /* Bouton CTA */
-        .subscribe-btn {
-            width: 100%;
-            background: var(--white);
-            color: var(--teal);
-            border: none;
-            border-radius: var(--radius-sm);
-            padding: 18px 32px;
-            font-size: 1.1rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            z-index: 1;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-            letter-spacing: 0.3px;
-        }
-
-        .subscribe-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
-            background: #f8f8f8;
-        }
-
-        .subscribe-btn:active {
-            transform: translateY(0);
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-        }
-
-        /* Note d'engagement */
-        .engagement-note {
-            text-align: center;
-            margin-top: 16px;
-            font-size: 0.85rem;
-            opacity: 0.75;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-        }
-
-        .engagement-note::before {
-            content: 'ℹ';
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 16px;
-            height: 16px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 50%;
-            font-size: 0.7rem;
-            font-weight: bold;
-        }
-
-        /* Trust indicators */
-        .trust-indicators {
-            display: flex;
-            justify-content: center;
-            gap: 32px;
-            margin-top: 48px;
-            padding-top: 32px;
-            border-top: 1px solid rgba(96, 96, 96, 0.15);
-        }
-
-        .trust-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: var(--grey);
-            font-size: 0.9rem;
-        }
-
-        .trust-item::before {
-            content: '✓';
-            color: var(--green);
-            font-weight: bold;
-            font-size: 1.1rem;
-        }
-
-        /* Loading state */
-        .subscribe-btn.loading {
-            pointer-events: none;
-            opacity: 0.7;
-        }
-
-        .subscribe-btn.loading::after {
-            content: '';
-            position: absolute;
-            width: 16px;
-            height: 16px;
-            border: 2px solid var(--teal);
-            border-top-color: transparent;
-            border-radius: 50%;
-            animation: spin 0.6s linear infinite;
-            right: 20px;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        /* Responsive */
-        @media (max-width: 968px) {
-            .subscription-content {
-                flex-direction: column;
-                gap: 40px;
-            }
-
-            .subscription-header {
-                max-width: 100%;
-                text-align: center;
-            }
-
-            .subscription-header h1 {
-                font-size: 2.5rem;
-            }
-
-            .header-benefits {
-                max-width: 500px;
-                margin: 32px auto 0;
-            }
-
-            .plan-card {
-                flex: 1;
-                width: 100%;
-                max-width: 500px;
-            }
-        }
-
-        @media (max-width: 560px) {
-            .subscription-container {
-                padding: 24px 16px;
-            }
-
-            .subscription-header h1 {
-                font-size: 2rem;
-            }
-
-            .subscription-header p {
-                font-size: 1rem;
-            }
-
-            .plan-card {
-                padding: 32px 24px;
-            }
-
-            .plan-price {
-                font-size: 2.8rem;
-            }
-
-            .trust-indicators {
-                flex-direction: column;
-                gap: 12px;
-                align-items: center;
-            }
-
-            .billing-toggle {
-                flex-direction: column;
-                width: 100%;
-            }
-
-            .billing-toggle label {
-                width: 100%;
-                text-align: center;
-            }
-        }
-        /* --- A la Carte Access Card --- */
-.a-la-carte-card {
-    flex: 0 0 460px;
-    background: linear-gradient(135deg, #ffffff 0%, #f8fdfc 100%);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow-lg);
-    padding: 48px 36px;
-    text-align: center;
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-}
-
-.a-la-carte-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 32px rgba(7, 23, 23, .12);
-}
-
-/* Effets lumineux doux */
-.a-la-carte-card::before {
-    content: '';
-    position: absolute;
-    width: 200px;
-    height: 200px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(13, 131, 131, 0.08) 0%, transparent 70%);
-    top: -100px;
-    right: -100px;
-    pointer-events: none;
-}
-.a-la-carte-card::after {
-    content: '';
-    position: absolute;
-    width: 150px;
-    height: 150px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(26, 109, 85, 0.05) 0%, transparent 70%);
-    bottom: -75px;
-    left: -75px;
-    pointer-events: none;
-}
-
-/* En-tête */
-.a-la-carte-header {
-    position: relative;
-    z-index: 1;
-    margin-bottom: 32px;
-}
-
-.a-la-carte-badge {
-    display: inline-block;
-    background: var(--mint);
-    color: var(--teal);
-    padding: 6px 14px;
-    border-radius: 20px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 12px;
-}
-
-.a-la-carte-title {
-    font-size: 1.8rem;
-    font-weight: 700;
-    color: var(--black);
-    margin-bottom: 8px;
-    letter-spacing: -0.5px;
-}
-
-.a-la-carte-subtitle {
-    color: var(--grey);
-    font-size: 1rem;
-    opacity: 0.85;
-}
-
-/* Liste */
-.a-la-carte-features {
-    list-style: none;
-    padding: 0;
-    margin: 32px 0 120px 0;
-    text-align: left;
-    position: relative;
-    z-index: 1;
-}
-
-.a-la-carte-features li {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 18px;
-    color: var(--grey);
-    font-size: 1rem;
-}
-
-.a-la-carte-features li::before {
-    content: '✓';
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 26px;
-    height: 26px;
-    background: var(--mint);
-    color: var(--teal);
-    border-radius: 50%;
-    font-weight: 700;
-    font-size: 0.85rem;
-}
-
-/* Bouton CTA */
-.a-la-carte-btn {
-    display: inline-block;
-    background: linear-gradient(135deg, var(--teal) 0%, var(--green) 100%);
-    color: var(--white);
-    border: none;
-    border-radius: var(--radius-sm);
-    padding: 16px 40px;
-    font-size: 1.05rem;
-    font-weight: 700;
-    text-decoration: none;
-    box-shadow: var(--shadow);
-    transition: all 0.3s ease;
-    position: relative;
-    z-index: 1;
-}
-
-.a-la-carte-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
-    background: linear-gradient(135deg, var(--green) 0%, var(--teal) 100%);
-}
-
-/* Responsive */
-@media (max-width: 968px) {
-    .a-la-carte-card {
-        width: 100%;
-        max-width: 500px;
-    }
-}
-
-
-    </style>
-{% endblock %}
+{% block title %}Learning Plans{% endblock %}
 
 {% block body %}
-            <div class="subscription-header">
-                <h1>Unlock Premium Access</h1>
-                <p>Get full access to all our exclusive content, early releases, and earn official certificates. Join thousands of learners advancing their skills.</p>
-                
+<div class="subscription-page {{ subscription ? 'has-active-plan' : '' }}">
+  {% if not subscription %}
+    <header class="subscription-page__hero">
+      <div class="subscription-page__hero-copy">
+        <span class="subscription-page__eyebrow">
+          <i class="fa-solid fa-gem" aria-hidden="true"></i>
+          Flexible learning access
+        </span>
+        <h1>One plan. Every course. Unlimited progress.</h1>
+        <p>Unlock the complete training library, learn at your own pace and earn verified certificates from one simple subscription.</p>
+        <div class="subscription-page__hero-meta">
+          <span><i class="fa-solid fa-infinity" aria-hidden="true"></i>Unlimited catalogue access</span>
+          <span><i class="fa-solid fa-shield-halved" aria-hidden="true"></i>Secure Stripe checkout</span>
+          <span><i class="fa-solid fa-award" aria-hidden="true"></i>Certificates included</span>
+        </div>
+      </div>
 
-            </div>
-        <div class="subscription-content">
-        {% if not subscription %}
+      <div class="subscription-page__hero-card">
+        <span class="subscription-page__hero-card-icon"><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i></span>
+        <div>
+          <small>Everything you need</small>
+          <strong>Learn without limits</strong>
+          <p>New courses are automatically included throughout your membership.</p>
+        </div>
+      </div>
+    </header>
 
+    <section class="subscription-page__intro" aria-labelledby="plans-heading">
+      <div>
+        <span>Choose your access</span>
+        <h2 id="plans-heading">A plan for every learning goal</h2>
+      </div>
+      <p>Subscribe for unlimited learning or purchase only the individual courses you need.</p>
+    </section>
 
-            <div class="plan-card">
-                <div class="plan-header">
-                    <span class="premium-badge">Most popular</span>
-                    <h2 class="plan-title">Premium Plan</h2>
-                    
-                    <div class="billing-toggle">
-                        <input type="radio" name="billing" value="monthly" id="monthly" checked>
-                        <label for="monthly">Monthly</label>
-                    </div>
+    <section class="subscription-page__plans" aria-label="Available learning plans">
+      <article class="subscription-plan subscription-plan--premium">
+        <div class="subscription-plan__topline">
+          <span><i class="fa-solid fa-star" aria-hidden="true"></i>Most popular</span>
+          <small>Premium access</small>
+        </div>
 
-                    <div class="plan-price">
-                        €39<small>,90/mo</small>
-                    </div>
-                    <p class="price-description">Billed monthly <span>(excl. VAT)</span></p>
-                </div>
+        <div class="subscription-plan__heading">
+          <span>12-month subscription</span>
+          <h2>Unlimited Learning</h2>
+          <p>Ideal when you want continuous access to the full learning experience.</p>
+        </div>
 
-                <ul class="plan-features">
-                    <li>Unlimited access to all existing videos</li>
-                    <li>Early access to new content releases</li>
-                    <li>Official certificate after quiz completion</li>
-                    <li>Regular updates with new videos</li>
-                </ul>
+        <div class="subscription-plan__price">
+          <strong><sup>€</sup>39<small>.90</small></strong>
+          <span>per month<br><small>excluding VAT</small></span>
+        </div>
 
-                <form action="{{ path('app_subscription_checkout') }}" method="post" id="subscriptionForm">
-                    <button type="submit" class="subscribe-btn">
-                        Start your subscription
-                    </button>
-                </form>
+        <div class="subscription-plan__divider"></div>
 
-                <p class="engagement-note">12-month commitment required</p>
-            </div>
-            {# Nouvelle carte #}
-<div class="a-la-carte-card">
-    <div class="a-la-carte-header">
-        <span class="a-la-carte-badge">Access</span>
-        <h3 class="a-la-carte-title">A la Carte Access</h3>
-        <p class="a-la-carte-subtitle">Perfect for those who prefer one-time purchases</p>
-    </div>
+        <ul class="subscription-plan__features">
+          <li><span><i class="fa-solid fa-check" aria-hidden="true"></i></span><div><strong>Full course catalogue</strong><small>Access every current learning module</small></div></li>
+          <li><span><i class="fa-solid fa-check" aria-hidden="true"></i></span><div><strong>New releases included</strong><small>Discover new content as it is published</small></div></li>
+          <li><span><i class="fa-solid fa-check" aria-hidden="true"></i></span><div><strong>Progress and certificates</strong><small>Track completion and download achievements</small></div></li>
+          <li><span><i class="fa-solid fa-check" aria-hidden="true"></i></span><div><strong>Multilingual learning</strong><small>Use the available course languages</small></div></li>
+        </ul>
 
-    <ul class="a-la-carte-features">
-        <li>Buy individual courses</li>
-        <li>One-time payment</li>
-        <li>Certificate included after quiz</li>
-        <li>Option to pay for multiple users</li>
-    </ul>
+        <form action="{{ path('app_subscription_checkout') }}" method="post" data-subscription-form>
+          <button type="submit" class="subscription-plan__cta" data-subscription-button>
+            <span data-subscription-label>Start my subscription</span>
+            <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+          </button>
+        </form>
 
-    <a href="{{ path('app_courses') }}" class="a-la-carte-btn">Browse Courses</a>
+        <p class="subscription-plan__commitment"><i class="fa-regular fa-calendar-check" aria-hidden="true"></i>12-month commitment · billed monthly</p>
+      </article>
+
+      <article class="subscription-plan subscription-plan--single">
+        <div class="subscription-plan__topline">
+          <span><i class="fa-solid fa-bag-shopping" aria-hidden="true"></i>Pay once</span>
+          <small>Individual access</small>
+        </div>
+
+        <div class="subscription-plan__heading">
+          <span>À la carte</span>
+          <h2>Choose One Course</h2>
+          <p>A focused option when you need a specific training module right now.</p>
+        </div>
+
+        <div class="subscription-plan__single-visual">
+          <span><i class="fa-solid fa-book-open" aria-hidden="true"></i></span>
+          <div><strong>One-time purchase</strong><small>Price displayed on each course</small></div>
+        </div>
+
+        <div class="subscription-plan__divider"></div>
+
+        <ul class="subscription-plan__features">
+          <li><span><i class="fa-solid fa-check" aria-hidden="true"></i></span><div><strong>Access the selected course</strong><small>Only pay for the content you choose</small></div></li>
+          <li><span><i class="fa-solid fa-check" aria-hidden="true"></i></span><div><strong>Final knowledge quiz</strong><small>Validate what you have learned</small></div></li>
+          <li><span><i class="fa-solid fa-check" aria-hidden="true"></i></span><div><strong>Certificate included</strong><small>Available after successfully passing</small></div></li>
+          <li><span><i class="fa-solid fa-check" aria-hidden="true"></i></span><div><strong>Clear one-time payment</strong><small>No recurring subscription charge</small></div></li>
+        </ul>
+
+        <a href="{{ path('app_courses') }}" class="subscription-plan__cta subscription-plan__cta--secondary">
+          Browse individual courses
+          <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+        </a>
+        <p class="subscription-plan__commitment"><i class="fa-solid fa-lock" aria-hidden="true"></i>Secure checkout for each purchase</p>
+      </article>
+    </section>
+
+    <section class="subscription-page__assurance" aria-label="Subscription assurances">
+      <article><span><i class="fa-solid fa-shield-halved" aria-hidden="true"></i></span><div><strong>Secure payment</strong><small>Your checkout is handled by Stripe</small></div></article>
+      <article><span><i class="fa-solid fa-file-invoice" aria-hidden="true"></i></span><div><strong>Downloadable invoices</strong><small>Find every document in your payment history</small></div></article>
+      <article><span><i class="fa-solid fa-headset" aria-hidden="true"></i></span><div><strong>Human support</strong><small>Get help whenever you need it</small></div></article>
+    </section>
+  {% else %}
+    <header class="subscription-page__active-hero">
+      <div class="subscription-page__active-copy">
+        <span class="subscription-page__active-status"><i class="fa-solid fa-circle-check" aria-hidden="true"></i>Premium active</span>
+        <h1>Your complete learning library is unlocked.</h1>
+        <p>Keep learning without interruption, explore every available course and turn your progress into verified certificates.</p>
+        <div class="subscription-page__active-actions">
+          <a href="{{ path('app_courses') }}" class="subscription-page__button subscription-page__button--light"><i class="fa-solid fa-compass" aria-hidden="true"></i>Explore courses</a>
+          <a href="{{ path('app_transactions') }}" class="subscription-page__button subscription-page__button--glass"><i class="fa-solid fa-file-invoice" aria-hidden="true"></i>Payment history</a>
+        </div>
+      </div>
+
+      <div class="subscription-page__active-seal">
+        <span><i class="fa-solid fa-crown" aria-hidden="true"></i></span>
+        <small>Your plan</small>
+        <strong>Unlimited Learning</strong>
+        <p>All courses available now</p>
+      </div>
+    </header>
+
+    <section class="subscription-page__active-grid">
+      <article class="subscription-page__active-panel subscription-page__access-panel">
+        <div class="subscription-page__section-head">
+          <div><span>Included in your plan</span><h2>Everything is ready for you</h2></div>
+          <i class="fa-solid fa-infinity" aria-hidden="true"></i>
+        </div>
+
+        <div class="subscription-page__benefit-grid">
+          <div><span><i class="fa-solid fa-book-open" aria-hidden="true"></i></span><strong>All courses</strong><small>Browse the complete catalogue</small></div>
+          <div><span><i class="fa-solid fa-bolt" aria-hidden="true"></i></span><strong>New releases</strong><small>Available as soon as they launch</small></div>
+          <div><span><i class="fa-solid fa-chart-line" aria-hidden="true"></i></span><strong>Progress tracking</strong><small>Follow every course milestone</small></div>
+          <div><span><i class="fa-solid fa-award" aria-hidden="true"></i></span><strong>Certificates</strong><small>Download verified achievements</small></div>
+        </div>
+      </article>
+
+      <aside class="subscription-page__active-panel subscription-page__next-step">
+        <div class="subscription-page__section-head">
+          <div><span>Next step</span><h2>Continue your journey</h2></div>
+          <i class="fa-solid fa-arrow-trend-up" aria-hidden="true"></i>
+        </div>
+        <p>Your subscription is active. Choose a new topic or return to a course already in progress.</p>
+        <a href="{{ path('app_progress') }}">View learning progress <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+        <a href="{{ path('app_dashboard') }}">Return to dashboard <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+      </aside>
+    </section>
+  {% endif %}
 </div>
 
-        </div>
+{% if not subscription %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const form = document.querySelector('[data-subscription-form]');
+  if (!form) return;
 
-    <script>
-        document.getElementById('subscriptionForm')?.addEventListener('submit', function(e) {
-            const btn = this.querySelector('.subscribe-btn');
-            btn.classList.add('loading');
-            btn.textContent = 'Processing...';
-        });
-
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.style.opacity = '1';
-                    entry.target.style.transform = 'translateY(0)';
-                }
-            });
-        }, { threshold: 0.1 });
-
-        document.querySelector('.plan-card')?.style.setProperty('opacity', '0');
-        document.querySelector('.plan-card')?.style.setProperty('transform', 'translateY(20px)');
-        document.querySelector('.plan-card')?.style.setProperty('transition', 'all 0.6s ease');
-        
-        observer.observe(document.querySelector('.plan-card'));
-    </script>
-{% else %}
-    <div class="subscription-header" style="max-width: 100%; text-align: center;">
-        <div class="already-subscribed-card">
-            <div class="success-icon-wrapper">
-                <div class="success-icon-bg"></div>
-                <img src="{{ asset('images/congrats.svg') }}" alt="Premium Active" class="success-icon" />
-            </div>
-            
-            <h2 class="already-subscribed-title">You're all set! 🎉</h2>
-            <p class="already-subscribed-description">
-                You already have an active Premium subscription. Enjoy unlimited access to all our content.
-            </p>
-
-            <div class="subscription-benefits-grid">
-                <div class="benefit-card">
-                    <span class="benefit-icon">📚</span>
-                    <span class="benefit-text">All videos unlocked</span>
-                </div>
-                <div class="benefit-card">
-                    <span class="benefit-icon">⚡</span>
-                    <span class="benefit-text">Early access active</span>
-                </div>
-            </div>
-
-            <div class="action-buttons">
-                <a href="{{ path('app_courses') }}" class="btn-primary">
-                    Browse Content
-                </a>
-                <a href="{{ path('app_dashboard') }}" class="btn-secondary">
-                    Dashboard
-                </a>
-            </div>
-        </div>
-    </div>
-            <div class="a-la-carte-card">
-            <h3 class="a-la-carte-title">A la Carte Access</h3>
-            <ul class="a-la-carte-features">
-                <li>Buy individual courses</li>
-                <li>One-time payment</li>
-                <li>Certificate included after quiz</li>
-                <li>Option to pay for multiple users</li>
-            </ul>
-            <a href="{{ path('app_courses') }}" class="a-la-carte-btn">Browse Courses</a>
-        </div>
-    <style>
-    /* Already Subscribed Styles */
-.already-subscribed-card {
-    background: var(--white);
-    border-radius: var(--radius);
-    padding: 64px 48px;
-    box-shadow: var(--shadow-lg);
-    max-width: 600px;
-    margin: 0 auto;
-    position: relative;
-    overflow: hidden;
-}
-
-.already-subscribed-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 6px;
-    background: linear-gradient(90deg, var(--teal) 0%, var(--green) 100%);
-}
-
-.success-icon-wrapper {
-    position: relative;
-    display: flex;
-    justify-content: center;
-    margin-bottom: 32px;
-}
-
-.success-icon-bg {
-    position: absolute;
-    width: 120px;
-    height: 120px;
-    background: linear-gradient(135deg, rgba(13, 131, 131, 0.1) 0%, rgba(26, 109, 85, 0.1) 100%);
-    border-radius: 50%;
-    animation: pulse 2s ease-in-out infinite;
-}
-
-@keyframes pulse {
-    0%, 100% {
-        transform: scale(1);
-        opacity: 0.5;
-    }
-    50% {
-        transform: scale(1.1);
-        opacity: 0.3;
-    }
-}
-
-.success-icon {
-    width: 100px;
-    height: 100px;
-    position: relative;
-    z-index: 1;
-    animation: fadeInScale 0.6s ease-out;
-}
-
-@keyframes fadeInScale {
-    from {
-        opacity: 0;
-        transform: scale(0.8);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
-}
-
-.already-subscribed-title {
-    color: var(--black);
-    font-size: 2.2rem;
-    font-weight: 700;
-    margin-bottom: 16px;
-    letter-spacing: -0.5px;
-}
-
-.already-subscribed-description {
-    color: var(--grey);
-    font-size: 1.1rem;
-    line-height: 1.6;
-    margin-bottom: 40px;
-    max-width: 480px;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-/* Benefits Grid */
-.subscription-benefits-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 16px;
-    margin-bottom: 40px;
-}
-
-.benefit-card {
-    background: var(--mint);
-    border-radius: var(--radius-sm);
-    padding: 20px 16px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    transition: all 0.3s ease;
-}
-
-.benefit-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow);
-}
-
-.benefit-icon {
-    font-size: 2rem;
-}
-
-.benefit-text {
-    color: var(--grey);
-    font-size: 0.9rem;
-    font-weight: 500;
-    text-align: center;
-}
-
-/* Action Buttons */
-.action-buttons {
-    display: flex;
-    gap: 16px;
-    justify-content: center;
-    flex-wrap: wrap;
-}
-
-.btn-primary, .btn-secondary {
-    padding: 16px 32px;
-    border-radius: var(--radius-sm);
-    font-size: 1rem;
-    font-weight: 600;
-    text-decoration: none;
-    transition: all 0.3s ease;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.btn-primary {
-    background: linear-gradient(135deg, var(--teal) 0%, var(--green) 100%);
-    color: var(--white);
-    box-shadow: var(--shadow);
-}
-
-.btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
-}
-
-.btn-secondary {
-    background: var(--white);
-    color: var(--teal);
-    border: 2px solid var(--mint);
-}
-
-.btn-secondary:hover {
-    background: var(--mint);
-    border-color: var(--teal);
-}
-
-/* Responsive pour la partie already subscribed */
-@media (max-width: 560px) {
-    .already-subscribed-card {
-        padding: 48px 24px;
-    }
-
-    .already-subscribed-title {
-        font-size: 1.8rem;
-    }
-
-    .already-subscribed-description {
-        font-size: 1rem;
-    }
-
-    .subscription-benefits-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .action-buttons {
-        flex-direction: column;
-        width: 100%;
-    }
-
-    .btn-primary, .btn-secondary {
-        width: 100%;
-        justify-content: center;
-    }
-}
-    </style>
+  form.addEventListener('submit', () => {
+    const button = form.querySelector('[data-subscription-button]');
+    const label = form.querySelector('[data-subscription-label]');
+    button.disabled = true;
+    button.classList.add('is-loading');
+    label.textContent = 'Opening secure checkout…';
+  });
+});
+</script>
 {% endif %}
 {% endblock %}

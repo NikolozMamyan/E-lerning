@@ -10,6 +10,7 @@ use App\Service\MailerService;
 use App\Repository\UserRepository;
 use App\Repository\CourseRepository;
 use App\Service\NotificationService;
+use App\Service\GuestPurchaseProvisioner;
 use App\Repository\EnrollmentRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\SubscriptionRepository;
@@ -31,6 +32,7 @@ class StripeWebhookController extends AbstractController
         SubscriptionRepository $subscriptionRepo,
         MailerService $mailer,
         NotificationService $notificationService,
+        GuestPurchaseProvisioner $guestPurchaseProvisioner,
         LoggerInterface $logger
     ): Response {
         $payload   = $request->getContent();
@@ -284,6 +286,29 @@ class StripeWebhookController extends AbstractController
             $amountCents = isset($session->amount_total) ? (int) $session->amount_total : 0;
             $amount      = $amountCents ? $amountCents / 100 : null;
             $currency    = strtoupper($session->currency ?? 'EUR');
+
+            if ($context === 'guest_purchase') {
+                $email = $session->customer_details->email ?? $session->customer_email ?? null;
+                if (!is_string($email) || $email === '') {
+                    $logger->warning('Guest purchase: customer email missing', ['sessionId' => $session->id ?? null]);
+
+                    return new Response('Customer email missing', 200);
+                }
+
+                try {
+                    $created = $guestPurchaseProvisioner->provision($course, $email, $amountCents, $currency);
+                } catch (\Throwable $exception) {
+                    $logger->error('Guest purchase provisioning failed', [
+                        'sessionId' => $session->id ?? null,
+                        'courseId' => $course->getId(),
+                        'exception' => $exception,
+                    ]);
+
+                    return new Response('Provisioning failed', 500);
+                }
+
+                return new Response($created ? 'Guest enrollment created' : 'Enrollment already exists', 200);
+            }
 
             // === Branche 1 : achat employé ===
             if ($context === 'employee_purchase') {

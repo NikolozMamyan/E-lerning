@@ -3,426 +3,410 @@
 {% block title %}Available Courses{% endblock %}
 
 {% block body %}
-<style>
-.updated-at {
-  font-size: 0.75rem;
-  color: #6b7280;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
+{% set accessibleCoursesCount = 0 %}
+{% set totalLessons = 0 %}
+{% for course in courses %}
+  {% set totalLessons = totalLessons + course.videos|length %}
+  {% if access[course.id] is defined and access[course.id] %}
+    {% set accessibleCoursesCount = accessibleCoursesCount + 1 %}
+  {% endif %}
+{% endfor %}
 
-</style>
-  <section class="course-section">
-    <div class="course-header">
-      <div class="header-content">
-        <h2 class="section-title">Available Courses</h2>
-        <p class="section-subtitle">Find the right course faster with search and filters.</p>
+<div class="course-catalog" data-course-catalog>
+  <section class="course-catalog__hero" aria-labelledby="course-catalog-heading">
+    <div class="course-catalog__hero-content">
+      <span class="course-catalog__eyebrow">
+        <i class="fa-solid fa-graduation-cap" aria-hidden="true"></i>
+        Course library
+      </span>
+      <h1 id="course-catalog-heading">Choose what you want to master next.</h1>
+      <p>Explore practical compliance courses, find the right topic and learn at your own pace.</p>
+    </div>
+
+    <div class="course-catalog__summary" aria-label="Course library summary">
+      <div class="course-catalog__summary-item">
+        <span><i class="fa-solid fa-book-open" aria-hidden="true"></i></span>
+        <div>
+          <strong>{{ courses|length }}</strong>
+          <small>Course{{ courses|length == 1 ? '' : 's' }}</small>
+        </div>
+      </div>
+      <div class="course-catalog__summary-item">
+        <span><i class="fa-solid fa-circle-play" aria-hidden="true"></i></span>
+        <div>
+          <strong>{{ totalLessons }}</strong>
+          <small>Lesson{{ totalLessons == 1 ? '' : 's' }}</small>
+        </div>
+      </div>
+      <div class="course-catalog__summary-item">
+        <span><i class="fa-solid fa-unlock-keyhole" aria-hidden="true"></i></span>
+        <div>
+          <strong>{{ accessibleCoursesCount }}</strong>
+          <small>Available now</small>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="course-catalog__controls" aria-labelledby="catalog-controls-heading">
+    <div class="course-catalog__controls-heading">
+      <div>
+        <span class="course-catalog__section-kicker">Browse the catalogue</span>
+        <h2 id="catalog-controls-heading">Find your next course</h2>
+      </div>
+      <div class="results-count" aria-live="polite">
+        <i class="fa-solid fa-circle" aria-hidden="true"></i>
+        <span id="results-count">{{ courses|length }} course{{ courses|length == 1 ? '' : 's' }}</span>
       </div>
     </div>
 
-    {# ===== Toolbar intelligent & responsive ===== #}
     <div class="course-toolbar">
       <div class="toolbar-left">
         <div class="search-box">
-          <i class="fa-solid fa-magnifying-glass"></i>
-          <input 
-            type="text" 
+          <label for="course-search" class="course-catalog__sr-only">Search courses</label>
+          <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+          <input
+            type="search"
             id="course-search"
-            placeholder="Search courses..." 
-            aria-label="Search courses"
+            placeholder="Search by title or keyword..."
+            autocomplete="off"
           >
-          <button type="button" class="clear-search" id="clear-search" style="display: none;">
-            <i class="fa-solid fa-xmark"></i>
+          <kbd>Ctrl K</kbd>
+          <button type="button" class="clear-search" id="clear-search" aria-label="Clear search" hidden>
+            <i class="fa-solid fa-xmark" aria-hidden="true"></i>
           </button>
         </div>
 
-<div class="filters">
-  <button type="button" class="filter-pill" id="category-filter">
-    <i class="fa-solid fa-filter"></i>
-    <span>Category</span>
-    <i class="fa-solid fa-chevron-down"></i>
-  </button>
+        <div class="filters">
+          <button type="button" class="filter-pill" id="category-filter" aria-expanded="false" aria-controls="category-dropdown">
+            <i class="fa-solid fa-sliders" aria-hidden="true"></i>
+            <span>Categories</span>
+            <i class="fa-solid fa-chevron-down filter-pill__chevron" aria-hidden="true"></i>
+          </button>
 
-  <div class="filter-dropdown" id="category-dropdown">
-    <label class="filter-option">
-      <input type="checkbox" name="category" value="all" checked>
-      <span>All Categories</span>
-    </label>
-
-    {% for cat in categories %}
-      <label class="filter-option">
-        <input type="checkbox" name="category" value="{{ cat.slug }}">
-        <span>{{ cat.name }}</span>
-      </label>
-    {% endfor %}
-  </div>
-</div>
-
-
-        <div class="active-filters" id="active-filters"></div>
+          <div class="filter-dropdown" id="category-dropdown">
+            <div class="filter-dropdown__header">
+              <strong>Filter by category</strong>
+              <small>Select one or more topics</small>
+            </div>
+            <label class="filter-option">
+              <input type="checkbox" name="category" value="all" checked>
+              <span>All categories</span>
+            </label>
+            {% for category in categories %}
+              <label class="filter-option">
+                <input type="checkbox" name="category" value="{{ category.slug }}">
+                <span>{{ category.name }}</span>
+              </label>
+            {% endfor %}
+          </div>
+        </div>
       </div>
 
       <div class="toolbar-right">
-        <div class="results-count">
-          <i class="fa-solid fa-graduation-cap"></i>
-          <span id="results-count">{{ courses|length }} course{{ courses|length > 1 ? 's' : '' }}</span>
-        </div>
-
-        <div class="sort-box">
-          <label for="sort-select" class="sort-label">Sort:</label>
+        <label class="sort-box" for="sort-select">
+          <i class="fa-solid fa-arrow-down-wide-short" aria-hidden="true"></i>
+          <span class="sort-label">Sort by</span>
           <select id="sort-select" class="sort-select">
-            <option value="recent">Most Recent</option>
-            <option value="title">Title (A-Z)</option>
-            <option value="title-desc">Title (Z-A)</option>
-            <option value="duration">Duration</option>
+            <option value="recent">Most recent</option>
+            <option value="title">Title A–Z</option>
+            <option value="title-desc">Title Z–A</option>
+            <option value="duration">Lesson duration</option>
           </select>
-        </div>
+        </label>
 
-        <div class="view-toggle" role="group" aria-label="View toggle">
-          <button type="button" class="view-btn active" id="view-grid" title="Grid view">
-            <i class="fa-solid fa-grip"></i>
+        <div class="view-toggle" role="group" aria-label="Course view">
+          <button type="button" class="view-btn active" id="view-grid" aria-label="Grid view" aria-pressed="true" title="Grid view">
+            <i class="fa-solid fa-grip" aria-hidden="true"></i>
           </button>
-          <button type="button" class="view-btn" id="view-list" title="List view">
-            <i class="fa-solid fa-list"></i>
+          <button type="button" class="view-btn" id="view-list" aria-label="List view" aria-pressed="false" title="List view">
+            <i class="fa-solid fa-list" aria-hidden="true"></i>
           </button>
         </div>
       </div>
     </div>
 
-    {# ===== Message si aucun résultat ===== #}
-    <div class="no-results" id="no-results" style="display: none;">
-      <div class="no-results-icon">
-        <i class="fa-solid fa-search"></i>
-      </div>
-      <h3>No courses found</h3>
-      <p>Try adjusting your search or filters to find what you're looking for.</p>
+    <div class="active-filters" id="active-filters" aria-live="polite"></div>
+  </section>
+
+  <section class="course-catalog__results" aria-label="Available courses">
+    <div class="no-results" id="no-results" hidden>
+      <span class="no-results-icon"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i></span>
+      <h2>No courses found</h2>
+      <p>Try another keyword or remove some filters to see more courses.</p>
       <button type="button" class="reset-filters-btn" id="reset-filters">
-        <i class="fa-solid fa-rotate-right"></i>
-        Reset Filters
+        <i class="fa-solid fa-rotate-right" aria-hidden="true"></i>
+        Reset filters
       </button>
     </div>
 
-    {# ===== Courses Grid ===== #}
     <div class="course-grid" id="course-container">
       {% for course in courses %}
+        {% set hasAccess = access[course.id] is defined and access[course.id] %}
+        {% set firstVideo = course.videos|first %}
+        {% set lessonDuration = firstVideo ? firstVideo.duration : 0 %}
 
-<div class="course-card" data-category="{{ course.category ? course.category.slug : 'training' }}">
-  <div class="course-thumbnail {{ course.category ? 'bg-' ~ course.category.slug : 'bg-training' }}">
-
-            {% if access[course.id] is defined and access[course.id] %}
-              <img src="{{ asset('uploads/courses/' ~ course.thumb) }}" alt="{{ course.title }}">
+        <article
+          class="course-card {{ hasAccess ? 'is-unlocked' : 'is-locked' }}"
+          data-category="{{ course.category ? course.category.slug : 'training' }}"
+          data-duration="{{ lessonDuration }}"
+          data-index="{{ loop.index0 }}"
+        >
+          <a href="{{ path('app_course_show', { id: course.id }) }}" class="course-thumbnail" aria-label="Open {{ course.title }}">
+            {% if course.thumb %}
+              <img src="{{ asset('uploads/courses/' ~ course.thumb) }}" alt="" loading="lazy">
             {% else %}
-              <div class="lock-overlay">
-                <div class="lock-icon">
-                  <svg viewBox="0 0 24 24">
-                    <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0
-                      1.1.9 2 2 2h12c1.1 0 2-.9
-                      2-2V10c0-1.1-.9-2-2-2zm-6
-                      9c-1.1 0-2-.9-2-2s.9-2
-                      2-2 2 .9 2 2-.9 2-2
-                      2zm3.1-9H8.9V6c0-1.71
-                      1.39-3.1 3.1-3.1 1.71 0
-                      3.1 1.39 3.1 3.1v2z"/>
-                  </svg>
-                </div>
-              </div>
-              <img src="{{ asset('uploads/courses/' ~ course.thumb) }}" alt="{{ course.title }}">
+              <span class="course-thumbnail__placeholder"><i class="fa-solid fa-book-open" aria-hidden="true"></i></span>
             {% endif %}
 
-            {% if course.videos|length > 0 %}
+            <span class="course-thumbnail__shade"></span>
+
+            {% if course.category %}
+              <span class="category-badge">{{ course.category.name }}</span>
+            {% endif %}
+
+            {% if firstVideo %}
               <span class="duration-badge">
-                <i class="fa-solid fa-clock"></i>
-                {{ (course.videos|first.duration / 60)|round(0, 'floor') }}:{{ '%02d'|format(course.videos|first.duration % 60) }}
+                <i class="fa-regular fa-clock" aria-hidden="true"></i>
+                {{ (lessonDuration / 60)|round(0, 'floor') }}:{{ '%02d'|format(lessonDuration % 60) }}
               </span>
             {% endif %}
 
-{% if course.category %}
-  <span class="category-badge">{{ course.category.name }}</span>
-{% endif %}
-
-          </div>
+            {% if not hasAccess %}
+              <span class="course-lock-status">
+                <i class="fa-solid fa-lock" aria-hidden="true"></i>
+                Locked
+              </span>
+            {% endif %}
+          </a>
 
           <div class="course-info">
-            <div class="course-meta">
-              <span class="video-count">
-                <i class="fa-solid fa-play-circle"></i>
-                {{ course.videos|length }} video{{ course.videos|length > 1 ? 's' : '' }}
+            <div class="course-card__status-row">
+              <span class="access-badge {{ hasAccess ? 'unlocked' : 'locked' }}">
+                <i class="fa-solid {{ hasAccess ? 'fa-circle-check' : 'fa-lock' }}" aria-hidden="true"></i>
+                {{ hasAccess ? 'Available now' : 'Access required' }}
               </span>
+              {% if course.updatedAt %}
                 <span class="updated-at">
-<i class="fa-solid fa-calendar-days"></i>
-
-    date {{ course.updatedAt|date('d M Y') }}
-  </span>
-              {% if access[course.id] is defined and access[course.id] %}
-                <span class="access-badge unlocked">
-                  <i class="fa-solid fa-check-circle"></i>
-                  Unlocked
-                </span>
-              {% else %}
-                <span class="access-badge locked">
-                  <i class="fa-solid fa-lock"></i>
-                  Locked
+                  <i class="fa-regular fa-calendar" aria-hidden="true"></i>
+                  {{ course.updatedAt|date('d M Y') }}
                 </span>
               {% endif %}
             </div>
 
-            <h3 class="course-title">{{ course.title }}</h3>
+            <h2 class="course-title">{{ course.title }}</h2>
             <p class="course-subtitle">
-              {{ course.description|slice(0, 120) }}{% if course.description|length > 120 %}...{% endif %}
+              {{ course.description|striptags|slice(0, 145) }}{% if course.description|striptags|length > 145 %}&hellip;{% endif %}
             </p>
 
             <div class="course-footer">
-
-
-              <a href="{{ path('app_course_show', {id: course.id}) }}" class="see-course-btn">
-                See Course
-                <i class="fa-solid fa-arrow-right"></i>
+              <span class="video-count">
+                <i class="fa-solid fa-circle-play" aria-hidden="true"></i>
+                {{ course.videos|length }} lesson{{ course.videos|length == 1 ? '' : 's' }}
+              </span>
+              <a href="{{ path('app_course_show', { id: course.id }) }}" class="see-course-btn">
+                {{ hasAccess ? 'Open course' : 'View options' }}
+                <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
               </a>
             </div>
           </div>
-        </div>
+        </article>
       {% endfor %}
     </div>
   </section>
+</div>
 
-  <script>
+<script>
 document.addEventListener('DOMContentLoaded', () => {
-  const container = document.getElementById('course-container');
-  const btnGrid = document.getElementById('view-grid');
-  const btnList = document.getElementById('view-list');
-  const searchInput = document.getElementById('course-search');
-  const clearSearch = document.getElementById('clear-search');
-  const sortSelect = document.getElementById('sort-select');
-  const categoryFilter = document.getElementById('category-filter');
-  const categoryDropdown = document.getElementById('category-dropdown');
-  const resultsCount = document.getElementById('results-count');
-  const noResults = document.getElementById('no-results');
-  const resetFiltersBtn = document.getElementById('reset-filters');
-  const activeFiltersContainer = document.getElementById('active-filters');
-  
+  const catalog = document.querySelector('[data-course-catalog]');
+  if (!catalog) return;
+
+  const container = catalog.querySelector('#course-container');
+  const btnGrid = catalog.querySelector('#view-grid');
+  const btnList = catalog.querySelector('#view-list');
+  const searchInput = catalog.querySelector('#course-search');
+  const clearSearch = catalog.querySelector('#clear-search');
+  const sortSelect = catalog.querySelector('#sort-select');
+  const categoryFilter = catalog.querySelector('#category-filter');
+  const categoryDropdown = catalog.querySelector('#category-dropdown');
+  const resultsCount = catalog.querySelector('#results-count');
+  const noResults = catalog.querySelector('#no-results');
+  const resetFiltersBtn = catalog.querySelector('#reset-filters');
+  const activeFiltersContainer = catalog.querySelector('#active-filters');
   const courses = Array.from(container.querySelectorAll('.course-card'));
+  const categoryCheckboxes = Array.from(catalog.querySelectorAll('input[name="category"]'));
   let activeCategories = new Set(['all']);
 
-  // View Toggle
-  function setActive(btnOn, btnOff) {
-    btnOn.classList.add('active');
-    btnOff.classList.remove('active');
-  }
+  const setView = (view) => {
+    const isList = view === 'list';
+    container.classList.toggle('is-list', isList);
+    btnGrid?.classList.toggle('active', !isList);
+    btnList?.classList.toggle('active', isList);
+    btnGrid?.setAttribute('aria-pressed', String(!isList));
+    btnList?.setAttribute('aria-pressed', String(isList));
+    localStorage.setItem('courseView', view);
+  };
 
-  btnGrid?.addEventListener('click', () => {
-    container.classList.remove('is-list');
-    setActive(btnGrid, btnList);
-    localStorage.setItem('courseView', 'grid');
+  btnGrid?.addEventListener('click', () => setView('grid'));
+  btnList?.addEventListener('click', () => setView('list'));
+  setView(localStorage.getItem('courseView') === 'list' ? 'list' : 'grid');
+
+  const setCategoryMenuOpen = (isOpen) => {
+    categoryDropdown?.classList.toggle('show', isOpen);
+    categoryFilter?.setAttribute('aria-expanded', String(isOpen));
+  };
+
+  categoryFilter?.addEventListener('click', (event) => {
+    event.stopPropagation();
+    setCategoryMenuOpen(!categoryDropdown?.classList.contains('show'));
   });
 
-  btnList?.addEventListener('click', () => {
-    container.classList.add('is-list');
-    setActive(btnList, btnGrid);
-    localStorage.setItem('courseView', 'list');
+  document.addEventListener('click', (event) => {
+    if (!event.target.closest('.filters')) setCategoryMenuOpen(false);
   });
 
-  // Restore saved view
-  const savedView = localStorage.getItem('courseView');
-  if (savedView === 'list') {
-    btnList?.click();
-  }
+  const filterCourses = () => {
+    const searchTerm = searchInput?.value.trim().toLowerCase() || '';
+    let visibleCount = 0;
 
-  // Search functionality
-  searchInput?.addEventListener('input', (e) => {
-    const searchTerm = e.target.value.toLowerCase();
-    clearSearch.style.display = searchTerm ? 'block' : 'none';
+    courses.forEach((course) => {
+      const title = course.querySelector('.course-title')?.textContent.toLowerCase() || '';
+      const description = course.querySelector('.course-subtitle')?.textContent.toLowerCase() || '';
+      const category = course.dataset.category || 'training';
+      const matchesSearch = title.includes(searchTerm) || description.includes(searchTerm);
+      const matchesCategory = activeCategories.has('all') || activeCategories.has(category);
+      const isVisible = matchesSearch && matchesCategory;
+
+      course.hidden = !isVisible;
+      if (isVisible) visibleCount++;
+    });
+
+    if (resultsCount) {
+      resultsCount.textContent = `${visibleCount} course${visibleCount === 1 ? '' : 's'}`;
+    }
+
+    const hasResults = visibleCount > 0;
+    noResults.hidden = hasResults;
+    container.hidden = !hasResults;
+  };
+
+  const updateActiveFilters = () => {
+    activeFiltersContainer.replaceChildren();
+
+    if (activeCategories.has('all')) return;
+
+    activeCategories.forEach((category) => {
+      const checkbox = categoryCheckboxes.find((item) => item.value === category);
+      const label = checkbox?.closest('.filter-option')?.querySelector('span')?.textContent.trim() || category;
+      const tag = document.createElement('span');
+      const text = document.createElement('span');
+      const removeButton = document.createElement('button');
+
+      tag.className = 'active-filter-tag';
+      text.textContent = label;
+      removeButton.type = 'button';
+      removeButton.setAttribute('aria-label', `Remove ${label} filter`);
+      removeButton.innerHTML = '<i class="fa-solid fa-xmark" aria-hidden="true"></i>';
+      removeButton.addEventListener('click', () => {
+        checkbox.checked = false;
+        checkbox.dispatchEvent(new Event('change'));
+      });
+
+      tag.append(text, removeButton);
+      activeFiltersContainer.appendChild(tag);
+    });
+  };
+
+  categoryCheckboxes.forEach((checkbox) => {
+    checkbox.addEventListener('change', (event) => {
+      const value = event.target.value;
+      const allCheckbox = categoryCheckboxes.find((item) => item.value === 'all');
+
+      if (value === 'all') {
+        event.target.checked = true;
+        activeCategories.clear();
+        activeCategories.add('all');
+        categoryCheckboxes.forEach((item) => {
+          if (item.value !== 'all') item.checked = false;
+        });
+      } else {
+        allCheckbox.checked = false;
+        activeCategories.delete('all');
+
+        if (event.target.checked) {
+          activeCategories.add(value);
+        } else {
+          activeCategories.delete(value);
+        }
+
+        if (activeCategories.size === 0) {
+          activeCategories.add('all');
+          allCheckbox.checked = true;
+        }
+      }
+
+      categoryFilter.classList.toggle('active', !activeCategories.has('all'));
+      updateActiveFilters();
+      filterCourses();
+    });
+  });
+
+  const sortCourses = (criteria) => {
+    const sortedCourses = [...courses].sort((courseA, courseB) => {
+      const titleA = courseA.querySelector('.course-title')?.textContent.trim().toLowerCase() || '';
+      const titleB = courseB.querySelector('.course-title')?.textContent.trim().toLowerCase() || '';
+
+      if (criteria === 'title') return titleA.localeCompare(titleB);
+      if (criteria === 'title-desc') return titleB.localeCompare(titleA);
+      if (criteria === 'duration') return Number(courseB.dataset.duration) - Number(courseA.dataset.duration);
+
+      return Number(courseA.dataset.index) - Number(courseB.dataset.index);
+    });
+
+    sortedCourses.forEach((course) => container.appendChild(course));
+  };
+
+  sortSelect?.addEventListener('change', (event) => sortCourses(event.target.value));
+
+  searchInput?.addEventListener('input', () => {
+    clearSearch.hidden = searchInput.value.length === 0;
     filterCourses();
   });
 
   clearSearch?.addEventListener('click', () => {
     searchInput.value = '';
-    clearSearch.style.display = 'none';
+    clearSearch.hidden = true;
+    searchInput.focus();
     filterCourses();
   });
 
-  // Category filter dropdown
-  categoryFilter?.addEventListener('click', (e) => {
-    e.stopPropagation();
-    categoryDropdown.classList.toggle('show');
-  });
-
-  document.addEventListener('click', (e) => {
-    if (!e.target.closest('.filters')) {
-      categoryDropdown?.classList.remove('show');
-    }
-  });
-
-  // Category filter logic
-  const categoryCheckboxes = document.querySelectorAll('input[name="category"]');
-  categoryCheckboxes.forEach(checkbox => {
-    checkbox.addEventListener('change', (e) => {
-      const value = e.target.value;
-      
-      if (value === 'all') {
-        if (e.target.checked) {
-          activeCategories.clear();
-          activeCategories.add('all');
-          categoryCheckboxes.forEach(cb => {
-            if (cb.value !== 'all') cb.checked = false;
-          });
-        }
-      } else {
-        const allCheckbox = document.querySelector('input[value="all"]');
-        if (allCheckbox) allCheckbox.checked = false;
-        activeCategories.delete('all');
-        
-        if (e.target.checked) {
-          activeCategories.add(value);
-        } else {
-          activeCategories.delete(value);
-        }
-        
-        if (activeCategories.size === 0) {
-          activeCategories.add('all');
-          if (allCheckbox) allCheckbox.checked = true;
-        }
-      }
-      
-      updateActiveFilters();
-      filterCourses();
-      
-      // Update filter button state
-      if (activeCategories.has('all') || activeCategories.size === 0) {
-        categoryFilter.classList.remove('active');
-      } else {
-        categoryFilter.classList.add('active');
-      }
-    });
-  });
-
-  // Update active filters display
-  function updateActiveFilters() {
-    activeFiltersContainer.innerHTML = '';
-    
-    if (!activeCategories.has('all') && activeCategories.size > 0) {
-      activeCategories.forEach(category => {
-        const tag = document.createElement('div');
-        tag.className = 'active-filter-tag';
-        tag.innerHTML = `
-          <span>${category.toUpperCase()}</span>
-          <button type="button" data-category="${category}">
-            <i class="fa-solid fa-xmark"></i>
-          </button>
-        `;
-        
-        tag.querySelector('button').addEventListener('click', () => {
-          const checkbox = document.querySelector(`input[value="${category}"]`);
-          if (checkbox) {
-            checkbox.checked = false;
-            checkbox.dispatchEvent(new Event('change'));
-          }
-        });
-        
-        activeFiltersContainer.appendChild(tag);
-      });
-    }
-  }
-
-  // Sort functionality
-  sortSelect?.addEventListener('change', (e) => {
-    sortCourses(e.target.value);
-  });
-
-  function sortCourses(criteria) {
-    const sortedCourses = [...courses].sort((a, b) => {
-      const titleA = a.querySelector('.course-title')?.textContent.toLowerCase();
-      const titleB = b.querySelector('.course-title')?.textContent.toLowerCase();
-      
-      switch(criteria) {
-        case 'title':
-          return titleA.localeCompare(titleB);
-        case 'title-desc':
-          return titleB.localeCompare(titleA);
-        case 'duration':
-          const durationA = parseInt(a.querySelector('.duration-badge')?.textContent.replace(/\D/g, '') || 0);
-          const durationB = parseInt(b.querySelector('.duration-badge')?.textContent.replace(/\D/g, '') || 0);
-          return durationB - durationA;
-        default:
-          return 0;
-      }
-    });
-    
-    sortedCourses.forEach(course => container.appendChild(course));
-  }
-
-  // Filter courses
-  function filterCourses() {
-    const searchTerm = searchInput?.value.toLowerCase() || '';
-    let visibleCount = 0;
-    
-    courses.forEach(course => {
-      const title = course.querySelector('.course-title')?.textContent.toLowerCase() || '';
-      const description = course.querySelector('.course-subtitle')?.textContent.toLowerCase() || '';
-      const category = course.dataset.category || 'training';
-      
-      const matchesSearch = title.includes(searchTerm) || description.includes(searchTerm);
-      const matchesCategory = activeCategories.has('all') || activeCategories.has(category);
-      
-      if (matchesSearch && matchesCategory) {
-        course.style.display = '';
-        visibleCount++;
-      } else {
-        course.style.display = 'none';
-      }
-    });
-    
-    // Update results count
-    if (resultsCount) {
-      const icon = resultsCount.querySelector('i');
-      resultsCount.innerHTML = '';
-      if (icon) resultsCount.appendChild(icon.cloneNode(true));
-      const text = document.createTextNode(` ${visibleCount} course${visibleCount !== 1 ? 's' : ''}`);
-      resultsCount.appendChild(text);
-    }
-    
-    // Show/hide no results message
-    if (visibleCount === 0) {
-      noResults.style.display = 'flex';
-      container.style.display = 'none';
-    } else {
-      noResults.style.display = 'none';
-      container.style.display = '';
-    }
-  }
-
-  // Reset filters
   resetFiltersBtn?.addEventListener('click', () => {
     searchInput.value = '';
-    clearSearch.style.display = 'none';
-    
-    categoryCheckboxes.forEach(cb => {
-      cb.checked = cb.value === 'all';
+    clearSearch.hidden = true;
+    categoryCheckboxes.forEach((checkbox) => {
+      checkbox.checked = checkbox.value === 'all';
     });
-    
-    activeCategories.clear();
-    activeCategories.add('all');
+    activeCategories = new Set(['all']);
     categoryFilter.classList.remove('active');
-    
-    updateActiveFilters();
-    filterCourses();
-    
     sortSelect.value = 'recent';
+    updateActiveFilters();
+    sortCourses('recent');
+    filterCourses();
   });
 
-  // Keyboard shortcuts
-  document.addEventListener('keydown', (e) => {
-    // Ctrl/Cmd + K to focus search
-    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-      e.preventDefault();
+  document.addEventListener('keydown', (event) => {
+    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
+      event.preventDefault();
       searchInput?.focus();
     }
-    
-    // Escape to clear search
-    if (e.key === 'Escape' && searchInput === document.activeElement) {
-      clearSearch?.click();
+
+    if (event.key === 'Escape') {
+      setCategoryMenuOpen(false);
+      if (searchInput === document.activeElement && searchInput.value) clearSearch?.click();
     }
   });
+
+  filterCourses();
 });
-  </script>
+</script>
 {% endblock %}

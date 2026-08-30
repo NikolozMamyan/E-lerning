@@ -7,13 +7,25 @@
     <link rel="stylesheet" href="assets/css/app.css">
 </head>
 <body>
-    <div class="course-shell">
+    <main id="language-screen" class="language-screen" hidden>
+        <section class="language-card" aria-labelledby="language-title">
+            <div class="language-card-mark" aria-hidden="true">U</div>
+            <p class="eyebrow">Digital learning</p>
+            <h1 id="language-title">Choose your training language</h1>
+            <p class="language-subtitle">Wählen Sie Ihre Trainingssprache</p>
+            <div id="language-options" class="language-options"></div>
+            <small>Your progress and quiz will be saved in the selected language.</small>
+        </section>
+    </main>
+
+    <div id="course-shell" class="course-shell" hidden>
         <aside class="course-sidebar" aria-label="Course chapters">
-            <div class="brand">SCORM Course</div>
+            <div class="brand">Unzer Learning</div>
             <h1 id="course-title">Loading…</h1>
+            <div id="selected-language" class="selected-language" hidden></div>
             <div class="progress-summary">
                 <div class="progress-label">
-                    <span>Overall progress</span>
+                    <span id="overall-progress-label">Overall progress</span>
                     <strong id="global-progress-text">0 %</strong>
                 </div>
                 <progress id="global-progress" max="100" value="0">0 %</progress>
@@ -23,11 +35,10 @@
 
         <main class="course-content">
             <div id="error-message" class="message message-error" role="alert" hidden></div>
-            <div id="completion-message" class="message message-success" role="status" hidden>
-                Course completed. Your progress has been saved.
-            </div>
+            <div id="completion-message" class="message message-success" role="status" hidden>Course completed. Your result has been saved.</div>
+            <div id="navigation-message" class="message message-info" role="status" hidden></div>
 
-            <section class="player-card" aria-labelledby="video-title">
+            <section id="player-card" class="player-card" aria-labelledby="video-title">
                 <div class="player-heading">
                     <p id="video-position" class="eyebrow"></p>
                     <h2 id="video-title">Video</h2>
@@ -39,7 +50,7 @@
 
                 <div class="video-progress">
                     <div class="progress-label">
-                        <span>Watched progress</span>
+                        <span id="watched-progress-label">Watched progress</span>
                         <strong id="video-progress-text">0 %</strong>
                     </div>
                     <progress id="video-progress" max="100" value="0">0 %</progress>
@@ -50,10 +61,31 @@
                     <button id="next-button" type="button" class="button button-primary">Next</button>
                 </div>
             </section>
+
+            <section id="quiz-card" class="quiz-card" aria-labelledby="quiz-title" hidden>
+                <div class="quiz-heading">
+                    <div>
+                        <p id="quiz-eyebrow" class="eyebrow">Knowledge check</p>
+                        <h2 id="quiz-title">Final quiz</h2>
+                    </div>
+                    <span id="quiz-threshold" class="quiz-threshold"></span>
+                </div>
+                <p id="quiz-instructions" class="quiz-instructions"></p>
+                <form id="quiz-form">
+                    <div id="quiz-questions" class="quiz-questions"></div>
+                    <div id="quiz-result" class="quiz-result" role="status" hidden></div>
+                    <div class="navigation quiz-navigation">
+                        <button id="quiz-back-button" type="button" class="button button-secondary">Back to video</button>
+                        <button id="quiz-submit-button" type="submit" class="button button-primary">Submit answers</button>
+                    </div>
+                </form>
+            </section>
         </main>
     </div>
 
     <script src="assets/js/scorm-api.js"></script>
+    <script src="assets/js/course-policy.js"></script>
+    <script src="assets/js/quiz-engine.js"></script>
     <script src="assets/js/course.js"></script>
 </body>
 </html>

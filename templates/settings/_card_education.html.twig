@@ -1,4 +1,10 @@
-<div class="card-body grid-2">
-  <div><strong>Master’s Degree</strong><p>{{ user.masterDegree ?? 'Not set' }}</p></div>
-  <div><strong>Bachelor’s Degree</strong><p>{{ user.bachelorDegree ?? 'Not set' }}</p></div>
+<div class="settings-detail-grid settings-detail-grid--education" data-settings-section-content="education">
+  <div class="settings-detail {{ not user.masterDegree ? 'is-empty' : '' }}" data-settings-field="masterDegree">
+    <span class="settings-detail__icon"><i class="fa-solid fa-user-graduate" aria-hidden="true"></i></span>
+    <div><small>Master's degree</small><strong>{{ user.masterDegree ?? 'Add your master’s degree' }}</strong></div>
+  </div>
+  <div class="settings-detail {{ not user.bachelorDegree ? 'is-empty' : '' }}" data-settings-field="bachelorDegree">
+    <span class="settings-detail__icon"><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i></span>
+    <div><small>Bachelor's degree</small><strong>{{ user.bachelorDegree ?? 'Add your bachelor’s degree' }}</strong></div>
+  </div>
 </div>

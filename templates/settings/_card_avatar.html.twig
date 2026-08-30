@@ -1,9 +1,28 @@
-<div class="profile-header">
-  <img src="{{ asset(user.avatar ? 'uploads/' ~ user.avatar : 'images/User.svg') }}" 
-       alt="User avatar" 
-       class="profile-avatar">
-  <div>
-    <h3>{{ user.username }}</h3>
-    <p>{{ user.bio ?? 'No bio yet' }}</p>
+{% set profileRole = 'Learner' %}
+{% set profileRoleIcon = 'fa-user-graduate' %}
+{% if 'ROLE_ADMIN' in user.roles %}
+  {% set profileRole = 'Administrator' %}
+  {% set profileRoleIcon = 'fa-shield-halved' %}
+{% elseif 'ROLE_COMPANY' in user.roles %}
+  {% set profileRole = 'Company' %}
+  {% set profileRoleIcon = 'fa-building' %}
+{% endif %}
+
+<div class="settings-profile-card__content" data-settings-section-content="avatar">
+  <div class="settings-profile-card__identity">
+    <div class="settings-avatar-wrap">
+      <img src="{{ asset(user.avatar ? 'uploads/avatars/' ~ user.avatar : 'images/User.svg') }}" alt="{{ user.username }}" class="settings-avatar" id="profileAvatar">
+      <span aria-label="Account active"><i class="fa-solid fa-check" aria-hidden="true"></i></span>
+    </div>
+    <div>
+      <span class="settings-profile-card__role"><i class="fa-solid {{ profileRoleIcon }}" aria-hidden="true"></i>{{ profileRole }}</span>
+      <h2>{{ user.username }}</h2>
+      <p>{{ user.bio ?? 'Add a professional headline to introduce yourself.' }}</p>
+      <small><i class="fa-regular fa-envelope" aria-hidden="true"></i>{{ user.email }}</small>
+    </div>
   </div>
+  <button type="button" class="settings-photo-button js-settings-edit" data-section="avatar" data-settings-url="{{ path('app_settings_edit', {section: 'avatar'}) }}">
+    <i class="fa-solid fa-camera" aria-hidden="true"></i>
+    Change photo
+  </button>
 </div>

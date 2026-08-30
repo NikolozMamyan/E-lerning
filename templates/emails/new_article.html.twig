@@ -10,7 +10,7 @@
 </p>
 
 <p>
-    <a href="{{ absolute_url(path('article_feed')) }}#article-{{ article.id }}">
+    <a href="{{ url('app_public_article', {id: article.id, slug: article.slug}) }}">
         View this article in the feed
     </a>
 </p>

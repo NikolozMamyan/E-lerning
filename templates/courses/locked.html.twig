@@ -1,369 +1,235 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Payment - {{ course.title }}{% endblock %}
+{% block title %}{{ course.title }} | Online Compliance Course{% endblock %}
+{% block meta_description %}{{ course.description|striptags|slice(0, 155) }}{% endblock %}
+{% block meta_robots %}index, follow, max-image-preview:large, max-snippet:-1{% endblock %}
+{% block canonical_url %}{{ url('app_public_course_show', {id: course.id, slug: course.slug}) }}{% endblock %}
+{% block meta_image %}{{ course.thumb ? absolute_url(asset('uploads/courses/' ~ course.thumb)) : absolute_url(asset('images/logo.png')) }}{% endblock %}
+
+{% block structured_data %}
+  {% set schemaPrice = (euroPrice|default('0')|replace({' ': '', ',': '.'}) + 0) %}
+  {% set courseData = {
+    '@context': 'https://schema.org',
+    '@type': 'Course',
+    'name': course.title,
+    'description': course.description|striptags,
+    'url': url('app_public_course_show', {id: course.id, slug: course.slug}),
+    'provider': {
+      '@type': 'Organization',
+      'name': 'Les Consultants E-learning',
+      'sameAs': url('app_landing_page')
+    }
+  } %}
+  {% if course.thumb %}
+    {% set courseData = courseData|merge({'image': absolute_url(asset('uploads/courses/' ~ course.thumb))}) %}
+  {% endif %}
+  {% if schemaPrice > 0 %}
+    {% set courseData = courseData|merge({'offers': {
+      '@type': 'Offer',
+      'price': schemaPrice|number_format(2, '.', ''),
+      'priceCurrency': 'EUR',
+      'availability': 'https://schema.org/InStock',
+      'url': url('app_public_course_show', {id: course.id, slug: course.slug})
+    }}) %}
+  {% endif %}
+  <script type="application/ld+json">{{ courseData|json_encode(constant('JSON_HEX_TAG'))|raw }}</script>
+{% endblock %}
 
 {% block stylesheets %}
-    {{ parent() }}
-    <link rel="stylesheet" href="{{ asset('styles/courseLocked.css') }}">
-    <style>
-        .payment-layout {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 30px;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        
-        .main-content {
-            display: flex;
-            flex-direction: column;
-            gap: 30px;
-        }
-        
-        .course-presentation {
-            background: white;
-            border-radius: 12px;
-            padding: 30px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        
-        .course-hero {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-            margin-bottom: 30px;
-        }
-        
-        .course-thumbnail {
-            position: relative;
-            border-radius: 8px;
-            overflow: hidden;
-        }
-        
-        .course-thumbnail img {
-            width: 100%;
-            height: 250px;
-            object-fit: cover;
-        }
-        
-        .play-overlay {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.7);
-            border-radius: 50%;
-            padding: 15px;
-            color: white;
-            font-size: 24px;
-        }
-        
-        .course-details h1 {
-            font-size: 28px;
-            font-weight: 600;
-            margin-bottom: 15px;
-            color: #333;
-        }
-        
-        .course-meta {
-            display: flex;
-            gap: 20px;
-            margin-bottom: 20px;
-            font-size: 14px;
-            color: #666;
-        }
-        
-        .course-price {
-            font-size: 24px;
-            font-weight: 600;
-            color: var(--green);
-            margin: 15px 0;
-        }
-        
-        .course-description {
-            margin-top: 30px;
-        }
-        
-        .course-description h3 {
-            font-size: 20px;
-            margin-bottom: 15px;
-            color: #333;
-        }
-        
-        .payment-sidebar {
-            position: sticky;
-            top: 20px;
-            height: fit-content;
-        }
-        
-        .customer-section, .payment-section {
-            background: white;
-            border-radius: 12px;
-            padding: 25px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        
-        .customer-section h3, .payment-section h3 {
-            margin-bottom: 20px;
-            color: #333;
-        }
-        .course-features {
-    display: flex;
-    gap: 10px;
-    margin-top: 15px;
-    flex-wrap: wrap;
-}
-
-.course-feature {
-    border: 1px solid #ddd;
-    padding: 6px 14px;
-    border-radius: 6px;
-    font-size: 14px;
-    background: #fff;
-    color: #333;
-    font-weight: 500;
-    white-space: nowrap;
-}
-
-        
-        @media (max-width: 968px) {
-            .payment-layout {
-                grid-template-columns: 1fr;
-            }
-            
-            .course-hero {
-                grid-template-columns: 1fr;
-            }
-            
-            .payment-sidebar {
-                position: static;
-            }
-        }
-
-        .tax-info {
-    font-size: 14px;
-    color: var(--green);
-    margin-top: 3px;
-    line-height: 1.3;
-}
-
-.course-price strong {
-    font-size: 26px;
-}
-
-    </style>
+  {{ parent() }}
+  <link rel="stylesheet" href="{{ asset('styles/courseLocked.css') }}">
 {% endblock %}
 
 {% block body %}
- {# Convert price from "30,00" → 30.00 #}
-    {% set euro = (euroPrice|replace({',': '.'}) + 0) %}
-    {% set priceHT = (euro / 1.17)|round(2, 'ceil') %}
-    {% set tva = (euro - priceHT)|round(2, 'ceil') %}
+{% set euro = (euroPrice|default('0')|replace({',': '.'}) + 0) %}
+{% set priceHT = (euro / 1.17)|round(2, 'ceil') %}
+{% set tva = (euro - priceHT)|round(2, 'ceil') %}
+{% set totalVideos = course.videos|length %}
 
-<div class="payment-layout">
-    <!-- MAIN CONTENT -->
-    <div class="main-content">
-        <!-- COURSE PRESENTATION -->
-        <div class="course-presentation">
-            <div class="course-hero">
-                <div class="course-thumbnail">
-                    <img src="{{ asset('uploads/courses/' ~ course.thumb) }}" alt="{{ course.title }}">
-                    <div class="play-overlay">
-                        <i class="fas fa-play"></i>
-                    </div>
-                </div>
-                
-                <div class="course-details">
-                    <h1>{{ course.title }}</h1>
-                                    <span class="updated-at">
-<i class="fa-solid fa-calendar-days"></i>
+<div class="course-purchase">
+  <header class="course-purchase__hero">
+    <div>
+      <a href="{{ path(app.user ? 'app_courses' : 'app_public_catalog') }}" class="course-purchase__back">
+        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+        All courses
+      </a>
 
-    date {{ course.updatedAt|date('d M Y') }}
-  </span>
-                    
-<div class="course-price">
-    <strong>€{{ priceHT|number_format(2, ',', ' ') }}</strong> <span>(excl. VAT)</span>
-    {# <div class="tax-info">
-       <br>
-        <span>€{{ priceHT|number_format(2, ',', ' ') }} (excl. VAT)</span>
-    </div> #}
-</div>
+      <div class="course-purchase__eyebrow">
+        <span class="course-purchase__status">
+          <i class="fa-solid fa-lock" aria-hidden="true"></i>
+          Access required
+        </span>
+        {% if course.category %}
+          <span>{{ course.category.name }}</span>
+        {% endif %}
+      </div>
 
-                    
-<div class="course-features">
-    <span class="course-feature">Full access</span>
-    <span class="course-feature">Certificate of completion</span>
-    <span class="course-feature">24/7 Support</span>
-</div>
+      <h1>{{ course.title }}</h1>
+      <p>Get immediate access to the complete training, its learning resources and the final certificate.</p>
 
-                </div>
+      <div class="course-purchase__meta" aria-label="Course information">
+        <span><i class="fa-solid fa-circle-play" aria-hidden="true"></i>{{ totalVideos }} lesson{{ totalVideos == 1 ? '' : 's' }}</span>
+        <span><i class="fa-solid fa-infinity" aria-hidden="true"></i>Full course access</span>
+        <span><i class="fa-solid fa-award" aria-hidden="true"></i>Certificate included</span>
+        {% if course.updatedAt %}
+          <span><i class="fa-regular fa-calendar" aria-hidden="true"></i>Updated {{ course.updatedAt|date('d M Y') }}</span>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="course-purchase__hero-mark" aria-hidden="true">
+      <span><i class="fa-solid fa-lock-open"></i></span>
+      <strong>Learn at your pace</strong>
+      <small>One secure payment</small>
+    </div>
+  </header>
+
+  <div class="course-purchase__layout">
+    <div class="course-purchase__content">
+      <section class="course-purchase__preview">
+        <div class="course-purchase__cover">
+          {% if course.thumb %}
+            <img src="{{ asset('uploads/courses/' ~ course.thumb) }}" alt="" loading="eager">
+          {% else %}
+            <div class="course-purchase__cover-placeholder"><i class="fa-solid fa-book-open" aria-hidden="true"></i></div>
+          {% endif %}
+          <div class="course-purchase__cover-shade"></div>
+          <span class="course-purchase__cover-lock"><i class="fa-solid fa-lock" aria-hidden="true"></i></span>
+          <div class="course-purchase__cover-copy">
+            <span>Course preview</span>
+            <strong>{{ course.title }}</strong>
+          </div>
+        </div>
+
+        <div class="course-purchase__description">
+          <div class="course-purchase__section-heading">
+            <span class="course-purchase__section-icon"><i class="fa-regular fa-file-lines" aria-hidden="true"></i></span>
+            <div>
+              <span>About this training</span>
+              <h2>Course overview</h2>
             </div>
-            
-<div class="course-description">
-    <h3>Course Description</h3>
-    <p>{{ course.description }}</p>
-    
-    <h3>What you will learn</h3>
-    <ul>
-        {% for video in course.videos %}
-            <li>{{ video.title }}</li>
-        {% else %}
-            <li>No videos available yet.</li>
-        {% endfor %}
-    </ul>
-                      {% if course.planPdf %}
-                      <h3>Training Plan</h3>
-                <a class="pdf-btn" href="{{ asset('uploads/course_plans/' ~ course.planPdf) }}" target="_blank" download title="Download Syllabus">
-                  <i class="fa-solid fa-file-pdf"></i>
-                </a>
+          </div>
+          <p>{{ course.description }}</p>
 
-              {% endif %}
-    <h3>Requirements</h3>
-    <p>No specific requirements. This course is suitable for both beginners and professionals who want to deepen their knowledge.</p>
-</div>
+          <div class="course-purchase__benefits">
+            <div><i class="fa-solid fa-bolt" aria-hidden="true"></i><span><strong>Immediate access</strong><small>Start right after payment</small></span></div>
+            <div><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i><span><strong>Self-paced</strong><small>Learn on your schedule</small></span></div>
+            <div><i class="fa-solid fa-headset" aria-hidden="true"></i><span><strong>Support included</strong><small>Help whenever needed</small></span></div>
+          </div>
+        </div>
+      </section>
 
+      <section class="course-purchase__curriculum">
+        <div class="course-purchase__section-heading">
+          <span class="course-purchase__section-icon"><i class="fa-solid fa-list-check" aria-hidden="true"></i></span>
+          <div>
+            <span>Included in this course</span>
+            <h2>What you will learn</h2>
+          </div>
         </div>
 
-        <!-- CUSTOMER INFORMATION (bottom) -->
-        <div class="customer-section">
-            <h3>Customer Information</h3>
-            <div class="info-grid">
-                <div class="info-item">
-                    <div class="icon"><img class="icon" src="{{ asset('images/User.svg') }}" /></div>
-                    <div class="info-value">
-                        {{ app.user ? app.user.username|default('Sara Smith') : 'Sara Smith' }}
-                    </div>
-                </div>
-                <div class="info-item">
-                    <div class="icon"><img class="icon" src="{{ asset('images/email.svg') }}" /></div>
-                    <div class="info-value">
-                        {{ app.user ? app.user.email|default('user@example.com') : 'user@example.com' }}
-                    </div>
-                </div>
-                <div class="info-item">
-    <div class="icon">
-        <img class="icon" src="{{ asset('images/co.svg') }}" />
-    </div>
-    <div class="info-value">
-        {{ app.user ? app.user.companyNameFromEmail : 'Saranco.' }}
-    </div>
-</div>
-
+        <div class="course-purchase__lesson-list">
+          {% for video in course.videos %}
+            {% set mins = (video.duration / 60)|round(0, 'floor') %}
+            {% set secs = video.duration % 60 %}
+            <div class="course-purchase__lesson">
+              <span>{{ loop.index }}</span>
+              <div>
+                <strong>{{ video.title }}</strong>
+                <small>Video lesson <span aria-hidden="true">&bull;</span> {{ '%02d'|format(mins) }}:{{ '%02d'|format(secs) }}</small>
+              </div>
+              <i class="fa-solid fa-lock" aria-hidden="true"></i>
             </div>
-        </div>
-    </div>
-
-    <!-- PAYMENT SIDEBAR (right) -->
-    <div class="payment-sidebar">
-    <div class="payment-section">
-
-        <!-- Order Header -->
-        <div class="order-header">
-            <span class="order-id">
-                Order ID: {{ 'ID-GadgetPay-' ~ course.id ~ random() }}
-            </span>
-        </div>
-
-        <!-- Order Summary -->
-<div class="payment-summary">
-    <h4>Order Summary</h4>
-    <div class="summary-line">
-        <span>{{ course.title }}</span>
-        <span>
-            €{{ euro|number_format(2, ',', ' ') }}
-            <small>(incl. VAT)</small>
-        </span>
-    </div>
-
-    <div class="summary-line total">
-        <span>Price (excl. VAT)</span>
-        <span>
-            €{{ priceHT|number_format(2, ',', ' ') }}
-            <small>(excl. VAT)</small>
-        </span>
-    </div>
-        <div class="summary-line total">
-        <span>VAT </span>
-        <span>
-            €{{ tva|number_format(2, ',', ' ') }}
-            <small></small>
-        </span>
-    </div>
-
-    <div class="summary-line total">
-        <span>Total</span>
-        <span>
-            €{{ euro|number_format(2, ',', ' ') }}
-            <small>(incl. VAT)</small>
-        </span>
-    </div>
-</div>
-
-
-        <!-- Payment Methods -->
-        <div class="payment-methods">
-            <h4>Payment Method</h4>
-
-            <div class="methods-grid">
-                <div class="method-option">
-                    <div class="card-icon">
-
-                        {# VISA #}
-                        <svg xmlns="http://www.w3.org/2000/svg" width="56" height="30" viewBox="0 0 56 30">
-                            <rect width="56" height="30" rx="4" fill="#1a3871"/>
-                            <text x="50%" y="55%" dominant-baseline="middle"
-                                  text-anchor="middle" font-family="Arial" font-size="12" fill="white">VISA</text>
-                        </svg>
-
-                        {# Mastercard #}
-                        <svg xmlns="http://www.w3.org/2000/svg" width="56" height="30" viewBox="0 0 56 30">
-                            <rect width="56" height="30" rx="4" fill="#fff"/>
-                            <circle cx="22" cy="15" r="9" fill="#eb001b"/>
-                            <circle cx="34" cy="15" r="9" fill="#f79e1b"/>
-                            <path d="M25 15a9 9 0 0 1 9-9 9 9 0 0 1 0 18 9 9 0 0 1-9-9z" fill="#ff5f00"/>
-                        </svg>
-
-                        {# CB #}
-                        <svg xmlns="http://www.w3.org/2000/svg" width="56" height="30" viewBox="0 0 56 30">
-                            <rect width="56" height="30" rx="4" fill="#0099cc"/>
-                            <text x="50%" y="55%" dominant-baseline="middle"
-                                  text-anchor="middle" font-family="Arial Black" font-size="12" fill="white">CB</text>
-                        </svg>
-
-                        {# AMEX #}
-                        <svg xmlns="http://www.w3.org/2000/svg" width="56" height="30" viewBox="0 0 56 30">
-                            <rect width="56" height="30" rx="4" fill="#2e77bc"/>
-                            <text x="50%" y="55%" dominant-baseline="middle"
-                                  text-anchor="middle" font-family="Arial" font-size="10" fill="white">AMEX</text>
-                        </svg>
-
-                    </div>
-                </div>
+          {% else %}
+            <div class="course-purchase__empty-lessons">
+              <i class="fa-regular fa-folder-open" aria-hidden="true"></i>
+              The detailed curriculum will be available soon.
             </div>
+          {% endfor %}
         </div>
 
-        <!-- Checkout Form -->
-        <form method="post" action="{{ path('app_course_checkout', { id: course.id }) }}">
-            <button type="submit" class="pay-button">Buy Now</button>
+        {% if course.planPdf %}
+          <a class="course-purchase__plan" href="{{ asset('uploads/course_plans/' ~ course.planPdf) }}" target="_blank" download>
+            <span><i class="fa-regular fa-file-pdf" aria-hidden="true"></i></span>
+            <div>
+              <strong>Training plan</strong>
+              <small>Download the complete syllabus</small>
+            </div>
+            <i class="fa-solid fa-download" aria-hidden="true"></i>
+          </a>
+        {% endif %}
+      </section>
+
+      <section class="course-purchase__requirements">
+        <span><i class="fa-solid fa-check" aria-hidden="true"></i></span>
+        <div>
+          <h2>No specific requirements</h2>
+          <p>This training is suitable for beginners and professionals who want to deepen their knowledge.</p>
+        </div>
+      </section>
+    </div>
+
+    <aside class="course-purchase__checkout">
+      <section class="course-purchase__checkout-card">
+        <div class="course-purchase__checkout-heading">
+          <div>
+            <span>One-time purchase</span>
+            <h2>Unlock this course</h2>
+          </div>
+          <span class="course-purchase__secure-icon"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i></span>
+        </div>
+
+        <div class="course-purchase__price">
+          {% if euroPrice is not null %}
+            <strong><sup>&euro;</sup>{{ priceHT|number_format(2, ',', ' ') }}</strong>
+            <span>excluding VAT</span>
+          {% else %}
+            <strong class="course-purchase__price-unavailable">Price unavailable</strong>
+          {% endif %}
+        </div>
+
+        <div class="course-purchase__summary">
+          <div><span>Course price</span><strong>&euro;{{ priceHT|number_format(2, ',', ' ') }}</strong></div>
+          <div><span>VAT</span><strong>&euro;{{ tva|number_format(2, ',', ' ') }}</strong></div>
+          <div class="course-purchase__summary-total"><span>Total incl. VAT</span><strong>&euro;{{ euro|number_format(2, ',', ' ') }}</strong></div>
+        </div>
+
+        <div class="course-purchase__buyer">
+          <span class="course-purchase__buyer-avatar"><i class="fa-regular fa-user" aria-hidden="true"></i></span>
+          <div>
+            <small>Purchasing as</small>
+            <strong>{{ app.user ? app.user.username|default(app.user.email) : 'Guest user' }}</strong>
+            {% if app.user %}<span>{{ app.user.email }}</span>{% endif %}
+          </div>
+        </div>
+
+        <form method="post" action="{{ path('app_catalog_course_checkout', { id: course.id }) }}">
+          <input type="hidden" name="_token" value="{{ csrf_token('catalog_checkout_' ~ course.id) }}">
+          <button type="submit" class="course-purchase__buy" {% if euroPrice is null %}disabled{% endif %}>
+            <span>Buy and start learning</span>
+            <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+          </button>
         </form>
 
-        <!-- Security -->
-        <div class="security-note">
-            <i class="fas fa-shield-alt"></i>
-            Secure and encrypted payments
+        <div class="course-purchase__security">
+          <i class="fa-solid fa-lock" aria-hidden="true"></i>
+          Secure and encrypted payment
         </div>
 
-        <!-- Footer -->
-        <div class="footer-links">
-            <a href="/legales/TermsConditions.html">Terms & Conditions</a>
-            <a href="/legales/Privacy.html">Privacy Policy</a>
-            <a href="{{ path('app_contact') }}">Help</a>
+        <div class="course-purchase__methods" aria-label="Accepted payment methods">
+          <span>VISA</span>
+          <span><i class="fa-brands fa-cc-mastercard" aria-label="Mastercard"></i></span>
+          <span>CB</span>
+          <span>AMEX</span>
         </div>
-    </div>
-</div>
 
-    </div>
+        <div class="course-purchase__links">
+          <a href="/legales/TermsConditions.html">Terms</a>
+          <a href="/legales/Privacy.html">Privacy</a>
+          <a href="{{ path('app_contact') }}">Need help?</a>
+        </div>
+      </section>
+    </aside>
+  </div>
 </div>
 {% endblock %}

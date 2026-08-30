@@ -1,882 +1,358 @@
-{# templates/feed/index.html.twig #}
+{# templates/article/feed.html.twig #}
 {% extends 'base.html.twig' %}
 
-{% block head %}
-    {{ parent() }}
+{% block title %}Compliance Learning Community Feed | Luxembourg{% endblock %}
+{% block meta_description %}Discover professional insights, regulatory updates and learner conversations about compliance, AML/CFT, risk and digital learning in Luxembourg.{% endblock %}
+{% block meta_robots %}index, follow, max-image-preview:large, max-snippet:-1{% endblock %}
+{% block canonical_url %}{{ url('article_feed') }}{% endblock %}
 
-    {# Font Awesome #}
-    <link rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-          integrity="sha512-pVIpG8GqTn+DOkP02IXj9O7M0vSuaM9CjNsxE6Q2IVaNQ8zjF7A9oXo2xjzU4XbB5nG9yZ5N9x0j9V3QYxY7Wg=="
-          crossorigin="anonymous"
-          referrerpolicy="no-referrer" />
-
-    {# Quill Editor #}
-    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-
-    {# Feed CSS #}
-    <link rel="stylesheet" href="{{ asset('assets/css/feed.css') }}">
+{% block structured_data %}
+  {% set feedItems = [] %}
+  {% for article in articles %}
+    {% set feedItems = feedItems|merge([{
+      '@type': 'ListItem',
+      'position': loop.index,
+      'url': url('app_public_article', {id: article.id, slug: article.slug}),
+      'name': article.titre
+    }]) %}
+  {% endfor %}
+  {% set feedData = {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    'name': 'Les Consultants Learning Community Feed',
+    'url': url('article_feed'),
+    'description': 'Professional learning conversations about compliance, AML/CFT, risk and regulated industries.',
+    'mainEntity': {
+      '@type': 'ItemList',
+      'itemListElement': feedItems
+    }
+  } %}
+  <script type="application/ld+json">{{ feedData|json_encode(constant('JSON_HEX_TAG'))|raw }}</script>
 {% endblock %}
 
+{% block stylesheets %}
+  {{ parent() }}
+  <link rel="stylesheet" href="{{ asset('styles/articleFeed.css') }}">
+{% endblock %}
 {% block body %}
-<style>
-/* ========== VARIABLES ========== */
-:root {
-    --green: #1A6D55;
-    --teal: #0D8383;
-    --black: #071717;
-    --mint: #E7F3F3;
-    --grey: #606060;
-    --light-grey: #8b9499;
-    --white: #FFFFFF;
-    --bg: #f4f9f8;
-    --radius: 16px;
-    --radius-sm: 8px;
-    --shadow: 0 2px 8px rgba(7, 23, 23, .06);
-    --shadow-md: 0 4px 16px rgba(7, 23, 23, .08);
-    --shadow-lg: 0 8px 24px rgba(7, 23, 23, .12);
-    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
+<section class="community-feed" data-feed-filter="{{ activeFilter }}" data-authenticated="{{ app.user ? 'true' : 'false' }}">
+  {% if not app.user %}
+    <header class="community-feed__guest-nav">
+      <a href="{{ path('app_landing_page') }}" class="guest-nav__brand" aria-label="Les Consultants home">
+        <img src="{{ asset('images/logo.png') }}" alt="Les Consultants">
+        <span><strong>Learning Community</strong><small>by Les Consultants</small></span>
+      </a>
+      <div class="guest-nav__message">
+        <span><i class="fa-solid fa-globe" aria-hidden="true"></i>Public preview</span>
+        <p>Discover what our learners are sharing.</p>
+      </div>
+      <nav class="guest-nav__actions" aria-label="Guest account actions">
+        <a href="{{ path('app_public_catalog') }}" class="guest-nav__login">Catalogue</a>
+        <a href="{{ path('show_login') }}" class="guest-nav__login">Sign in</a>
+        <a href="{{ path('show_register') }}" class="guest-nav__register"><i class="fa-solid fa-star" aria-hidden="true"></i><span>Create free account</span><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+      </nav>
+    </header>
+  {% endif %}
+
+  <header class="community-feed__hero">
+    <div class="community-feed__hero-copy">
+      <span class="community-feed__eyebrow">
+        <i class="fa-solid fa-users" aria-hidden="true"></i>
+        Learning community
+      </span>
+      <h1>Community feed</h1>
+      <p>Share useful ideas, learn from your peers and keep the conversation moving.</p>
+      <div class="community-feed__hero-meta">
+        <span><i class="fa-solid fa-address-card" aria-hidden="true"></i>Real learner profiles</span>
+        <span><i class="fa-solid fa-bolt" aria-hidden="true"></i>Live conversations</span>
+      </div>
+    </div>
 
-body {
-    background: var(--bg);
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-}
-
-/* ========== LAYOUT ========== */
-
-.article-root {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 20px;
-}
-
-/* ========== COMPOSER CARD ========== */
-
-.composer-card {
-    background: var(--white);
-    border-radius: var(--radius);
-    padding: 16px;
-    box-shadow: var(--shadow);
-    margin-bottom: 16px;
-    transition: var(--transition);
-}
-
-.composer-card:hover {
-    box-shadow: var(--shadow-md);
-}
-
-.composer-top {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.composer-avatar {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 2px solid var(--mint);
-}
-
-.composer-input {
-    flex: 1;
-    background: transparent;
-    border: 1px solid #e0e0e0;
-    padding: 12px 16px;
-    border-radius: 24px;
-    cursor: pointer;
-    color: var(--light-grey);
-    transition: var(--transition);
-    font-weight: 500;
-}
-
-.composer-input:hover {
-    background: var(--bg);
-    border-color: var(--teal);
-}
-
-.composer-actions {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-top: 12px;
-    margin-top: 12px;
-    border-top: 1px solid #e0e0e0;
-}
-
-.composer-action-btn {
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    color: var(--light-grey);
-    font-size: 14px;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 12px;
-    border-radius: var(--radius-sm);
-    transition: var(--transition);
-}
-
-.composer-action-btn:hover {
-    background: var(--bg);
-    color: var(--teal);
-}
-
-.composer-action-btn i {
-    font-size: 20px;
-}
-
-/* ========== ARTICLE CARD ========== */
-
-.articles-list {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
-
-.article-card {
-    background: var(--white);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    transition: var(--transition);
-    overflow: hidden;
-}
-
-.article-card:hover {
-    box-shadow: var(--shadow-md);
-}
-
-/* Header */
-.article-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    padding: 16px 20px;
-}
-
-.user-info {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-
-
-.user-avatar--small {
-    width: 32px;
-    height: 32px;
-    font-size: 14px;
-}
-
-.user-details {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-
-.username {
-    font-weight: 600;
-    color: var(--black);
-    font-size: 15px;
-}
-
-.date {
-    font-size: 13px;
-    color: var(--light-grey);
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.article-menu {
-    display: flex;
-    gap: 8px;
-}
-
-.btn-icon {
-    background: transparent;
-    border: none;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    color: var(--light-grey);
-    transition: var(--transition);
-    text-decoration: none;
-}
-
-.btn-icon:hover {
-    background: var(--bg);
-    color: var(--teal);
-}
-
-.btn-icon.danger:hover {
-    background: #fee;
-    color: #dc3545;
-}
-
-/* Content */
-.article-content {
-    padding: 0 20px 16px;
-}
-
-.article-content h3 {
-    color: var(--black);
-    font-size: 20px;
-    font-weight: 700;
-    margin-bottom: 12px;
-    line-height: 1.4;
-}
-
-.article-body {
-    max-height: 180px;
-    overflow: hidden;
-    position: relative;
-    transition: max-height 0.4s ease;
-}
-
-/* Quand la carte est ouverte */
-.article-body.expanded {
-    max-height: 2000px; /* grande hauteur */
-}
-
-/* Dégradé visuel */
-.article-body::after {
-    content: "";
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    height: 40px;
-    width: 100%;
-    pointer-events: none;
-}
-
-.article-body.expanded::after {
-    display: none;
-}
-
-/* Bouton see more */
-.see-more-btn {
-    border: none;
-    border-radius:7px;
-    color: var(--teal);
-    font-weight: 600;
-    cursor: pointer;
-    padding: 8px 20px;
-}
-
-.article-body p {
-    margin-bottom: 12px;
-    word-wrap: break-word;
-}
-
-.article-body strong {
-    font-weight: 600;
-    color: var(--black);
-}
-
-/* Styled links in article body */
-.article-body a {
-    color: var(--teal);
-    text-decoration: none;
-    font-weight: 500;
-    border-bottom: 1px solid transparent;
-    transition: var(--transition);
-}
-
-.article-body a:hover {
-    color: var(--green);
-    border-bottom-color: var(--green);
-}
-
-/* Lists & headings */
-.article-body ul,
-.article-body ol {
-    margin-left: 20px;
-    margin-bottom: 12px;
-}
-
-.article-body li {
-    margin-bottom: 6px;
-}
-
-.article-body h2 {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--black);
-    margin-top: 16px;
-    margin-bottom: 8px;
-}
-
-.article-body h3 {
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--black);
-    margin-top: 12px;
-    margin-bottom: 6px;
-}
-
-.article-image {
-    width: 100%;
-    max-height: 550px;
-    object-fit: contain;
-    display: block;
-    margin: 16px 0 0;
-    cursor: pointer;
-}
-
-/* Actions */
-.article-actions {
-    display: flex;
-    gap: 4px;
-    padding: 8px 12px;
-    border-top: 1px solid #e0e0e0;
-}
-
-.btn-action {
-    background: transparent;
-    border: none;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    cursor: pointer;
-    color: var(--light-grey);
-    font-size: 14px;
-    font-weight: 600;
-    transition: var(--transition);
-    padding: 8px 16px;
-    border-radius: var(--radius-sm);
-    flex: 1;
-    justify-content: center;
-}
-
-.btn-action:hover {
-    background: var(--bg);
-}
-
-.btn-action.like-btn:hover {
-    color: #e74c3c;
-}
-
-.btn-action.comment-btn:hover {
-    color: var(--teal);
-}
-
-.btn-action.active {
-    color: #e74c3c;
-}
-
-.btn-action i {
-    font-size: 18px;
-}
-
-.btn-action .count {
-    font-weight: 600;
-}
-
-/* ========== COMMENTS ========== */
-
-.comments-section {
-    background: var(--bg);
-    max-height: 0;
-    position: relative;
-    overflow: hidden;
-    transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), padding 0.4s;
-    padding: 0 20px;
-}
-
-
-.comments-section .comment-form{
-  position: sticky;
-  bottom: 0;
-  background: var(--bg);           /* évite la transparence */
-  padding: 12px 0 0;               /* espace au-dessus */
-  margin-top: 12px;
-  z-index: 5;
-  border-top: 1px solid #e0e0e0;   /* petite séparation */
-}
-
-
-.comments-section.expanded {
-    max-height: 420px;        /* 🔽 hauteur réduite */
-    overflow-y: auto;
-    padding:15px 15px 0;
-}
-
-.comment {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 12px;
-    animation: slideIn 0.3s ease-out;
-}
-
-@keyframes slideIn {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.comment-content {
-    flex: 1;
-    background: var(--white);
-    padding: 12px;
-    border-radius: 12px;
-}
-
-.comment-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 6px;
-}
-
-.comment-header .username {
-    font-size: 14px;
-    font-weight: 600;
-}
-
-.comment-header .date {
-    font-size: 12px;
-}
-
-.comment-content p {
-    color: var(--black);
-    font-size: 14px;
-    line-height: 1.5;
-}
-
-.comment-form {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    margin-top: 12px;
-}
-
-.comment-form .input-field {
-    flex: 1;
-}
-
-/* Inputs */
-.input-field {
-    width: 100%;
-    padding: 12px 16px;
-    border: 1px solid #e0e0e0;
-    border-radius: var(--radius-sm);
-    font-size: 16px;
-    font-family: inherit;
-    transition: var(--transition);
-    margin-bottom:15px;
-}
-
-.input-field:focus {
-    outline: none;
-    border-color: var(--teal);
-    box-shadow: 0 0 0 3px rgba(13, 131, 131, 0.1);
-}
-
-/* Comment send button */
-.btn-send {
-    background: var(--teal);
-    color: var(--white);
-    border: none;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: var(--transition);
-}
-
-.btn-send:hover {
-    background: var(--green);
-    transform: scale(1.05);
-}
-
-.btn-send:disabled {
-    background: var(--light-grey);
-    cursor: not-allowed;
-    opacity: 0.5;
-}
-
-/* ========== MODAL ========== */
-
-.modal {
-    position: fixed;
-    inset: 0;
-    background: rgba(7, 23, 23, 0.75);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    backdrop-filter: blur(4px);
-    opacity: 0;
-    transition: opacity 0.3s ease-out;
-}
-
-.modal.is-open {
-    display: flex;
-    opacity: 1;
-}
-
-.modal-content {
-    background: var(--white);
-    border-radius: var(--radius);
-    max-width: 700px;
-    width: 100%;
-    max-height: 90vh;
-    overflow-y: auto;
-    box-shadow: var(--shadow-lg);
-    animation: slideUp 0.3s ease-out;
-}
-
-@keyframes slideUp {
-    from {
-        opacity: 0;
-        transform: translateY(30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 16px 20px;
-    border-bottom: 1px solid #e0e0e0;
-}
-
-.user-line {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.modal-avatar {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    object-fit: cover;
-}
-
-.modal-header .user-info strong {
-    display: block;
-    font-size: 15px;
-    font-weight: 600;
-    color: var(--black);
-}
-
-.visibility {
-    font-size: 12px;
-    color: var(--light-grey);
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.btn-close {
-    background: transparent;
-    border: none;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    color: var(--light-grey);
-    transition: var(--transition);
-    font-size: 20px;
-}
-
-.btn-close:hover {
-    background: var(--bg);
-    color: var(--black);
-}
-
-.modal-body {
-    padding: 20px;
-}
-
-#editor {
-    background: white;
-    border: 1px solid #e0e0e0;
-    border-radius: var(--radius-sm);
-    min-height: 200px;
-}
-
-.ql-toolbar {
-    border-radius: var(--radius-sm) var(--radius-sm) 0 0 !important;
-    background: var(--bg) !important;
-}
-
-.ql-container {
-    border-radius: 0 0 var(--radius-sm) var(--radius-sm) !important;
-    font-size: 15px !important;
-}
-
-/* Image Preview Container */
-#image-preview-container {
-    margin-top: 16px;
-    position: relative;
-}
-
-#image-preview-container.has-image {
-    border: 1px solid #e0e0e0;
-    border-radius: var(--radius-sm);
-    padding: 8px;
-    background: var(--bg);
-}
-
-.image-preview-wrapper {
-    position: relative;
-    display: inline-block;
-    width: 100%;
-}
-
-#image-preview-container img {
-    max-width: 100%;
-    max-height: 300px;
-    width: auto;
-    height: auto;
-    border-radius: var(--radius-sm);
-    display: block;
-    margin: 0 auto;
-    object-fit: contain;
-}
-
-.remove-image-btn {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    background: rgba(220, 53, 69, 0.9);
-    color: white;
-    border: none;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: var(--transition);
-    font-size: 16px;
-    z-index: 10;
-}
-
-.remove-image-btn:hover {
-    background: #dc3545;
-    transform: scale(1.1);
-}
-
-/* Footer modal */
-
-.linkedin-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 16px 20px;
-    border-top: 1px solid #e0e0e0;
-}
-
-.left-icons {
-    display: flex;
-    gap: 8px;
-}
-
-.icon-btn {
-    background: transparent;
-    border: none;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    color: var(--light-grey);
-    font-size: 20px;
-    transition: var(--transition);
-}
-
-.icon-btn:hover {
-    background: var(--bg);
-    color: var(--teal);
-}
-
-.icon-btn.active {
-    color: var(--teal);
-    background: var(--bg);
-}
-
-.publish-btn {
-    padding: 10px 24px;
-    border-radius: 24px;
-    border: none;
-    cursor: pointer;
-    background: #d3d3d3;
-    color: white;
-    font-weight: 600;
-    font-size: 15px;
-    transition: var(--transition);
-}
-
-.publish-btn:disabled {
-    cursor: not-allowed;
-    opacity: 0.6;
-}
-
-.publish-btn.enabled {
-    background: var(--green);
-}
-
-.publish-btn.enabled:hover {
-    background: var(--teal);
-    transform: scale(1.02);
-}
-/* Style unifié pour les wrappers d'aperçu */
-.image-preview-wrapper,
-.video-preview-wrapper {
-    position: relative;
-    display: inline-block;
-    margin-top: 15px;
-    max-width: 100%;
-}
-
-.image-preview-wrapper img,
-.video-preview-wrapper video {
-    max-width: 100%;
-    border-radius: 8px;
-    display: block;
-}
-
-/* Bouton remove (identique pour image et vidéo) */
-.remove-image-btn {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    background: rgba(0, 0, 0, 0.7);
-    border: none;
-    border-radius: 50%;
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s;
-    z-index: 10;
-}
-
-.remove-image-btn i {
-    color: white;
-    font-size: 16px;
-}
-
-.remove-image-btn:hover {
-    background: rgba(220, 53, 69, 0.9);
-    transform: scale(1.1);
-}
-
-/* Hint pour la taille max */
-.upload-hint {
-    font-size: 12px;
-    color: #666;
-    margin-left: 10px;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
-
-.upload-hint i {
-    font-size: 14px;
-    color: #0066cc;
-}
-
-/* ========== RESPONSIVE ========== */
-
-@media (max-width: 768px) {
-    .article-root {
-        padding: 0;
-        margin-top: 15px;
-        margin-bottom: 15px;
-    }
-
-    .composer-card {
-        border-radius: 0;
-    }
-
-    .article-card {
-        border-radius: 0;
-    }
-
-    .article-content h3 {
-        font-size: 18px;
-    }
-
-    .modal-content {
-        width: 95%;
-        border-radius: 12px 12px 0 0;
-        align-self: flex-end;
-    }
-}
-
-/* ========== UTILITIES ========== */
-
-.text-muted {
-    color: var(--light-grey);
-}
-
-</style>
-<section class="article-root">
-    {# COMPOSER #}
     {% if is_granted('ROLE_USER') %}
-        {% include 'components/feed/_composer.html.twig' %}
+      <button type="button" class="community-feed__create js-open-modal">
+        <span class="community-feed__create-icon"><i class="fa-solid fa-plus" aria-hidden="true"></i></span>
+        <span>
+          <small>Share with the community</small>
+          <strong>Create a post</strong>
+        </span>
+        <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+      </button>
+    {% else %}
+      <a href="{{ path('show_register') }}" class="community-feed__create community-feed__create--guest">
+        <span class="community-feed__create-icon"><i class="fa-solid fa-rocket" aria-hidden="true"></i></span>
+        <span><small>Ready to participate?</small><strong>Join the learning community</strong></span>
+        <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+      </a>
+    {% endif %}
+  </header>
+
+  <nav class="community-feed__filters" aria-label="Feed filters">
+    <div>
+      <a href="{{ path('article_feed', {filter: 'latest'}) }}" class="{{ activeFilter == 'latest' ? 'is-active' : '' }}">
+        <i class="fa-regular fa-clock" aria-hidden="true"></i>
+        Latest
+      </a>
+      <a href="{{ path('article_feed', {filter: 'popular'}) }}" class="{{ activeFilter == 'popular' ? 'is-active' : '' }}">
+        <i class="fa-solid fa-arrow-trend-up" aria-hidden="true"></i>
+        Popular
+      </a>
+      {% if is_granted('ROLE_USER') %}
+        <a href="{{ path('article_feed', {filter: 'mine'}) }}" class="{{ activeFilter == 'mine' ? 'is-active' : '' }}">
+          <i class="fa-regular fa-user" aria-hidden="true"></i>
+          My posts
+        </a>
+      {% endif %}
+    </div>
+    <span><i class="fa-solid fa-sliders" aria-hidden="true"></i>{{ activeFilter == 'mine' ? 'Your activity' : (activeFilter == 'popular' ? 'Most engaging' : 'Newest first') }}</span>
+  </nav>
+
+  {% set featuredTrendingArticle = trendingArticles|first %}
+  {% set nextCommunityEvent = upcomingEvents|first %}
+  <nav class="community-feed__mobile-insights" aria-label="Community highlights">
+    <a href="{{ featuredTrendingArticle ? path('app_public_article', {id: featuredTrendingArticle.id, slug: featuredTrendingArticle.slug}) : path('article_feed', {filter: 'popular'}) }}" class="mobile-insight mobile-insight--trending" aria-label="View the leading trending conversation">
+      <span class="mobile-insight__icon"><i class="fa-solid fa-fire" aria-hidden="true"></i></span>
+      <span class="mobile-insight__copy"><strong>Trending</strong><small>{{ trendingArticles|length }} hot topic{{ trendingArticles|length == 1 ? '' : 's' }}</small></span>
+      <span class="mobile-insight__badge">{{ trendingArticles|length }}</span>
+    </a>
+
+    {% if currentJobOffer %}
+      <button type="button" class="mobile-insight mobile-insight--job" data-community-modal-open="job-modal-{{ currentJobOffer.id }}" aria-label="Open the current job opportunity">
+        <span class="mobile-insight__icon"><i class="fa-solid fa-briefcase" aria-hidden="true"></i></span>
+        <span class="mobile-insight__copy"><strong>Jobs</strong><small>Live offer</small></span>
+        <span class="mobile-insight__badge mobile-insight__badge--live" aria-hidden="true"></span>
+      </button>
+    {% else %}
+      <span class="mobile-insight mobile-insight--job is-muted">
+        <span class="mobile-insight__icon"><i class="fa-solid fa-briefcase" aria-hidden="true"></i></span>
+        <span class="mobile-insight__copy"><strong>Jobs</strong><small>Coming soon</small></span>
+      </span>
     {% endif %}
 
-    {# LISTE DES ARTICLES #}
-<section class="articles-list" id="articles-list">
-  {% for article in articles %}
-    {% include 'components/feed/_article_card.html.twig' with { article: article } %}
-  {% else %}
-    <p class="text-muted">Aucun article pour le moment.</p>
+    {% if nextCommunityEvent %}
+      <button type="button" class="mobile-insight mobile-insight--agenda" data-community-modal-open="event-modal-{{ nextCommunityEvent.id }}" aria-label="Open the next community event">
+        <span class="mobile-insight__icon"><i class="fa-solid fa-calendar-check" aria-hidden="true"></i></span>
+        <span class="mobile-insight__copy"><strong>Agenda</strong><small>{{ upcomingEvents|length }} upcoming</small></span>
+        <span class="mobile-insight__badge">{{ upcomingEvents|length }}</span>
+      </button>
+    {% else %}
+      <span class="mobile-insight mobile-insight--agenda is-muted">
+        <span class="mobile-insight__icon"><i class="fa-solid fa-calendar-check" aria-hidden="true"></i></span>
+        <span class="mobile-insight__copy"><strong>Agenda</strong><small>No date yet</small></span>
+      </span>
+    {% endif %}
+  </nav>
+
+  <div class="community-feed__layout">
+    <div class="community-feed__stream">
+      {% if is_granted('ROLE_USER') %}
+        {% include 'components/feed/_composer.html.twig' %}
+      {% endif %}
+
+      <section class="articles-list" id="articles-list" aria-live="polite">
+        {% for article in articles %}
+          {% include 'components/feed/_article_card.html.twig' with { article: article } %}
+        {% else %}
+          <div class="community-feed__empty">
+            <span><i class="fa-regular fa-message" aria-hidden="true"></i></span>
+            <h2>{{ activeFilter == 'mine' ? 'You have not posted yet' : 'No conversations yet' }}</h2>
+            <p>{{ activeFilter == 'mine' ? 'Create your first post and start a conversation with the community.' : 'Be the first member to share something useful.' }}</p>
+            {% if is_granted('ROLE_USER') %}
+              <button type="button" class="js-open-modal">Create a post</button>
+            {% else %}
+              <a href="{{ path('show_register') }}">Join the community</a>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </section>
+
+      <div id="feed-loader" class="community-feed__loader">
+        <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
+        Loading more conversations...
+      </div>
+      <div id="feed-sentinel" class="community-feed__sentinel" aria-hidden="true"></div>
+    </div>
+
+    <aside class="community-feed__rail" aria-label="Community highlights">
+      <section class="feed-widget feed-widget--trending">
+        <div class="feed-widget__heading">
+          <div>
+            <span>Community picks</span>
+            <h2>Trending now</h2>
+          </div>
+          <span class="feed-widget__heading-icon"><i class="fa-solid fa-fire" aria-hidden="true"></i></span>
+        </div>
+
+        <div class="feed-widget__trending-list">
+          {% for trendingArticle in trendingArticles %}
+            <a href="{{ path('app_public_article', {id: trendingArticle.id, slug: trendingArticle.slug}) }}" class="feed-widget__trend">
+              <span class="feed-widget__rank">{{ '%02d'|format(loop.index) }}</span>
+              <span class="feed-widget__trend-copy">
+                <strong>{{ trendingArticle.titre }}</strong>
+                <small>{{ trendingArticle.likesCount }} likes <span aria-hidden="true">&bull;</span> {{ trendingArticle.comments|length }} comments</small>
+              </span>
+              <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+            </a>
+          {% else %}
+            <p class="feed-widget__empty">Popular conversations will appear here.</p>
+          {% endfor %}
+        </div>
+      </section>
+
+      {% if is_granted('ROLE_USER') %}
+        <section class="feed-widget feed-widget--profile">
+          <div class="feed-widget__profile-head">
+            <img src="{{ asset(app.user.avatar ? 'uploads/avatars/' ~ app.user.avatar : 'images/User.svg') }}" alt="">
+            <div>
+              <span>Your community profile</span>
+              <strong>{{ app.user.userName }}</strong>
+            </div>
+          </div>
+
+          <div class="feed-widget__stats">
+            <a href="{{ path('article_feed', {filter: 'mine'}) }}">
+              <strong>{{ userStats.posts }}</strong>
+              <span>Posts</span>
+            </a>
+            <div>
+              <strong>{{ userStats.likesReceived }}</strong>
+              <span>Likes</span>
+            </div>
+            <div>
+              <strong>{{ userStats.commentsReceived }}</strong>
+              <span>Comments</span>
+            </div>
+          </div>
+
+          <button type="button" class="feed-widget__action js-open-modal">
+            <i class="fa-solid fa-pen" aria-hidden="true"></i>
+            Start a conversation
+          </button>
+        </section>
+      {% else %}
+        <section class="feed-widget feed-widget--guest">
+          <span class="feed-widget__guest-icon"><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i></span>
+          <span class="feed-widget__guest-eyebrow">Your next step</span>
+          <h2>Turn inspiration into progress.</h2>
+          <p>Create your free account to join conversations, follow courses and showcase your certificates.</p>
+          <ul>
+            <li><i class="fa-solid fa-check" aria-hidden="true"></i>React and exchange with learners</li>
+            <li><i class="fa-solid fa-check" aria-hidden="true"></i>Track your learning journey</li>
+            <li><i class="fa-solid fa-check" aria-hidden="true"></i>Build a verified profile</li>
+          </ul>
+          <a href="{{ path('show_register') }}" class="feed-widget__guest-cta"><span>Join for free</span><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+          <small>Already a member? <a href="{{ path('show_login') }}">Sign in</a></small>
+        </section>
+      {% endif %}
+
+      <section class="feed-opportunity" id="job-offer">
+        <header class="feed-opportunity__header">
+          <span class="feed-opportunity__icon"><i class="fa-solid fa-briefcase" aria-hidden="true"></i></span>
+          <div><small>Featured opportunity</small><strong>Now hiring</strong></div>
+          <span class="feed-opportunity__live"><i class="fa-solid fa-circle" aria-hidden="true"></i>Live</span>
+        </header>
+        {% if currentJobOffer %}
+          <button type="button" class="feed-opportunity__summary" data-community-modal-open="job-modal-{{ currentJobOffer.id }}">
+            <span>{{ currentJobOffer.title }}</span>
+            <small>{{ currentJobOffer.description|striptags|slice(0, 125) }}{% if currentJobOffer.description|striptags|length > 125 %}&hellip;{% endif %}</small>
+            <em>View full opportunity <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></em>
+          </button>
+          <div class="feed-opportunity__actions">
+            {% if is_granted('ROLE_EMPLOYEE') %}
+              {% if hasAppliedToCurrentJob %}
+                <span class="feed-opportunity__done"><i class="fa-solid fa-circle-check" aria-hidden="true"></i>CV submitted</span>
+              {% else %}
+                <form method="post" action="{{ path('community_job_apply', {id: currentJobOffer.id}) }}" enctype="multipart/form-data" class="feed-cv-quick-form">
+                  <input type="hidden" name="_token" value="{{ csrf_token('job_apply_' ~ currentJobOffer.id) }}">
+                  <input type="file" name="cv" id="quick-cv-{{ currentJobOffer.id }}" accept=".pdf,.doc,.docx" required hidden data-community-cv-input>
+                  <label for="quick-cv-{{ currentJobOffer.id }}"><i class="fa-solid fa-paperclip" aria-hidden="true"></i>Submit my CV</label>
+                </form>
+              {% endif %}
+            {% else %}
+              <a href="{{ path('show_login') }}"><i class="fa-solid fa-arrow-right-to-bracket" aria-hidden="true"></i>Sign in to apply</a>
+            {% endif %}
+          </div>
+          <small class="feed-opportunity__file-note">PDF, DOC or DOCX · 5 MB max</small>
+        {% else %}
+          <div class="feed-opportunity__empty"><strong>New opportunities soon.</strong><span>Follow the feed to discover the next role.</span></div>
+        {% endif %}
+      </section>
+
+      <section class="feed-agenda" id="community-agenda">
+        <header class="feed-agenda__header">
+          <div><small>Advertisement</small><strong>Community agenda</strong></div>
+          <span><i class="fa-solid fa-calendar-days" aria-hidden="true"></i></span>
+        </header>
+        <div class="feed-agenda__list">
+          {% for event in upcomingEvents %}
+            <article class="feed-agenda__item">
+              <button type="button" class="feed-agenda__details" data-community-modal-open="event-modal-{{ event.id }}">
+                <time datetime="{{ event.startsAt|date('c') }}"><strong>{{ event.startsAt|date('d') }}</strong><span>{{ event.startsAt|date('M')|upper }}</span></time>
+                <span><strong>{{ event.title }}</strong><small><i class="fa-solid {{ event.location ? 'fa-location-dot' : 'fa-video' }}" aria-hidden="true"></i>{{ event.location ?: 'Online event' }} · {{ event.startsAt|date('H:i') }}</small></span>
+              </button>
+              {% if is_granted('ROLE_EMPLOYEE') %}
+                {% if event.id in registeredEventIds %}
+                  <span class="feed-agenda__registered"><i class="fa-solid fa-check" aria-hidden="true"></i>Registered</span>
+                {% else %}
+                  <form method="post" action="{{ path('community_event_register', {id: event.id}) }}"><input type="hidden" name="_token" value="{{ csrf_token('event_register_' ~ event.id) }}"><button type="submit">Reserve my place</button></form>
+                {% endif %}
+              {% else %}
+                <a href="{{ path('show_login') }}">Sign in to register</a>
+              {% endif %}
+            </article>
+          {% else %}
+            <div class="feed-agenda__empty"><i class="fa-regular fa-calendar" aria-hidden="true"></i><span><strong>The next event is on its way.</strong><small>New dates will appear here.</small></span></div>
+          {% endfor %}
+        </div>
+      </section>
+    </aside>
+  </div>
+
+  {% if is_granted('ROLE_USER') %}
+    <button type="button" class="community-feed__mobile-create js-open-modal" aria-label="Create a post">
+      <i class="fa-solid fa-plus" aria-hidden="true"></i>
+    </button>
+    {% include 'components/feed/_modal_create.html.twig' %}
+  {% endif %}
+
+  {% if currentJobOffer %}
+    <dialog class="community-info-modal" id="job-modal-{{ currentJobOffer.id }}" aria-labelledby="job-modal-title-{{ currentJobOffer.id }}">
+      <div class="community-info-modal__accent community-info-modal__accent--job"></div>
+      <button type="button" class="community-info-modal__close" data-community-modal-close aria-label="Close"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+      <header><span class="community-info-modal__icon"><i class="fa-solid fa-briefcase" aria-hidden="true"></i></span><div><small>Current opportunity</small><h2 id="job-modal-title-{{ currentJobOffer.id }}">{{ currentJobOffer.title }}</h2></div></header>
+      <div class="community-info-modal__content">{{ currentJobOffer.description|e|nl2br }}</div>
+      <footer>
+        <span><i class="fa-solid fa-shield-halved" aria-hidden="true"></i>Your CV is stored privately and only accessible to the recruitment administrator.</span>
+        {% if is_granted('ROLE_EMPLOYEE') %}
+          {% if hasAppliedToCurrentJob %}<span class="community-info-modal__confirmed"><i class="fa-solid fa-circle-check" aria-hidden="true"></i>CV already submitted</span>{% else %}<form method="post" action="{{ path('community_job_apply', {id: currentJobOffer.id}) }}" enctype="multipart/form-data"><input type="hidden" name="_token" value="{{ csrf_token('job_apply_' ~ currentJobOffer.id) }}"><label>Choose your CV<input type="file" name="cv" accept=".pdf,.doc,.docx" required></label><button type="submit"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i>Submit my application</button></form>{% endif %}
+        {% else %}
+          <a href="{{ path('show_login') }}" class="community-info-modal__primary">Sign in to submit your CV <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+        {% endif %}
+      </footer>
+    </dialog>
+  {% endif %}
+
+  {% for event in upcomingEvents %}
+    <dialog class="community-info-modal" id="event-modal-{{ event.id }}" aria-labelledby="event-modal-title-{{ event.id }}">
+      <div class="community-info-modal__accent community-info-modal__accent--event"></div>
+      <button type="button" class="community-info-modal__close" data-community-modal-close aria-label="Close"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+      <header><span class="community-info-modal__date"><strong>{{ event.startsAt|date('d') }}</strong><small>{{ event.startsAt|date('M')|upper }}</small></span><div><small>Community event</small><h2 id="event-modal-title-{{ event.id }}">{{ event.title }}</h2></div></header>
+      <div class="community-info-modal__facts"><span><i class="fa-regular fa-clock" aria-hidden="true"></i>{{ event.startsAt|date('l, d F Y · H:i') }}</span><span><i class="fa-solid {{ event.location ? 'fa-location-dot' : 'fa-video' }}" aria-hidden="true"></i>{{ event.location ?: 'Online event' }}</span><span><i class="fa-solid fa-users" aria-hidden="true"></i>{{ event.registrations|length }} member{{ event.registrations|length == 1 ? '' : 's' }} registered</span></div>
+      <div class="community-info-modal__content">{{ event.description|e|nl2br }}</div>
+      <footer>
+        {% if is_granted('ROLE_EMPLOYEE') %}
+          {% if event.id in registeredEventIds %}<span class="community-info-modal__confirmed"><i class="fa-solid fa-circle-check" aria-hidden="true"></i>Your place is confirmed</span>{% else %}<form method="post" action="{{ path('community_event_register', {id: event.id}) }}"><input type="hidden" name="_token" value="{{ csrf_token('event_register_' ~ event.id) }}"><button type="submit"><i class="fa-solid fa-calendar-check" aria-hidden="true"></i>Reserve my place</button></form>{% endif %}
+        {% else %}<a href="{{ path('show_login') }}" class="community-info-modal__primary">Sign in to reserve your place <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>{% endif %}
+      </footer>
+    </dialog>
   {% endfor %}
 </section>
 
-<div id="feed-loader" style="display:none; text-align:center; padding:16px; color:#666;">
-  <i class="fa-solid fa-spinner fa-spin"></i> Chargement...
-</div>
-
-<div id="feed-sentinel"></div>
-
-
-    {# MODAL CRÉATION ARTICLE #}
-    {% if is_granted('ROLE_USER') %}
-        {% include 'components/feed/_modal_create.html.twig' %}
-    {% endif %}
-
-</section>
-
 {# Scripts en bas de page #}
-<script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+{% if is_granted('ROLE_USER') %}<script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>{% endif %}
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+  const isAuthenticated = document.querySelector('.community-feed')?.dataset.authenticated === 'true';
+
   // =========================
   // ELEMENTS MODAL / COMPOSER
   // =========================
@@ -1096,6 +572,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // LINK PREVIEW (GLOBAL)
   // =========================
   function initLinkPreviews(scopeCards = null) {
+    if (!isAuthenticated) return;
+
     const bodies = scopeCards
       ? Array.from(scopeCards).map(card => card.querySelector('.article-body')).filter(Boolean)
       : Array.from(document.querySelectorAll('.article-body'));
@@ -1158,10 +636,30 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  function updateCommentCount(articleId, delta) {
+    const actionCount = document.getElementById(`comment-count-${articleId}`);
+    const currentCount = actionCount ? parseInt(actionCount.textContent || "0", 10) : 0;
+    const nextCount = Math.max(0, currentCount + delta);
+
+    [
+      actionCount,
+      document.getElementById(`comment-summary-${articleId}`),
+      document.getElementById(`comment-response-count-${articleId}`)
+    ].forEach(element => {
+      if (element) element.textContent = nextCount;
+    });
+  }
+
   // =========================
   // EVENT DELEGATION (ALL CLICKS)
   // =========================
   document.addEventListener('click', async (e) => {
+
+    const authRequired = e.target.closest('[data-auth-required="true"]');
+    if (authRequired) {
+      window.location.assign(authRequired.dataset.authUrl || '{{ path('show_login') }}');
+      return;
+    }
 
     // ---- COMMENT LIKE (optimistic)
     const commentLikeBtn = e.target.closest('.comment-like-btn');
@@ -1181,6 +679,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (countEl) countEl.textContent = nextCount;
       commentLikeBtn.classList.toggle('active', nextLiked);
+      commentLikeBtn.setAttribute('aria-pressed', nextLiked ? 'true' : 'false');
       if (icon) {
         icon.classList.toggle('fa-solid', nextLiked);
         icon.classList.toggle('fa-regular', !nextLiked);
@@ -1197,6 +696,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (countEl) countEl.textContent = data.count;
         commentLikeBtn.classList.toggle('active', data.liked);
+        commentLikeBtn.setAttribute('aria-pressed', data.liked ? 'true' : 'false');
         if (icon) {
           icon.classList.toggle('fa-solid', data.liked);
           icon.classList.toggle('fa-regular', !data.liked);
@@ -1204,6 +704,7 @@ document.addEventListener('DOMContentLoaded', () => {
       } catch (err) {
         if (countEl) countEl.textContent = currentCount;
         commentLikeBtn.classList.toggle('active', wasLiked);
+        commentLikeBtn.setAttribute('aria-pressed', wasLiked ? 'true' : 'false');
         if (icon) {
           icon.classList.toggle('fa-solid', wasLiked);
           icon.classList.toggle('fa-regular', !wasLiked);
@@ -1226,6 +727,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const icon = likeBtn.querySelector('i');
       const likeCountEl = document.getElementById(`like-count-${articleId}`);
+      const likeSummaryEl = document.getElementById(`like-summary-${articleId}`);
 
       const wasLiked = likeBtn.classList.contains('active');
       const currentCount = likeCountEl ? parseInt(likeCountEl.textContent || "0", 10) : 0;
@@ -1234,7 +736,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const nextCount = Math.max(0, currentCount + (nextLiked ? 1 : -1));
 
       if (likeCountEl) likeCountEl.textContent = nextCount;
+      if (likeSummaryEl) likeSummaryEl.textContent = nextCount;
       likeBtn.classList.toggle('active', nextLiked);
+      likeBtn.setAttribute('aria-pressed', nextLiked ? 'true' : 'false');
       if (icon) {
         icon.classList.toggle('fa-solid', nextLiked);
         icon.classList.toggle('fa-regular', !nextLiked);
@@ -1249,14 +753,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const data = await res.json();
         if (likeCountEl) likeCountEl.textContent = data.likes;
+        if (likeSummaryEl) likeSummaryEl.textContent = data.likes;
         likeBtn.classList.toggle('active', data.liked);
+        likeBtn.setAttribute('aria-pressed', data.liked ? 'true' : 'false');
         if (icon) {
           icon.classList.toggle('fa-solid', data.liked);
           icon.classList.toggle('fa-regular', !data.liked);
         }
       } catch (err) {
         if (likeCountEl) likeCountEl.textContent = currentCount;
+        if (likeSummaryEl) likeSummaryEl.textContent = currentCount;
         likeBtn.classList.toggle('active', wasLiked);
+        likeBtn.setAttribute('aria-pressed', wasLiked ? 'true' : 'false');
         if (icon) {
           icon.classList.toggle('fa-solid', wasLiked);
           icon.classList.toggle('fa-regular', !wasLiked);
@@ -1264,6 +772,32 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error(err);
       } finally {
         likeBtn.dataset.loading = "0";
+      }
+      return;
+    }
+
+    // ---- COPY DIRECT LINK
+    const shareBtn = e.target.closest('.share-btn');
+    if (shareBtn) {
+      const articleId = shareBtn.dataset.articleId;
+      if (!articleId) return;
+
+      const directUrl = shareBtn.dataset.shareUrl || `${window.location.origin}${window.location.pathname}#article-${articleId}`;
+      const label = shareBtn.querySelector('.btn-action__label');
+      const icon = shareBtn.querySelector('.btn-action__icon i');
+
+      try {
+        await navigator.clipboard.writeText(directUrl);
+        shareBtn.classList.add('is-copied');
+        if (label) label.textContent = 'Copied';
+        if (icon) icon.className = 'fa-solid fa-check';
+        setTimeout(() => {
+          shareBtn.classList.remove('is-copied');
+          if (label) label.textContent = 'Share';
+          if (icon) icon.className = 'fa-solid fa-arrow-up-from-bracket';
+        }, 1800);
+      } catch (err) {
+        window.prompt('Copy this post link:', directUrl);
       }
       return;
     }
@@ -1278,6 +812,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!commentsSection) return;
 
       commentsSection.classList.toggle('expanded');
+      commentBtn.setAttribute('aria-expanded', commentsSection.classList.contains('expanded') ? 'true' : 'false');
 
       if (commentsSection.classList.contains('expanded')) {
         const input = commentsSection.querySelector('.comment-form .input-field');
@@ -1339,16 +874,40 @@ document.addEventListener('DOMContentLoaded', () => {
     const deleteBtn = e.target.closest('.delete-comment-btn');
     if (deleteBtn) {
       const id = deleteBtn.dataset.id;
+      const commentElement = document.getElementById(`comment-${id}`);
+      const articleId = commentElement?.closest('.article-card')?.dataset.articleId;
       if (!confirm('Delete this comment?')) return;
 
       fetch(`/app/articles/comments/${id}/delete`, { method: 'POST' })
         .then(r => r.json())
         .then(data => {
-          if (data.success) document.getElementById(`comment-${id}`)?.remove();
+          if (data.success) {
+            commentElement?.remove();
+            if (articleId) updateCommentCount(articleId, -1);
+          }
         })
         .catch(err => console.error(err));
       return;
     }
+  });
+
+  // Instagram-like double click: a double click can like, never unlike.
+  document.addEventListener('dblclick', (e) => {
+    const media = e.target.closest('.article-media--image');
+    if (!media) return;
+
+    const articleId = media.dataset.articleId;
+    const likeBtn = document.querySelector(`.like-btn[data-article-id="${articleId}"]`);
+    const burst = media.querySelector('.article-like-burst');
+
+    if (burst) {
+      burst.classList.remove('is-visible');
+      void burst.offsetWidth;
+      burst.classList.add('is-visible');
+      setTimeout(() => burst.classList.remove('is-visible'), 650);
+    }
+
+    if (likeBtn && !likeBtn.classList.contains('active')) likeBtn.click();
   });
 
   // =========================
@@ -1370,7 +929,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!content) return;
 
     if (content.length > 220) {
-      alert('⚠️ Your comment is too long! Maximum 220 characters allowed.');
+      alert('вљ пёЏ Your comment is too long! Maximum 220 characters allowed.');
       return;
     }
 
@@ -1396,45 +955,52 @@ document.addEventListener('DOMContentLoaded', () => {
         commentDiv.id = `comment-${data.id}`;
         commentDiv.classList.add('comment');
 
-        // ⚠️ Ici on garde ton avatar via Twig dans la string (ok car ce JS est dans Twig)
+        // вљ пёЏ Ici on garde ton avatar via Twig dans la string (ok car ce JS est dans Twig)
         commentDiv.innerHTML = `
           <div class="user-avatar user-avatar--small">
-            <img src="{{ asset(app.user.avatar ? 'uploads/avatars/' ~ app.user.avatar : 'images/User.svg') }}"
-                 class="user-avatar user-avatar--small"
-                 alt="Avatar"/>
+            <img src="{{ asset(app.user and app.user.avatar ? 'uploads/avatars/' ~ app.user.avatar : 'images/User.svg') }}" alt="Avatar"/>
           </div>
 
           <div class="comment-content">
             <div class="comment-header">
-              <div class="comment-actions">
-                <button class="edit-comment-btn" data-id="${data.id}">
-                  <i class="fa-solid fa-pen"></i>
-                </button>
-                <button class="delete-comment-btn" data-id="${data.id}">
-                  <i class="fa-solid fa-trash"></i>
-                </button>
+              <div class="comment-author">
+                <strong class="comment-author-name"></strong>
+                <small class="comment-author__self">You</small>
+                <span class="date"><i class="fa-regular fa-clock" aria-hidden="true"></i><span class="comment-date-value"></span></span>
               </div>
 
-              <span class="date">
-                <i class="fa-regular fa-clock"></i>
-                ${data.date}
-              </span>
+              <div class="comment-actions">
+                <button class="edit-comment-btn" type="button" data-id="${data.id}" title="Edit comment" aria-label="Edit comment">
+                  <i class="fa-solid fa-pen" aria-hidden="true"></i>
+                </button>
+                <button class="delete-comment-btn" type="button" data-id="${data.id}" title="Delete comment" aria-label="Delete comment">
+                  <i class="fa-regular fa-trash-can" aria-hidden="true"></i>
+                </button>
+              </div>
             </div>
 
-            <p class="comment-text" data-id="${data.id}">${data.content}</p>
+            <p class="comment-text" data-id="${data.id}"></p>
+            <div class="comment-like-row">
+              <button class="comment-like-btn" type="button" data-comment-id="${data.id}" title="React to this comment" aria-label="React to this comment" aria-pressed="false">
+                <i class="fa-regular fa-heart" aria-hidden="true"></i>
+                <span class="comment-like-count" id="comment-like-count-${data.id}">0</span>
+              </button>
+            </div>
           </div>
         `;
 
-        commentsSection.insertBefore(commentDiv, form);
+        commentDiv.querySelector('.comment-author-name').textContent = '{{ app.user ? app.user.userName|e('js') : '' }}';
+        commentDiv.querySelector('.comment-text').textContent = data.content;
+        commentDiv.querySelector('.comment-date-value').textContent = data.date;
 
-        const countSpan = document.querySelector(`.comment-btn[data-article-id="${articleId}"] .count`);
-        if (countSpan) countSpan.textContent = (parseInt(countSpan.textContent || "0", 10) + 1).toString();
+        commentsSection.insertBefore(commentDiv, form);
+        updateCommentCount(articleId, 1);
 
         input.value = '';
       })
       .catch(err => {
         console.error('Error adding comment:', err);
-        alert(`❌ Error: ${err.message}`);
+        alert(`вќЊ Error: ${err.message}`);
       });
   });
 
@@ -1444,6 +1010,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const listEl = document.getElementById('articles-list');
   const loaderEl = document.getElementById('feed-loader');
   const sentinelEl = document.getElementById('feed-sentinel');
+  const activeFilter = document.querySelector('.community-feed')?.dataset.feedFilter || 'latest';
 
   let limit = 5;
   let offset = listEl ? listEl.querySelectorAll('.article-card').length : 0;
@@ -1456,7 +1023,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (loaderEl) loaderEl.style.display = 'block';
 
     try {
-      const res = await fetch(`/app/articles/load-more?limit=${limit}&offset=${offset}`, {
+      const res = await fetch(`/app/articles/load-more?limit=${limit}&offset=${offset}&filter=${encodeURIComponent(activeFilter)}`, {
         headers: { 'X-Requested-With': 'XMLHttpRequest' }
       });
       if (!res.ok) throw new Error('HTTP error');
@@ -1505,6 +1072,23 @@ document.addEventListener('DOMContentLoaded', () => {
   // =========================
   initLinkPreviews();
   initSeeMoreForCards(Array.from(document.querySelectorAll('.article-card')));
+});
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('[data-community-modal-open]').forEach((button) => {
+    button.addEventListener('click', () => document.getElementById(button.dataset.communityModalOpen)?.showModal());
+  });
+  document.querySelectorAll('.community-info-modal').forEach((dialog) => {
+    dialog.querySelector('[data-community-modal-close]')?.addEventListener('click', () => dialog.close());
+    dialog.addEventListener('click', (event) => {
+      const box = dialog.getBoundingClientRect();
+      if (event.clientX < box.left || event.clientX > box.right || event.clientY < box.top || event.clientY > box.bottom) dialog.close();
+    });
+  });
+  document.querySelectorAll('[data-community-cv-input]').forEach((input) => {
+    input.addEventListener('change', () => { if (input.files?.length) input.form?.requestSubmit(); });
+  });
 });
 </script>
 

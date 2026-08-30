@@ -1,6 +1,18 @@
-<div class="card-body grid-2">
-  <div><strong>Country</strong><p>{{ user.country ?? 'Not set' }}</p></div>
-  <div><strong>City/State</strong><p>{{ user.city ?? 'Not set' }}</p></div>
-  <div><strong>Postal Code</strong><p>{{ user.postalCode ?? 'Not set' }}</p></div>
-  <div><strong>TAX ID</strong><p>{{ user.taxId ?? 'Not set' }}</p></div>
+<div class="settings-detail-grid" data-settings-section-content="address">
+  <div class="settings-detail {{ not user.country ? 'is-empty' : '' }}" data-settings-field="country">
+    <span class="settings-detail__icon"><i class="fa-solid fa-earth-europe" aria-hidden="true"></i></span>
+    <div><small>Country</small><strong>{{ user.country ?? 'Add your country' }}</strong></div>
+  </div>
+  <div class="settings-detail {{ not user.city ? 'is-empty' : '' }}" data-settings-field="city">
+    <span class="settings-detail__icon"><i class="fa-solid fa-city" aria-hidden="true"></i></span>
+    <div><small>City or state</small><strong>{{ user.city ?? 'Add your city or state' }}</strong></div>
+  </div>
+  <div class="settings-detail {{ not user.postalCode ? 'is-empty' : '' }}" data-settings-field="postalCode">
+    <span class="settings-detail__icon"><i class="fa-solid fa-map-pin" aria-hidden="true"></i></span>
+    <div><small>Postal code</small><strong>{{ user.postalCode ?? 'Add your postal code' }}</strong></div>
+  </div>
+  <div class="settings-detail {{ not user.taxId ? 'is-empty' : '' }}" data-settings-field="taxId">
+    <span class="settings-detail__icon"><i class="fa-solid fa-receipt" aria-hidden="true"></i></span>
+    <div><small>Tax ID</small><strong>{{ user.taxId ?? 'Add your tax identifier' }}</strong></div>
+  </div>
 </div>

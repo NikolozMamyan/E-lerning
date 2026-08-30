@@ -16,7 +16,7 @@ class PersonalInfoType extends AbstractType
             ->add('username', TextType::class)
             ->add('phone', TextType::class, ['required' => false])
             ->add('bio', TextareaType::class, [
-                 'label' => 'Role',
+                 'label' => 'Professional headline',
                  'required' => false]);
     }
 

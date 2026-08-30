@@ -5,11 +5,16 @@ namespace App\Controller;
 use App\Entity\Article;
 use App\Entity\Comment;
 use App\Entity\Notification;
+use App\Entity\User;
 use App\Service\MailerService;
 use App\Service\LinkPreviewService;
 use App\Service\NotificationService;
 use App\Repository\ArticleRepository;
 use App\Repository\CommentRepository;
+use App\Repository\JobOfferRepository;
+use App\Repository\JobApplicationRepository;
+use App\Repository\CommunityEventRepository;
+use App\Repository\CommunityEventRegistrationRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\NotificationRepository;
 use Symfony\Component\HttpFoundation\Request;
@@ -24,26 +29,61 @@ use Symfony\Component\HttpFoundation\File\Exception\FileException;
 class ArticleController extends AbstractController
 {
     #[Route('', name: 'article_feed', methods: ['GET'])]
-    public function index(ArticleRepository $articleRepository): Response
+    public function index(
+        Request $request,
+        ArticleRepository $articleRepository,
+        JobOfferRepository $jobOfferRepository,
+        JobApplicationRepository $jobApplicationRepository,
+        CommunityEventRepository $eventRepository,
+        CommunityEventRegistrationRepository $eventRegistrationRepository,
+    ): Response
     {
-    $limit = 5;
-    $offset = 0;
+        $limit = 5;
+        $offset = 0;
+        $filter = strtolower((string) $request->query->get('filter', 'latest'));
+        $filter = in_array($filter, ['latest', 'popular', 'mine'], true) ? $filter : 'latest';
+        $user = $this->getUser();
 
-    $articles = $articleRepository->findBy([], ['createdAt' => 'DESC'], $limit, $offset);
+        if ($filter === 'mine' && !$user instanceof User) {
+            $filter = 'latest';
+        }
 
-    return $this->render('article/feed.html.twig', [
-        'articles' => $articles,
-        'limit' => $limit,
-        'offset' => $offset,
-    ]);
+        $articles = $articleRepository->findFeed($filter, $user instanceof User ? $user : null, $limit, $offset);
+        $currentJobOffer = $jobOfferRepository->findCurrent();
+
+        return $this->render('article/feed.html.twig', [
+            'articles' => $articles,
+            'limit' => $limit,
+            'offset' => $offset,
+            'activeFilter' => $filter,
+            'trendingArticles' => $articleRepository->findTrending(),
+            'userStats' => $user instanceof User
+                ? $articleRepository->getAuthorStats($user)
+                : ['posts' => 0, 'likesReceived' => 0, 'commentsReceived' => 0],
+            'currentJobOffer' => $currentJobOffer,
+            'hasAppliedToCurrentJob' => $user instanceof User && $currentJobOffer
+                ? $jobApplicationRepository->findOneBy(['jobOffer' => $currentJobOffer, 'applicant' => $user]) !== null
+                : false,
+            'upcomingEvents' => $eventRepository->findUpcoming(),
+            'registeredEventIds' => $user instanceof User
+                ? $eventRegistrationRepository->findEventIdsForMember($user)
+                : [],
+        ]);
     }
     #[Route('/load-more', name: 'article_feed_load_more', methods: ['GET'])]
 public function loadMore(Request $request, ArticleRepository $articleRepository): Response
 {
     $limit = (int) $request->query->get('limit', 5);
     $offset = (int) $request->query->get('offset', 0);
+    $filter = strtolower((string) $request->query->get('filter', 'latest'));
+    $filter = in_array($filter, ['latest', 'popular', 'mine'], true) ? $filter : 'latest';
+    $user = $this->getUser();
 
-    $articles = $articleRepository->findBy([], ['createdAt' => 'DESC'], $limit, $offset);
+    if ($filter === 'mine' && !$user instanceof User) {
+        $filter = 'latest';
+    }
+
+    $articles = $articleRepository->findFeed($filter, $user instanceof User ? $user : null, $limit, $offset);
 
     return $this->render('components/feed/_articles_chunk.html.twig', [
         'articles' => $articles
@@ -130,7 +170,7 @@ if ($videoFile) {
         relatedEntity: $article,
         message: "Your article {$article->getTitre()} is now visible in the feed.",
         type: "success",
-        actionUrl: "/app/articles#article-" . $article->getId(),
+        actionUrl: $this->generateUrl('app_public_article', ['id' => $article->getId(), 'slug' => $article->getSlug()]),
         icon: "fa-solid fa-newspaper"
     );
 
@@ -180,11 +220,11 @@ public function like(
         if ($author !== $user) { // éviter auto-notif
             $notificationService->createEntityNotification(
                 user: $author,
-                title: "A user liked your article",
+                title: $user->getUsername() . " liked your article",
                 relatedEntity: $article,
-                message: "Your article {$article->getTitre()} received a new like.",
+                message: $user->getUsername() . " reacted to " . $article->getTitre() . ".",
                 type: "info",
-                actionUrl: "/app/articles#article-" . $article->getId(),
+                actionUrl: $this->generateUrl('app_public_article', ['id' => $article->getId(), 'slug' => $article->getSlug()]),
                 icon: "fa-solid fa-heart",
                 priority: "normal"
             );
@@ -278,17 +318,17 @@ if (mb_strlen($content) > 220) {
     if ($author !== $user) {
         $notificationService->createEntityNotification(
             user: $author,
-            title: "A user commented on your article",
-            message: "Someone left a new comment on {$article->getTitre()}.",
+            title: $user->getUsername() . " commented on your article",
+            message: $user->getUsername() . " left a comment on " . $article->getTitre() . ".",
             relatedEntity: $article,
             type: "info",
             icon: "fa-solid fa-comment",
-            actionUrl: "/app/articles#article-" . $article->getId(),
+            actionUrl: $this->generateUrl('app_public_article', ['id' => $article->getId(), 'slug' => $article->getSlug()]),
         );
     }
     return $this->json([
         'id' => $comment->getId(),
-        'author' => "User-" . $comment->getCreatedAt()->format('Ymd') . "-" . $user->getId(),
+        'author' => $user->getUsername(),
         'avatar' => strtoupper($user->getUsername()[0]),
         'content' => $comment->getContent(),
         'date' => $comment->getCreatedAt()->format('m/d/Y')
@@ -490,8 +530,10 @@ public function Commentlike(
                 $comment,
                 'Vous avez reçu un like sur votre commentaire.',
                 Notification::TYPE_INFO,
-                // ✅ ton feed utilise #article-ID (pas /app/articles/{id})
-                $comment->getArticle() ? '/app/articles#article-' . $comment->getArticle()->getId() : null,
+                $comment->getArticle() ? $this->generateUrl('app_public_article', [
+                    'id' => $comment->getArticle()->getId(),
+                    'slug' => $comment->getArticle()->getSlug(),
+                ]) : null,
                 'comment-like',
                 Notification::PRIORITY_NORMAL
             );

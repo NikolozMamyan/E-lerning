@@ -174,6 +174,47 @@ final class ScormPackageGeneratorTest extends TestCase
         self::assertSame([], glob($this->temporaryPackagesDirectory.DIRECTORY_SEPARATOR.'*') ?: []);
     }
 
+    public function testGeneratesBilingualPackageWithLocalizedQuizzes(): void
+    {
+        $englishVideo = $this->createFakeMp4('english.mp4');
+        $germanVideo = $this->createFakeMp4('german.mp4');
+        $archive = $this->testDirectory.DIRECTORY_SEPARATOR.'bilingual.zip';
+        $quiz = [
+            'title' => 'Knowledge check',
+            'questions' => [[
+                'id' => 'q1',
+                'text' => 'Select the controls',
+                'options' => [
+                    ['id' => 'A', 'text' => 'Screening'],
+                    ['id' => 'B', 'text' => 'Monitoring'],
+                ],
+                'correct' => ['A', 'B'],
+            ]],
+        ];
+
+        $this->generator()->generateBilingual('unzer-aml', 'Unzer AML/CFT', [
+            'en' => ['label' => 'English', 'title' => 'English training', 'videoPath' => $englishVideo, 'quiz' => $quiz],
+            'de' => ['label' => 'Deutsch', 'title' => 'Deutsche Schulung', 'videoPath' => $germanVideo, 'quiz' => $quiz],
+        ], $archive, 80);
+
+        $zip = new \ZipArchive();
+        self::assertTrue($zip->open($archive));
+        $names = $this->zipNames($zip);
+        self::assertContains('videos/video-en.mp4', $names);
+        self::assertContains('videos/video-de.mp4', $names);
+        self::assertContains('data/quiz-en.json', $names);
+        self::assertContains('data/quiz-de.json', $names);
+        self::assertContains('assets/js/course-policy.js', $names);
+        self::assertContains('assets/js/quiz-engine.js', $names);
+        $data = json_decode((string) $zip->getFromName('data/course.json'), true, 512, JSON_THROW_ON_ERROR);
+        self::assertSame('bilingual-quiz', $data['mode']);
+        self::assertSame(80, $data['quizPassThreshold']);
+        self::assertSame(['en', 'de'], array_column($data['languages'], 'code'));
+        $englishQuiz = json_decode((string) $zip->getFromName('data/quiz-en.json'), true, 512, JSON_THROW_ON_ERROR);
+        self::assertSame(['A', 'B'], $englishQuiz['questions'][0]['correct']);
+        $zip->close();
+    }
+
     private function generator(int $maximumSize = 10_000_000): ScormPackageGenerator
     {
         return new ScormPackageGenerator(

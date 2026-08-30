@@ -7,7 +7,8 @@ export default class extends Controller {
     videoId: Number,
     expectedDuration: Number,
     updateUrl: String,
-    popupImage: String
+    popupImage: String,
+    lastLesson: Boolean
   }
   connect() {
     // l'iframe est l'élément du controller
@@ -106,36 +107,102 @@ export default class extends Controller {
       .catch(err => console.error("Progress error:", err))
   }
 
- showPopup() {
-  const overlay = document.createElement("div")
-  overlay.classList.add("progress-popup-overlay")
+  showPopup() {
+    const overlay = document.createElement("div")
+    overlay.classList.add("progress-popup-overlay")
 
-  const popup = document.createElement("div")
-  popup.classList.add("progress-popup")
+    const popup = document.createElement("div")
+    popup.classList.add("progress-popup")
+    popup.setAttribute("role", "dialog")
+    popup.setAttribute("aria-modal", "true")
+    popup.setAttribute("aria-labelledby", "progress-popup-title")
+    popup.setAttribute("aria-describedby", "progress-popup-description")
 
-  const img = document.createElement("img")
-  img.src = this.popupImageValue
-  img.alt = "Congratulations"
-  img.width = 120
+    const badge = document.createElement("div")
+    badge.classList.add("progress-popup__badge")
+    const badgeIcon = document.createElement("i")
+    badgeIcon.className = "fa-solid fa-wand-magic-sparkles"
+    badgeIcon.setAttribute("aria-hidden", "true")
+    const badgeText = document.createElement("span")
+    badgeText.textContent = this.lastLessonValue ? "Course milestone" : "Lesson completed"
+    badge.append(badgeIcon, badgeText)
 
-  const title = document.createElement("h2")
-  title.textContent = "🎉 Congratulations!"
+    const visual = document.createElement("div")
+    visual.classList.add("progress-popup__visual")
+    const img = document.createElement("img")
+    img.src = this.popupImageValue
+    img.alt = ""
+    img.width = 82
+    img.height = 82
+    visual.appendChild(img)
 
-  const text = document.createElement("p")
-  text.textContent = "You have completed the video. The quiz button will appear below once you click OK"
+    const title = document.createElement("h2")
+    title.id = "progress-popup-title"
+    title.textContent = this.lastLessonValue ? "Training complete!" : "Excellent progress!"
 
-  const btn = document.createElement("button")
-  btn.textContent = "OK"
-  btn.classList.add("popup-btn")
-  btn.addEventListener("click", () => window.location.reload())
+    const text = document.createElement("p")
+    text.id = "progress-popup-description"
+    text.textContent = this.lastLessonValue
+      ? "You have completed the final lesson. Your next learning step is ready."
+      : "This lesson is complete and your progress has been saved. Keep the momentum going."
 
-  popup.append(img, title, text, btn)
-  overlay.appendChild(popup)
+    const status = document.createElement("div")
+    status.classList.add("progress-popup__status")
+    status.append(
+      this.createPopupStatus("fa-circle-check", "Lesson progress", "100% watched"),
+      this.createPopupStatus("fa-cloud-arrow-up", "Learning record", "Saved")
+    )
 
-  // ✅ IMPORTANT : append dans le wrapper video-container (pas dans l'iframe)
-  const container = this.element.closest(".video-container")
-  if (container) container.appendChild(overlay)
-  else document.body.appendChild(overlay) // fallback
-}
+    const btn = document.createElement("button")
+    btn.type = "button"
+    btn.classList.add("popup-btn")
+    const btnLabel = document.createElement("span")
+    btnLabel.textContent = this.lastLessonValue ? "View next step" : "Continue learning"
+    const btnIcon = document.createElement("i")
+    btnIcon.className = "fa-solid fa-arrow-right"
+    btnIcon.setAttribute("aria-hidden", "true")
+    btn.append(btnLabel, btnIcon)
+    btn.addEventListener("click", () => window.location.reload())
+
+    const note = document.createElement("div")
+    note.classList.add("progress-popup__note")
+    const noteIcon = document.createElement("i")
+    noteIcon.className = "fa-solid fa-shield-halved"
+    noteIcon.setAttribute("aria-hidden", "true")
+    const noteText = document.createElement("span")
+    noteText.textContent = "Your progress is securely saved"
+    note.append(noteIcon, noteText)
+
+    popup.append(badge, visual, title, text, status, btn, note)
+    overlay.appendChild(popup)
+
+    const course = this.element.closest(".course-detail")
+    if (course) course.appendChild(overlay)
+    else document.body.appendChild(overlay)
+
+    window.setTimeout(() => btn.focus({ preventScroll: true }), 320)
+  }
+
+  createPopupStatus(icon, label, value) {
+    const item = document.createElement("div")
+    item.classList.add("progress-popup__status-item")
+
+    const iconWrap = document.createElement("span")
+    iconWrap.classList.add("progress-popup__status-icon")
+    const statusIcon = document.createElement("i")
+    statusIcon.className = `fa-solid ${icon}`
+    statusIcon.setAttribute("aria-hidden", "true")
+    iconWrap.appendChild(statusIcon)
+
+    const copy = document.createElement("span")
+    const small = document.createElement("small")
+    small.textContent = label
+    const strong = document.createElement("strong")
+    strong.textContent = value
+    copy.append(small, strong)
+
+    item.append(iconWrap, copy)
+    return item
+  }
 
 }

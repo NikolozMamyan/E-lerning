@@ -63,9 +63,11 @@ public function index(
 
 
 
-#[Route('app/course/{id}/{videoId?}', name: 'app_course_show', requirements: ['videoId' => '\d+'])]
+#[Route('/courses/{id}-{slug}', name: 'app_public_course_show', requirements: ['id' => '\d+', 'slug' => '[a-z0-9]+(?:-[a-z0-9]+)*'], defaults: ['videoId' => null], methods: ['GET'])]
+#[Route('/app/course/{id}/{videoId?}', name: 'app_course_show', requirements: ['id' => '\d+', 'videoId' => '\d+'], defaults: ['slug' => null], methods: ['GET'])]
 public function show(
     int $id,
+    ?string $slug,
     ?int $videoId,
     CourseRepository $courseRepo,
     VideoRepository $videoRepo,
@@ -78,6 +80,14 @@ public function show(
     $course = $courseRepo->find($id);
     if (!$course) {
         throw $this->createNotFoundException('Course not found');
+    }
+
+    $canonicalRoute = 'app_public_course_show';
+    $canonicalParameters = ['id' => $course->getId(), 'slug' => $course->getSlug()];
+    $isPublicRoute = $request->attributes->get('_route') === $canonicalRoute;
+
+    if ($isPublicRoute && $slug !== $course->getSlug()) {
+        return $this->redirectToRoute($canonicalRoute, $canonicalParameters, Response::HTTP_MOVED_PERMANENTLY);
     }
 
     $user = $this->getUser();
@@ -101,6 +111,10 @@ if ($user) {
 
 
 if (!$hasAccess) {
+    if (!$isPublicRoute) {
+        return $this->redirectToRoute($canonicalRoute, $canonicalParameters, Response::HTTP_MOVED_PERMANENTLY);
+    }
+
     // chercher le prix en euros
     $euroPrice = null;
     foreach ($course->getCoursePrices() as $price) {

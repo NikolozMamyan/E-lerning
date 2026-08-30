@@ -1,435 +1,350 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Settings - My Profile{% endblock %}
+{% block title %}Settings | Les Consultants{% endblock %}
+
+{% block stylesheets %}
+  {{ parent() }}
+  <link rel="stylesheet" href="{{ asset('styles/settings.css') }}">
+{% endblock %}
 
 {% block body %}
+{% set completedFields = 0 %}
+{% set completedFields = completedFields + (user.username ? 1 : 0) %}
+{% set completedFields = completedFields + (user.email ? 1 : 0) %}
+{% set completedFields = completedFields + (user.phone ? 1 : 0) %}
+{% set completedFields = completedFields + (user.bio ? 1 : 0) %}
+{% set completedFields = completedFields + (user.country ? 1 : 0) %}
+{% set completedFields = completedFields + (user.city ? 1 : 0) %}
+{% set completedFields = completedFields + (user.postalCode ? 1 : 0) %}
+{% set completedFields = completedFields + (user.taxId ? 1 : 0) %}
+{% set completedFields = completedFields + (user.masterDegree ? 1 : 0) %}
+{% set completedFields = completedFields + (user.bachelorDegree ? 1 : 0) %}
+{% set completionPercentage = ((completedFields / 10) * 100)|round %}
 
-  <!-- Main Content -->
-  <main class="settings-main">
-    <h2>My Profile</h2>
+{% set roleLabel = 'Learner' %}
+{% set roleIcon = 'fa-user-graduate' %}
+{% if 'ROLE_ADMIN' in user.roles %}
+  {% set roleLabel = 'Administrator' %}
+  {% set roleIcon = 'fa-shield-halved' %}
+{% elseif 'ROLE_COMPANY' in user.roles %}
+  {% set roleLabel = 'Company' %}
+  {% set roleIcon = 'fa-building' %}
+{% endif %}
 
-    <!-- User Profile -->
-<div class="settings-card profile-card">
-  <div class="profile-header">
-    <img src="{{ asset(user.avatar ? 'uploads/avatars/' ~ user.avatar : 'images/User.svg') }}" 
-         alt="User avatar" 
-         class="profile-avatar" id="profileAvatar">
-    <div>
-      <h3>{{ user.username }}</h3>
-      <p>{{ user.bio ?? ' ' }}</p>
+<section class="settings-page" data-settings-page>
+  <header class="settings-hero">
+    <div class="settings-hero__copy">
+      <span class="settings-hero__eyebrow">
+        <i class="fa-solid fa-sliders" aria-hidden="true"></i>
+        Account preferences
+      </span>
+      <h1>Your profile, clearly organised.</h1>
+      <p>Keep your personal, professional and billing information accurate from one simple workspace.</p>
     </div>
+
+    <div class="settings-hero__progress" aria-label="Profile {{ completionPercentage }}% complete">
+      <span class="settings-progress-ring" style="--settings-progress: {{ completionPercentage }}%">
+        <strong>{{ completionPercentage }}%</strong>
+      </span>
+      <span>
+        <small>Profile completion</small>
+        <strong>{{ completedFields }} of 10 details added</strong>
+      </span>
+    </div>
+  </header>
+
+  <div class="settings-layout">
+    <div class="settings-content">
+      <article class="settings-profile-card settings-card">
+        {% include 'settings/_card_avatar.html.twig' with { user: user } %}
+        <div class="settings-profile-card__note">
+          <span><i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i></span>
+          <div>
+            <small>Profile tip</small>
+            <strong>A recognisable photo helps your learning community know who they are speaking with.</strong>
+          </div>
+        </div>
+      </article>
+
+      <article class="settings-card settings-section-card" id="personal-information">
+        <header class="settings-section-card__header">
+          <div class="settings-section-card__identity">
+            <span><i class="fa-regular fa-id-card" aria-hidden="true"></i></span>
+            <div>
+              <small>Identity</small>
+              <h2>Personal information</h2>
+              <p>How your name and professional profile appear across the platform.</p>
+            </div>
+          </div>
+          <button type="button" class="settings-edit-button js-settings-edit" data-section="personal" data-settings-url="{{ path('app_settings_edit', {section: 'personal'}) }}">
+            <i class="fa-regular fa-pen-to-square" aria-hidden="true"></i>
+            Edit details
+          </button>
+        </header>
+        {% include 'settings/_card_personal.html.twig' with { user: user } %}
+      </article>
+
+      <article class="settings-card settings-section-card" id="address-information">
+        <header class="settings-section-card__header">
+          <div class="settings-section-card__identity">
+            <span><i class="fa-regular fa-map" aria-hidden="true"></i></span>
+            <div>
+              <small>Location &amp; billing</small>
+              <h2>Address information</h2>
+              <p>Useful details for invoices, certificates and regional content.</p>
+            </div>
+          </div>
+          <button type="button" class="settings-edit-button js-settings-edit" data-section="address" data-settings-url="{{ path('app_settings_edit', {section: 'address'}) }}">
+            <i class="fa-regular fa-pen-to-square" aria-hidden="true"></i>
+            Edit address
+          </button>
+        </header>
+        {% include 'settings/_card_address.html.twig' with { user: user } %}
+      </article>
+
+      <article class="settings-card settings-section-card" id="education-information">
+        <header class="settings-section-card__header">
+          <div class="settings-section-card__identity">
+            <span><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i></span>
+            <div>
+              <small>Learning profile</small>
+              <h2>Educational background</h2>
+              <p>Add your academic background to complete your professional profile.</p>
+            </div>
+          </div>
+          <button type="button" class="settings-edit-button js-settings-edit" data-section="education" data-settings-url="{{ path('app_settings_edit', {section: 'education'}) }}">
+            <i class="fa-regular fa-pen-to-square" aria-hidden="true"></i>
+            Edit education
+          </button>
+        </header>
+        {% include 'settings/_card_education.html.twig' with { user: user } %}
+      </article>
+    </div>
+
+    <aside class="settings-rail" aria-label="Profile overview">
+      <nav class="settings-card settings-nav" aria-label="Settings sections">
+        <span class="settings-rail__label">On this page</span>
+        <a href="#personal-information"><i class="fa-regular fa-user" aria-hidden="true"></i><span>Personal information</span><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></a>
+        <a href="#address-information"><i class="fa-solid fa-location-dot" aria-hidden="true"></i><span>Address information</span><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></a>
+        <a href="#education-information"><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i><span>Educational background</span><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></a>
+      </nav>
+
+      <section class="settings-card settings-checklist">
+        <div class="settings-checklist__heading">
+          <span><i class="fa-solid fa-list-check" aria-hidden="true"></i></span>
+          <div><small>Profile health</small><h2>Completion checklist</h2></div>
+        </div>
+        <ul>
+          <li class="{{ user.username and user.email ? 'is-complete' : '' }}" data-checklist-fields="username,email"><i class="fa-solid {{ user.username and user.email ? 'fa-check' : 'fa-circle' }}" aria-hidden="true"></i><span><strong>Identity</strong><small>Name and email</small></span></li>
+          <li class="{{ user.phone ? 'is-complete' : '' }}" data-checklist-fields="phone"><i class="fa-solid {{ user.phone ? 'fa-check' : 'fa-circle' }}" aria-hidden="true"></i><span><strong>Contact</strong><small>Phone number</small></span></li>
+          <li class="{{ user.country and user.city ? 'is-complete' : '' }}" data-checklist-fields="country,city"><i class="fa-solid {{ user.country and user.city ? 'fa-check' : 'fa-circle' }}" aria-hidden="true"></i><span><strong>Location</strong><small>Country and city</small></span></li>
+          <li class="{{ user.masterDegree or user.bachelorDegree ? 'is-complete' : '' }}" data-checklist-fields="masterDegree,bachelorDegree" data-checklist-mode="any"><i class="fa-solid {{ user.masterDegree or user.bachelorDegree ? 'fa-check' : 'fa-circle' }}" aria-hidden="true"></i><span><strong>Education</strong><small>Academic background</small></span></li>
+        </ul>
+      </section>
+
+      <section class="settings-card settings-access">
+        <span class="settings-rail__label">Account access</span>
+        <div class="settings-access__row">
+          <span><i class="fa-solid fa-envelope" aria-hidden="true"></i></span>
+          <div><small>Sign-in email</small><strong>{{ user.email }}</strong></div>
+          <i class="fa-solid fa-lock" aria-label="Protected"></i>
+        </div>
+        <div class="settings-access__row">
+          <span><i class="fa-solid {{ roleIcon }}" aria-hidden="true"></i></span>
+          <div><small>Workspace role</small><strong>{{ roleLabel }}</strong></div>
+          <i class="fa-solid fa-circle-check" aria-label="Active"></i>
+        </div>
+        <p><i class="fa-solid fa-shield-halved" aria-hidden="true"></i>Your account information is only used to personalise your learning experience.</p>
+      </section>
+    </aside>
   </div>
-  <button class="btn-edit" data-section="avatar">✏️ Edit</button>
-</div>
-
-
-    <!-- Personal Information -->
-    <div class="settings-card">
-      <div class="card-header">
-        <h3>Personal Information</h3>
-        <button class="btn-edit" data-section="personal">✏️ Edit</button>
-      </div>
-      <div class="card-body grid-2">
-        <div><strong>User name</strong><p>{{ user.username }}</p></div>
-        <div><strong>Email Address</strong><p>{{ user.email }}</p></div>
-        <div><strong>Phone Number</strong><p>{{ user.phone ?? 'Not set' }}</p></div>
-        <div ><strong>Role</strong><p>{{ user.bio ?? 'Not set' }}</p></div>
-      </div>
-    </div>
-
-    <!-- Address -->
-    <div class="settings-card">
-      <div class="card-header">
-        <h3>Address</h3>
-        <button class="btn-edit" data-section="address">✏️ Edit</button>
-      </div>
-      <div class="card-body grid-2">
-        <div><strong>Country</strong><p>{{ user.country ?? 'Not set' }}</p></div>
-        <div><strong>City/State</strong><p>{{ user.city ?? 'Not set' }}</p></div>
-        <div><strong>Postal Code</strong><p>{{ user.postalCode ?? 'Not set' }}</p></div>
-        <div><strong>TAX ID</strong><p>{{ user.taxId ?? 'Not set' }}</p></div>
-      </div>
-    </div>
-
-    <!-- Education -->
-    <div class="settings-card">
-      <div class="card-header">
-        <h3>Educational Background</h3>
-        <button class="btn-edit" data-section="education">✏️ Edit</button>
-      </div>
-      <div class="card-body grid-2">
-        <div><strong>Master’s Degree</strong><p>{{ user.masterDegree ?? 'Not set' }}</p></div>
-        <div><strong>Bachelor’s Degree</strong><p>{{ user.bachelorDegree ?? 'Not set' }}</p></div>
-      </div>
-    </div>
-  </main>
-
-
-<style>
-.toast {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  background: var(--green);
-  color: white;
-  padding: 0.75rem 1.25rem;
-  border-radius: 6px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-  opacity: 0;
-  transform: translateY(20px);
-  transition: all 0.3s ease;
-  z-index: 2000;
-}
-
-.toast.show {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.settings-container {
-  display: flex;
-  gap: 2rem;
-  margin: 2rem;
-}
-
-.settings-sidebar {
-  width: 220px;
-  background: var(--white);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  padding: 1rem;
-}
-
-.settings-sidebar ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.settings-sidebar li {
-  margin-bottom: 1rem;
-}
-
-.settings-sidebar a {
-  text-decoration: none;
-  color: var(--black);
-  font-weight: 500;
-}
-
-.settings-sidebar .active a {
-  color: var(--green);
-}
-
-.settings-sidebar .danger a {
-  color: red;
-}
-
-.settings-main {
-  flex: 1;
-}
-
-.settings-card {
-  background: var(--white);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  padding: 1rem 1.5rem;
-  margin-bottom: 1.5rem;
-  position: relative;
-}
-
-.profile-card {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.profile-header {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.profile-avatar {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.card-body {
-  margin-top: 1rem;
-}
-
-.grid-2 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-}
-
-.btn-edit {
-  background: var(--green);
-  color: var(--white);
-  border: none;
-  padding: 0.4rem 0.8rem;
-  border-radius: var(--radius);
-  cursor: pointer;
-  font-size: 0.85rem;
-}
-
-.btn-edit:hover {
-  background: var(--teal);
-}
-
-.modal {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  background: rgba(0,0,0,.6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.modal form {
-  background: white;
-  padding: 2rem;
-  border-radius: 8px;
-  min-width: 400px;
-  max-width: 600px;
-}
-
-.btn-save {
-  background: var(--green);
-  color: white;
-  border: none;
-  padding: .5rem 1rem;
-  border-radius: var(--radius);
-  cursor: pointer;
-}
-
-.btn-save:hover {
-  background: var(--teal);
-}
-
-.btn-close {
-  background: #ccc;
-  color: black;
-  border: none;
-  padding: .5rem 1rem;
-  border-radius: var(--radius);
-  cursor: pointer;
-}
-
-/*form modales*/
-
-/* Overlay */
-.modal {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  background: rgba(0,0,0,0.6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s ease;
-}
-
-.modal.show {
-  opacity: 1;
-  pointer-events: all;
-}
-
-/* Contenu modal */
-.modal form {
-  background: #fff;
-  padding: 2rem;
-  border-radius: 12px;
-  min-width: 380px;
-  max-width: 600px;
-  width: 100%;
-  box-shadow: 0 8px 30px rgba(0,0,0,0.2);
-  transform: translateY(-30px);
-  transition: transform 0.3s ease;
-}
-
-.modal.show form {
-  transform: translateY(0);
-}
-
-/* Titre modal */
-.modal h3 {
-  margin-top: 0;
-  margin-bottom: 1rem;
-  font-size: 1.3rem;
-  font-weight: 600;
-  color: #333;
-  border-bottom: 1px solid #eee;
-  padding-bottom: .5rem;
-}
-
-/* Champs du formulaire */
-.modal form input,
-.modal form textarea,
-.modal form select {
-  width: 100%;
-  padding: 0.6rem 0.8rem;
-  margin-bottom: 1rem;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 0.95rem;
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-
-.modal form input:focus,
-.modal form textarea:focus,
-.modal form select:focus {
-  border-color: var(--green);
-  box-shadow: 0 0 0 3px rgba(0,150,100,0.15);
-  outline: none;
-}
-
-/* Boutons */
-.modal .btn-save {
-  background: var(--green);
-  color: white;
-  border: none;
-  padding: 0.6rem 1.2rem;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.95rem;
-  transition: background 0.2s;
-}
-
-.modal .btn-save:hover {
-  background: var(--teal);
-}
-
-.modal .btn-close {
-  background: #eee;
-  color: #333;
-  border: none;
-  padding: 0.6rem 1.2rem;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.95rem;
-  transition: background 0.2s;
-}
-
-.modal .btn-close:hover {
-  background: #ddd;
-}
-
-/* Footer boutons */
-.modal .form-footer {
-  margin-top: 1rem;
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.8rem;
-}
-
-</style>
+</section>
 
 <script>
-document.querySelectorAll('.btn-edit').forEach(btn => {
-  btn.addEventListener('click', function () {
-    let section = this.dataset.section;
+document.addEventListener('DOMContentLoaded', () => {
+  const settingsPage = document.querySelector('[data-settings-page]');
+  if (!settingsPage) return;
 
-    fetch(`/settings/edit/${section}`)
-      .then(res => res.text())
-      .then(html => {
-let modal = document.createElement('div');
-modal.classList.add('modal');
-modal.innerHTML = html;
-document.body.appendChild(modal);
+  let activeModal = null;
 
-setTimeout(() => modal.classList.add("show"), 20);
+  const refreshProfileHealth = () => {
+    const details = [...document.querySelectorAll('[data-settings-field]')];
+    const completed = details.filter((detail) => !detail.classList.contains('is-empty')).length;
+    const percentage = details.length ? Math.round((completed / details.length) * 100) : 0;
+    const ring = document.querySelector('.settings-progress-ring');
+    const progress = document.querySelector('.settings-hero__progress');
 
-        const form = modal.querySelector('#ajaxForm');
-        const saveBtn = form.querySelector('.btn-save');
-        const closeBtn = modal.querySelector('.btn-close');
+    ring?.style.setProperty('--settings-progress', `${percentage}%`);
+    if (ring) ring.querySelector('strong').textContent = `${percentage}%`;
+    if (progress) {
+      progress.setAttribute('aria-label', `Profile ${percentage}% complete`);
+      progress.querySelector(':scope > span:last-child strong').textContent = `${completed} of ${details.length} details added`;
+    }
 
-        // Fermer modal (clic dehors ou ESC)
-        modal.addEventListener('click', e => {
-          if (e.target === modal) modal.remove();
-        });
-        document.addEventListener('keydown', e => {
-          if (e.key === "Escape") modal.remove();
-        });
-
-        // Focus sur premier champ
-        const firstInput = form.querySelector('input, textarea, select');
-        if (firstInput) firstInput.focus();
-
-        // Soumission AJAX
-        form.addEventListener('submit', function (e) {
-          e.preventDefault();
-          let formData = new FormData(this);
-
-          // Loader
-          saveBtn.disabled = true;
-          saveBtn.textContent = "⏳ Saving...";
-
-          fetch(`/settings/edit/${section}`, {
-            method: 'POST',
-            body: formData
-          })
-            .then(res => res.json())
-            .then(data => {
-              if (data.success) {
-                if (section === "avatar") {
-                  // remplacer avatar + forcer reload
-                  const avatarImg = document.querySelector('#profileAvatar');
-                  if (avatarImg) {
-                    let newSrc = avatarImg.src.split('?')[0] + "?v=" + Date.now();
-                    avatarImg.src = newSrc;
-                  }
-                  document.querySelector('.profile-card').innerHTML = data.html;
-                } else {
-                  btn.closest('.settings-card')
-                     .querySelector('.card-body').outerHTML = data.html;
-                }
-
-                // Toast de confirmation
-                showToast("✔️ Changes saved successfully");
-                modal.remove();
-              }
-            })
-            .finally(() => {
-              saveBtn.disabled = false;
-              saveBtn.textContent = "💾 Save";
-            });
-        });
-
-        if (closeBtn) {
-          closeBtn.addEventListener('click', () => modal.remove());
-        }
+    document.querySelectorAll('[data-checklist-fields]').forEach((item) => {
+      const states = item.dataset.checklistFields.split(',').map((field) => {
+        const detail = document.querySelector(`[data-settings-field="${field}"]`);
+        return detail && !detail.classList.contains('is-empty');
       });
+      const isComplete = item.dataset.checklistMode === 'any' ? states.some(Boolean) : states.every(Boolean);
+      const icon = item.querySelector(':scope > i');
+      item.classList.toggle('is-complete', isComplete);
+      icon?.classList.toggle('fa-check', isComplete);
+      icon?.classList.toggle('fa-circle', !isComplete);
+    });
+  };
+
+  const showToast = (message, type = 'success') => {
+    const toast = document.createElement('div');
+    toast.className = `settings-toast settings-toast--${type}`;
+    toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation'}" aria-hidden="true"></i><span>${message}</span>`;
+    document.body.appendChild(toast);
+    requestAnimationFrame(() => toast.classList.add('is-visible'));
+    window.setTimeout(() => toast.classList.remove('is-visible'), 2600);
+    window.setTimeout(() => toast.remove(), 3000);
+  };
+
+  const closeModal = () => {
+    if (!activeModal) return;
+    const modal = activeModal;
+    activeModal = null;
+    modal.classList.remove('is-visible');
+    modal.classList.add('is-closing');
+    document.body.classList.remove('settings-modal-open');
+    window.setTimeout(() => modal.remove(), 180);
+  };
+
+  const bindAvatarPreview = (modal) => {
+    const fileInput = modal.querySelector('input[type="file"]');
+    const preview = modal.querySelector('[data-avatar-preview]');
+    if (!fileInput || !preview) return;
+
+    fileInput.addEventListener('change', (event) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      preview.src = URL.createObjectURL(file);
+    }, { once: true });
+  };
+
+  const focusModal = (modal) => {
+    window.setTimeout(() => {
+      modal.querySelector('input:not([type="hidden"]), textarea, select, button')?.focus();
+    }, 80);
+  };
+
+  const openEditor = async (button) => {
+    const section = button.dataset.section;
+    const endpoint = button.dataset.settingsUrl;
+    if (!section || !endpoint) return;
+
+    button.disabled = true;
+    try {
+      const response = await fetch(endpoint, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+      if (!response.ok) throw new Error('Unable to load settings form.');
+
+      const modal = document.createElement('div');
+      modal.className = 'settings-modal';
+      modal.dataset.section = section;
+      modal.dataset.endpoint = endpoint;
+      modal.innerHTML = await response.text();
+      document.body.appendChild(modal);
+      activeModal = modal;
+      document.body.classList.add('settings-modal-open');
+      bindAvatarPreview(modal);
+      focusModal(modal);
+      requestAnimationFrame(() => modal.classList.add('is-visible'));
+    } catch (error) {
+      showToast(error.message, 'error');
+    } finally {
+      button.disabled = false;
+    }
+  };
+
+  document.addEventListener('click', (event) => {
+    const editButton = event.target.closest('.js-settings-edit');
+    if (editButton) {
+      openEditor(editButton);
+      return;
+    }
+
+    if (event.target.closest('[data-modal-close]') || (activeModal && event.target === activeModal)) {
+      closeModal();
+    }
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') closeModal();
+  });
+
+  document.addEventListener('submit', async (event) => {
+    const form = event.target.closest('#ajaxForm');
+    if (!form || !activeModal) return;
+    event.preventDefault();
+
+    const modal = activeModal;
+    const section = modal.dataset.section;
+    const endpoint = modal.dataset.endpoint;
+    const saveButton = form.querySelector('.btn-save');
+    const defaultLabel = saveButton.innerHTML;
+
+    saveButton.disabled = true;
+    saveButton.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin" aria-hidden="true"></i> Saving changes';
+
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        body: new FormData(form),
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+      });
+
+      const contentType = response.headers.get('content-type') || '';
+      if (contentType.includes('application/json')) {
+        const data = await response.json();
+        if (!response.ok || !data.success) throw new Error(data.error || 'Unable to save your changes.');
+
+        const currentContent = document.querySelector(`[data-settings-section-content="${section}"]`);
+        if (currentContent && data.html) currentContent.outerHTML = data.html;
+
+        if (section === 'personal') {
+          const username = document.querySelector('[data-settings-field="username"] strong')?.textContent;
+          const headline = document.querySelector('[data-settings-field="bio"] strong')?.textContent;
+          if (username) {
+            document.querySelector('.settings-profile-card__identity h2').textContent = username;
+            document.querySelectorAll('.user-info strong, .sidebar-user__info strong').forEach((name) => {
+              name.textContent = username;
+            });
+          }
+          if (headline) document.querySelector('.settings-profile-card__identity p').textContent = headline;
+        }
+
+        if (section === 'avatar' && data.html) {
+          const fragment = document.createElement('div');
+          fragment.innerHTML = data.html;
+          const avatarSrc = fragment.querySelector('#profileAvatar')?.src;
+          if (avatarSrc) {
+            document.querySelectorAll('.user-avatar, .sidebar-user__avatar').forEach((avatar) => {
+              avatar.src = avatarSrc;
+            });
+          }
+        }
+
+        refreshProfileHealth();
+
+        closeModal();
+        showToast('Your changes have been saved.');
+        return;
+      }
+
+      if (!response.ok) throw new Error('Unable to save your changes.');
+      modal.innerHTML = await response.text();
+      bindAvatarPreview(modal);
+      focusModal(modal);
+    } catch (error) {
+      showToast(error.message, 'error');
+      saveButton.disabled = false;
+      saveButton.innerHTML = defaultLabel;
+    }
   });
 });
-
-// Toast function
-function showToast(message) {
-  const toast = document.createElement("div");
-  toast.className = "toast";
-  toast.textContent = message;
-  document.body.appendChild(toast);
-
-  setTimeout(() => toast.classList.add("show"), 50);
-  setTimeout(() => toast.classList.remove("show"), 2500);
-  setTimeout(() => toast.remove(), 3000);
-}
-
-
 </script>
-
 {% endblock %}

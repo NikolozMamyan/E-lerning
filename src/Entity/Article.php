@@ -182,6 +182,7 @@ public function setVideo(?string $video): self
 }
 private function slugify(string $text): string
 {
+    $originalText = $text;
     // Supprimer les emojis et symboles spéciaux qui cassent iconv
     $text = preg_replace('/[\x{1F600}-\x{1F6FF}]/u', '', $text); // emojis
     $text = preg_replace('/[^\p{L}\p{N}\s]/u', '', $text); // autres symboles
@@ -202,6 +203,8 @@ private function slugify(string $text): string
     // Remplacer tout ce qui n'est pas a-z/0-9 par des tirets
     $text = preg_replace('/[^a-z0-9]+/', '-', $text);
 
-    return trim($text, '-');
+    $slug = trim($text, '-');
+
+    return $slug !== '' ? $slug : 'post-'.substr(hash('sha256', $originalText), 0, 10);
 }
 }

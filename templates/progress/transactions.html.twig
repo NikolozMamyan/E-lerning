@@ -1,81 +1,222 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}User Transactions{% endblock %}
+{% block title %}Payments & Invoices{% endblock %}
 
 {% block body %}
-<div class="courses-wrapper">
-  <h2>All Transactions</h2>
+{% set subscriptionAmountCents = activeSubscription and activeSubscription.invoiceAmountCents is not null ? activeSubscription.invoiceAmountCents : (activeSubscription ? 2990 : 0) %}
+{% set subscriptionCurrency = activeSubscription and activeSubscription.invoiceCurrency ? activeSubscription.invoiceCurrency|upper : 'EUR' %}
+{% set courseSpendEurCents = 0 %}
 
-  <table class="progress-table" style="margin-bottom:50px;">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Item</th>
-        <th>Purchased On</th>
-        <th>Price</th>
-        <th>Currency</th>
-        <th>Invoice</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% if hasSubscription %}
-        <tr>
-          <td>Subscription</td>
-          <td>Active Plan</td>
-          <td>—</td>
-          <td>29.90 / Monthly</td>
-          <td>EUR</td>
-          <td>
-            <a class="btn btn-sm btn-outline-primary"
-               href="{{ path('app_invoice_subscription_download') }}"
-               title="Download subscription invoice">
-              <i class="fa-solid fa-file-pdf"></i>
-            </a>
-          </td>
-        </tr>
+{% for enrollment in enrollments %}
+  {% set enrollmentAmountCents = enrollment.invoiceAmountCents %}
+  {% set enrollmentCurrency = enrollment.invoiceCurrency ? enrollment.invoiceCurrency|upper : null %}
+
+  {% if enrollmentAmountCents is null %}
+    {% for price in enrollment.course.coursePrices %}
+      {% if price.currency == 'EUR' %}
+        {% set enrollmentAmountCents = price.price %}
+        {% set enrollmentCurrency = 'EUR' %}
       {% endif %}
+    {% endfor %}
+  {% endif %}
 
-      {% for e in enrollments %}
-        {% set eurPrice = null %}
-        {% for price in e.course.coursePrices %}
-          {% if price.currency == 'EUR' %}
-            {% set eurPrice = price.price / 100 %}
+  {% if enrollmentAmountCents is not null and enrollmentCurrency == 'EUR' %}
+    {% set courseSpendEurCents = courseSpendEurCents + enrollmentAmountCents %}
+  {% endif %}
+{% endfor %}
+
+{% set subscriptionSpendEurCents = activeSubscription and subscriptionCurrency == 'EUR' ? subscriptionAmountCents : 0 %}
+{% set totalSpendEurCents = courseSpendEurCents + subscriptionSpendEurCents %}
+{% set transactionCount = enrollments|length + (activeSubscription ? 1 : 0) %}
+
+<div class="transactions-page" data-transactions-page>
+  <header class="transactions-page__hero">
+    <div class="transactions-page__hero-copy">
+      <span class="transactions-page__eyebrow">
+        <i class="fa-solid fa-receipt" aria-hidden="true"></i>
+        Billing centre
+      </span>
+      <h1>Payments and invoices, all in one place.</h1>
+      <p>Review your learning purchases, check your current access and download the documents you need.</p>
+      <div class="transactions-page__hero-meta">
+        <span><i class="fa-solid fa-file-pdf" aria-hidden="true"></i>PDF invoices</span>
+        <span><i class="fa-solid fa-shield-halved" aria-hidden="true"></i>Secure records</span>
+        <span><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i>Available anytime</span>
+      </div>
+    </div>
+
+    <div class="transactions-page__hero-summary">
+      <span class="transactions-page__hero-icon"><i class="fa-solid fa-wallet" aria-hidden="true"></i></span>
+      <div><small>Recorded activity</small><strong>{{ transactionCount }} transaction{{ transactionCount == 1 ? '' : 's' }}</strong></div>
+      <a href="{{ path('app_subscription') }}">Manage learning access <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+    </div>
+  </header>
+
+  <section class="transactions-page__stats" aria-label="Payment summary">
+    <article>
+      <span class="transactions-page__stat-icon transactions-page__stat-icon--payments"><i class="fa-solid fa-credit-card" aria-hidden="true"></i></span>
+      <div><strong>{{ transactionCount }}</strong><span>Recorded payments</span></div>
+      <small>Subscription and courses</small>
+    </article>
+    <article>
+      <span class="transactions-page__stat-icon transactions-page__stat-icon--spend"><i class="fa-solid fa-coins" aria-hidden="true"></i></span>
+      <div><strong>{{ totalSpendEurCents > 0 ? '€' ~ (totalSpendEurCents / 100)|number_format(2, '.', ',') : '—' }}</strong><span>Recorded spend</span></div>
+      <small>EUR transactions shown below</small>
+    </article>
+    <article>
+      <span class="transactions-page__stat-icon transactions-page__stat-icon--access"><i class="fa-solid {{ hasSubscription ? 'fa-infinity' : 'fa-book-open' }}" aria-hidden="true"></i></span>
+      <div><strong>{{ hasSubscription ? 'Premium' : (enrollments is not empty ? 'À la carte' : 'None') }}</strong><span>Current access</span></div>
+      <small>{{ hasSubscription ? 'All courses unlocked' : 'Individual course access' }}</small>
+    </article>
+  </section>
+
+  <div class="transactions-page__layout">
+    <section class="transactions-page__panel transactions-page__history" aria-labelledby="transaction-history-heading">
+      <div class="transactions-page__section-head">
+        <div><span>Payment activity</span><h2 id="transaction-history-heading">Transaction history</h2></div>
+        <span class="transactions-page__result-count" id="transaction-result-count">{{ transactionCount }} result{{ transactionCount == 1 ? '' : 's' }}</span>
+      </div>
+
+      {% if transactionCount > 0 %}
+        <div class="transactions-page__toolbar" role="group" aria-label="Filter transactions">
+          <button type="button" class="is-active" data-transaction-filter="all"><i class="fa-solid fa-layer-group" aria-hidden="true"></i>All <span>{{ transactionCount }}</span></button>
+          <button type="button" data-transaction-filter="subscription"><i class="fa-solid fa-infinity" aria-hidden="true"></i>Subscription <span>{{ activeSubscription ? 1 : 0 }}</span></button>
+          <button type="button" data-transaction-filter="course"><i class="fa-solid fa-book-open" aria-hidden="true"></i>Courses <span>{{ enrollments|length }}</span></button>
+        </div>
+
+        <div class="transactions-page__list">
+          {% if activeSubscription %}
+            {% set subscriptionDate = activeSubscription.invoiceDate ?? activeSubscription.startDate %}
+            <article class="transaction-item" data-transaction-type="subscription">
+              <div class="transaction-item__icon transaction-item__icon--subscription"><i class="fa-solid fa-infinity" aria-hidden="true"></i></div>
+              <div class="transaction-item__main">
+                <div class="transaction-item__topline"><span>Subscription</span><small>{{ subscriptionDate|date('d M Y · H:i') }}</small></div>
+                <h3>Unlimited Learning</h3>
+                <div class="transaction-item__meta">
+                  <span><i class="fa-solid fa-circle-check" aria-hidden="true"></i>Active plan</span>
+                  <span><i class="fa-regular fa-calendar" aria-hidden="true"></i>Valid until {{ activeSubscription.endDate|date('d M Y') }}</span>
+                  {% if activeSubscription.invoiceNumber %}<span><i class="fa-solid fa-hashtag" aria-hidden="true"></i>{{ activeSubscription.invoiceNumber }}</span>{% endif %}
+                </div>
+              </div>
+              <div class="transaction-item__amount">
+                <strong>{{ subscriptionCurrency == 'EUR' ? '€' : '' }}{{ (subscriptionAmountCents / 100)|number_format(2, '.', ',') }}</strong>
+                <small>{{ subscriptionCurrency }} · monthly</small>
+              </div>
+              <span class="transaction-item__status"><i class="fa-solid fa-check" aria-hidden="true"></i>Paid</span>
+              <a href="{{ path('app_invoice_subscription_download') }}" class="transaction-item__invoice" aria-label="Download subscription invoice" title="Download PDF invoice">
+                <i class="fa-solid fa-file-arrow-down" aria-hidden="true"></i>
+              </a>
+            </article>
           {% endif %}
-        {% endfor %}
 
-        <tr>
-          <td>Course</td>
-          <td>
-            <a href="{{ path('app_course_show', {id: e.course.id}) }}">
-              {{ e.course.title ?? 'Untitled Course' }}
-            </a>
-          </td>
-          <td>{{ e.createdAt|date('d/m/Y H:i') }}</td>
-          <td>{{ eurPrice is not null ? eurPrice : '—' }}</td>
-          <td>{{ eurPrice is not null ? 'EUR' : '—' }}</td>
-          <td>
-            <a class="btn btn-sm btn-outline-primary"
-               href="{{ path('app_invoice_enrollment_download', {id: e.id}) }}"
-               title="Download invoice">
-              <i class="fa-solid fa-file-pdf"></i>
-            </a>
-
-            {# Optionnel: afficher le numéro si déjà en BDD #}
-            {% if e.invoiceNumber %}
-              <small style="display:block; opacity:.7; margin-top:4px;">
-                {{ e.invoiceNumber }}
-              </small>
+          {% for enrollment in enrollments %}
+            {% set enrollmentAmountCents = enrollment.invoiceAmountCents %}
+            {% set enrollmentCurrency = enrollment.invoiceCurrency ? enrollment.invoiceCurrency|upper : null %}
+            {% if enrollmentAmountCents is null %}
+              {% for price in enrollment.course.coursePrices %}
+                {% if price.currency == 'EUR' %}
+                  {% set enrollmentAmountCents = price.price %}
+                  {% set enrollmentCurrency = 'EUR' %}
+                {% endif %}
+              {% endfor %}
             {% endif %}
-          </td>
-        </tr>
+            {% set enrollmentDate = enrollment.invoiceDate ?? enrollment.createdAt %}
+
+            <article class="transaction-item" data-transaction-type="course">
+              <a href="{{ path('app_course_show', {id: enrollment.course.id}) }}" class="transaction-item__icon transaction-item__icon--course" aria-label="Open {{ enrollment.course.title }}">
+                {% if enrollment.course.thumb %}
+                  <img src="{{ asset('uploads/courses/' ~ enrollment.course.thumb) }}" alt="" loading="lazy">
+                {% else %}
+                  <i class="fa-solid fa-book-open" aria-hidden="true"></i>
+                {% endif %}
+              </a>
+              <div class="transaction-item__main">
+                <div class="transaction-item__topline"><span>Course purchase</span><small>{{ enrollmentDate|date('d M Y · H:i') }}</small></div>
+                <h3><a href="{{ path('app_course_show', {id: enrollment.course.id}) }}">{{ enrollment.course.title ?? 'Untitled Course' }}</a></h3>
+                <div class="transaction-item__meta">
+                  <span><i class="fa-solid fa-circle-check" aria-hidden="true"></i>Course access</span>
+                  {% if enrollment.course.category %}<span><i class="fa-solid fa-tag" aria-hidden="true"></i>{{ enrollment.course.category.name }}</span>{% endif %}
+                  {% if enrollment.invoiceNumber %}<span><i class="fa-solid fa-hashtag" aria-hidden="true"></i>{{ enrollment.invoiceNumber }}</span>{% endif %}
+                </div>
+              </div>
+              <div class="transaction-item__amount">
+                {% if enrollmentAmountCents is not null %}
+                  <strong>{{ enrollmentCurrency == 'EUR' ? '€' : '' }}{{ (enrollmentAmountCents / 100)|number_format(2, '.', ',') }}</strong>
+                  <small>{{ enrollmentCurrency ?? 'EUR' }} · one-time</small>
+                {% else %}
+                  <strong>—</strong><small>Amount unavailable</small>
+                {% endif %}
+              </div>
+              <span class="transaction-item__status"><i class="fa-solid fa-check" aria-hidden="true"></i>Paid</span>
+              <a href="{{ path('app_invoice_enrollment_download', {id: enrollment.id}) }}" class="transaction-item__invoice" aria-label="Download invoice for {{ enrollment.course.title }}" title="Download PDF invoice">
+                <i class="fa-solid fa-file-arrow-down" aria-hidden="true"></i>
+              </a>
+            </article>
+          {% endfor %}
+        </div>
+
+        <div class="transactions-page__no-match" id="transaction-no-match" hidden>
+          <span><i class="fa-regular fa-folder-open" aria-hidden="true"></i></span>
+          <h3>No transactions in this view</h3>
+          <p>Choose another filter to see your payment activity.</p>
+        </div>
       {% else %}
-        {% if not hasSubscription %}
-          <tr>
-            <td colspan="6" style="text-align:center;">No transactions yet</td>
-          </tr>
-        {% endif %}
-      {% endfor %}
-    </tbody>
-  </table>
+        <div class="transactions-page__empty">
+          <span><i class="fa-solid fa-receipt" aria-hidden="true"></i></span>
+          <h2>No transactions yet</h2>
+          <p>Your course purchases, subscription payments and downloadable invoices will appear here.</p>
+          <a href="{{ path('app_courses') }}">Explore available courses <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+        </div>
+      {% endif %}
+    </section>
+
+    <aside class="transactions-page__aside" aria-label="Billing information">
+      <section class="transactions-page__panel transactions-page__summary">
+        <div class="transactions-page__aside-head"><span>Billing summary</span><i class="fa-solid fa-chart-pie" aria-hidden="true"></i></div>
+        <div class="transactions-page__summary-total"><small>Recorded EUR spend</small><strong>{{ totalSpendEurCents > 0 ? '€' ~ (totalSpendEurCents / 100)|number_format(2, '.', ',') : '€0.00' }}</strong><span>Across the records available here</span></div>
+        <div class="transactions-page__summary-list">
+          <div><span>Course purchases</span><strong>{{ enrollments|length }}</strong></div>
+          <div><span>Premium plan</span><strong class="{{ hasSubscription ? 'is-active' : '' }}">{{ hasSubscription ? 'Active' : 'Inactive' }}</strong></div>
+          <div><span>PDF documents</span><strong>{{ transactionCount }}</strong></div>
+        </div>
+      </section>
+
+      <section class="transactions-page__panel transactions-page__help">
+        <span class="transactions-page__help-icon"><i class="fa-solid fa-file-shield" aria-hidden="true"></i></span>
+        <h2>Your documents stay available</h2>
+        <p>Use the download button beside any payment to generate its PDF invoice.</p>
+        <a href="{{ path('app_subscription') }}">View learning plans <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+      </section>
+    </aside>
+  </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const page = document.querySelector('[data-transactions-page]');
+  if (!page) return;
+
+  const buttons = Array.from(page.querySelectorAll('[data-transaction-filter]'));
+  const transactions = Array.from(page.querySelectorAll('[data-transaction-type]'));
+  const count = page.querySelector('#transaction-result-count');
+  const noMatch = page.querySelector('#transaction-no-match');
+
+  buttons.forEach((button) => {
+    button.addEventListener('click', () => {
+      const filter = button.dataset.transactionFilter;
+      let visible = 0;
+
+      buttons.forEach((item) => item.classList.toggle('is-active', item === button));
+      transactions.forEach((transaction) => {
+        const show = filter === 'all' || transaction.dataset.transactionType === filter;
+        transaction.hidden = !show;
+        if (show) visible += 1;
+      });
+
+      if (count) count.textContent = `${visible} result${visible === 1 ? '' : 's'}`;
+      if (noMatch) noMatch.hidden = visible !== 0;
+    });
+  });
+});
+</script>
 {% endblock %}

@@ -1,392 +1,155 @@
 {% extends 'base_auth.html.twig' %}
 
-{% block title %}Inscription{% endblock %}
+{% block title %}Create an account | Les Consultants{% endblock %}
+{% block body_class %}auth-document auth-document--register{% endblock %}
+
+{% block stylesheets %}
+  {{ parent() }}
+  <link rel="stylesheet" href="{{ asset('styles/auth.css') }}">
+{% endblock %}
 
 {% block body %}
+<div class="auth-shell auth-shell--register" data-controller="auth" data-auth-mode="register">
+  <section class="auth-visual" style="--auth-illustration: url('{{ asset('images/register.svg') }}')" aria-label="Digital learning experience preview">
+    <a href="{{ path('app_landing_page') }}" class="auth-brand" aria-label="Les Consultants home">
+      <img src="{{ asset('images/logo.png') }}" alt="Les Consultants">
+      <span>Digital learning platform</span>
+    </a>
 
-<style>
-:root {
-  --green:#1A6D55;
-  --green-dark:#155a49;
-  --teal:#0D8383;
-  --black:#071717;
-  --mint:#E7F3F3;
-  --grey:#606060;
-  --white:#FFFFFF;
-  --radius:12px;
-  --shadow:0 4px 12px rgba(7,23,23,.08);
-  --transition: all 0.25s ease;
-}
-
-body {
-  margin: 0;
-  font-family: system-ui, sans-serif;
-  background: var(--white);
-  color: var(--black);
-}
-
-/* Layout */
-.auth-layout {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  min-height: 100vh;
-}
-
-.auth-hero {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  padding: clamp(2rem, 5vw, 4rem);
-  background: linear-gradient(135deg, var(--mint), #f8fefe);
-}
-
-.auth-hero img {
-  max-width: min(80%, 480px);
-  height: auto;
-  margin-bottom: 2rem;
-}
-
-.hero-copy h2 {
-  font-size: clamp(1.75rem, 3vw, 2.5rem);
-  font-weight: 700;
-  margin-bottom: 1rem;
-}
-
-.hero-copy p {
-  color: var(--grey);
-  font-size: clamp(1rem, 2vw, 1.125rem);
-  line-height: 1.5;
-}
-
-/* Panel */
-.auth-panel {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  max-width: 480px;
-  width: 100%;
-  margin: auto;
-  padding: clamp(1.5rem, 4vw, 3rem);
-}
-
-.auth-panel h1 {
-  font-size: clamp(1.75rem, 3vw, 2.25rem);
-  margin-bottom: 0.5rem;
-}
-
-.subtitle {
-  color: var(--grey);
-  margin-bottom: 2rem;
-}
-
-/* Social */
-.social-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  margin-bottom: 2rem;
-}
-
-.social-btn {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: .75rem;
-  border: 1px solid #e5e7eb;
-  border-radius: var(--radius);
-  padding: .875rem 1rem;
-  font-size: .9rem;
-  font-weight: 500;
-  background: var(--white);
-  cursor: pointer;
-  transition: var(--transition);
-}
-
-.social-btn.google:hover { background: #f9fafb; }
-.social-btn.apple {
-  background: #000; 
-  color: #fff; 
-}
-.social-btn.apple:hover { background: #111; }
-
-/* Account Type */
-.account-type-section { margin-bottom: 1.5rem; }
-.account-type-section h3 {
-  font-size: 1.05rem;
-  font-weight: 600;
-  margin-bottom: 1rem;
-}
-.account-type-row {
-  display: flex;
-  gap: 1rem;
-}
-.account-type-option { flex: 1; }
-.account-type-option input[type="radio"] { display:none; }
-
-.account-type-label {
-  display: flex;
-  align-items: center;
-  gap: .75rem;
-  padding: 1rem;
-  border: 2px solid #e5e7eb;
-  border-radius: var(--radius);
-  cursor: pointer;
-  background: var(--white);
-  transition: var(--transition);
-  box-shadow: var(--shadow);
-}
-.account-type-option input[type="radio"]:checked + .account-type-label {
-  border-color: var(--green);
-  background: rgba(26,109,85,0.05);
-}
-.radio-custom {
-  width: 18px;
-  height: 18px;
-  border: 2px solid #d1d5db;
-  border-radius: 50%;
-  position: relative;
-}
-.account-type-option input[type="radio"]:checked + .account-type-label .radio-custom {
-  border-color: var(--green);
-}
-.account-type-option input[type="radio"]:checked + .account-type-label .radio-custom::after {
-  content:'';
-  position:absolute;
-  top:50%; left:50%;
-  transform:translate(-50%,-50%);
-  width:10px; height:10px;
-  background: var(--green);
-  border-radius:50%;
-}
-
-/* Form */
-.auth-form label {
-  display: block;
-  font-weight: 600;
-  margin: 1rem 0 .5rem;
-}
-
-.input {
-  display: flex;
-  align-items: center;
-  border: 1px solid #d1d5db;
-  border-radius: var(--radius);
-  padding: .875rem 1rem;
-  background: var(--white);
-  transition: var(--transition);
-}
-
-.input:focus-within {
-  border-color: var(--green);
-  box-shadow: 0 0 0 3px rgba(26,109,85,0.15);
-}
-
-.input input {
-  flex: 1;
-  border: none;
-  outline: none;
-  background: transparent;
-  font-size: .95rem;
-}
-
-.input-action { cursor: pointer; opacity: .6; }
-
-/* Checkbox */
-.checkbox-row {
-  display: flex;
-  align-items: center;
-  gap: .5rem;
-  margin: 1rem 0 1.5rem;
-}
-.checkbox-row input { accent-color: var(--green); }
-
-/* Buttons */
-.btn-primary {
-  width: 100%;
-  padding: 1rem;
-  border-radius: var(--radius);
-  border: none;
-  background: var(--green);
-  color: var(--white);
-  font-weight: 600;
-  cursor: pointer;
-  transition: var(--transition);
-}
-.btn-primary:hover { background: var(--green-dark); transform: translateY(-1px); }
-
-/* Text */
-.muted {
-  text-align: center;
-  color: var(--grey);
-  margin-top: 1.5rem;
-  font-size: .95rem;
-}
-.muted a { color: var(--green); font-weight: 600; text-decoration: none; }
-.muted a:hover { text-decoration: underline; }
-
-/* Footer */
-.auth-footer {
-  text-align: center;
-  padding: 1rem;
-  font-size: .85rem;
-  color: var(--grey);
-}
-.auth-footer nav {
-  display: flex;
-  justify-content: center;
-  gap: 1rem;
-  flex-wrap: wrap;
-  margin-bottom: .5rem;
-}
-
-/* Responsive */
-@media (max-width: 900px) {
-  .auth-layout { grid-template-columns: 1fr; }
-  .auth-hero { order: 2; padding: 2rem 1.5rem; }
-  .auth-panel { order: 1; }
-  .account-type-row { flex-direction: column; }
-}
-@media (max-width: 500px) {
-  .social-row { flex-direction: column; }
-}
-
-.account-type-option input[disabled] + .account-type-label {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.coming-soon {
-  display: block;
-  font-size: 0.8rem;
-  color: #999;
-  margin-top: 0.3rem;
-  font-style: italic;
-}
-
-</style>
-
-<div class="auth-layout" data-controller="auth">
-
-  <!-- Colonne gauche (illustration + texte) -->
-  <section class="auth-hero">
-    <img src="{{ asset('images/register.svg') }}" alt="Illustration d'apprentissage en ligne">
-    <div class="hero-copy">
-      <h2>Master multiple courses with <span>certification…</span></h2>
-      <p>Stay up-to-date with compliance, finance, project management, and personal development modules.</p>
-    </div>
-  </section>
-
-  <!-- Colonne droite (formulaire) -->
-  <section class="auth-panel">
-    <h1>Sign Up</h1>
-    <p class="subtitle">Welcome, Sign up and start your Journey</p>
-
-    <div class="social-row">
-<button type="button" class="social-btn google" 
-        onclick="window.location.href='{{ path('api_google_start') }}'">
-  <span class="icon" aria-hidden="true">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="20" height="20">
-      <path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.3l6.7-6.7C35.9 2.7 30.4 0 24 0 14.6 0 6.5 5.6 2.6 13.8l7.9 6.1C12.1 13.6 17.6 9.5 24 9.5z"/>
-      <path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.5c-.5 2.5-1.9 4.6-3.9 6.1l6.1 4.7c3.6-3.3 5.4-8.2 5.4-13.3z"/>
-      <path fill="#FBBC05" d="M10.5 28.3c-1-2.5-1.5-5.2-1.5-8.3s.6-5.8 1.5-8.3L2.6 5.6C.9 9.1 0 13.4 0 17.9s.9 8.8 2.6 12.3l7.9-6.1z"/>
-      <path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.6l-6.1-4.7c-2.2 1.5-5.1 2.4-9.8 2.4-6.4 0-11.9-4.1-13.9-9.7l-7.9 6.1C6.5 42.4 14.6 48 24 48z"/>
-    </svg>
-  </span>
-  Google
-</button>
-
+    <div class="auth-visual__copy">
+      <span class="auth-visual__eyebrow"><i class="fa-solid fa-route" aria-hidden="true"></i>Start building your skills</span>
+      <h1>A smarter path from learning to achievement.</h1>
+      <p>Create your workspace, explore practical training and turn completed courses into verified professional certificates.</p>
     </div>
 
- <form class="auth-form" data-controller="auth" data-action="submit->auth#register">
-  <!-- Account Type Selection -->
-  <div class="account-type-section">
-    <h3>Select Account Type</h3>
-    <div class="account-type-row">
-      <div class="account-type-option">
-        <input type="radio" id="employee" name="account_type" value="employee" checked
-               data-auth-target="accountType">
-        <label for="employee" class="account-type-label">
-          <div class="radio-custom"></div>
-          <span class="account-type-text">Employee</span>
-        </label>
+    <div class="auth-learning-preview auth-learning-preview--path" aria-hidden="true">
+      <div class="auth-learning-preview__window">
+        <div class="auth-learning-preview__topbar">
+          <span><i></i><i></i><i></i></span>
+          <small>Your learning path</small>
+          <i class="fa-solid fa-wand-magic-sparkles"></i>
+        </div>
+        <div class="auth-path-preview">
+          <div class="auth-path-preview__summary">
+            <span><i class="fa-solid fa-graduation-cap"></i></span>
+            <div><small>Personal roadmap</small><strong>Build knowledge step by step</strong></div>
+            <b>01</b>
+          </div>
+          <div class="auth-path-preview__steps">
+            <div class="is-complete"><span><i class="fa-solid fa-check"></i></span><div><strong>Choose your course</strong><small>Explore practical topics</small></div></div>
+            <div class="is-current"><span><i class="fa-solid fa-play"></i></span><div><strong>Learn at your pace</strong><small>Progress saved automatically</small></div></div>
+            <div><span><i class="fa-solid fa-award"></i></span><div><strong>Earn your certificate</strong><small>Validate your achievement</small></div></div>
+          </div>
+        </div>
       </div>
-<div class="account-type-option">
-  <input type="radio" id="company" name="account_type" value="company"
-         data-auth-target="accountType">
-  <label for="company" class="account-type-label">
-    <div class="radio-custom"></div>
-    <span class="account-type-text">Company</span>
-  </label>
-</div>
-
+      <div class="auth-learning-preview__floating auth-learning-preview__floating--progress"><i class="fa-solid fa-users"></i><span><strong>Individual or company</strong><small>Choose your workspace</small></span></div>
+      <div class="auth-learning-preview__floating auth-learning-preview__floating--live"><i></i><span>Ready to begin</span></div>
     </div>
-  </div>
 
-  <label for="name">Full Name</label>
-  <div class="input">
-    <span class="input-icon" aria-hidden="true">
-      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-    </span>
-    <!-- IMPORTANT: target renommé en userName -->
-    <input id="name" name="name" type="text" placeholder="Full Name"
-           data-auth-target="userName" required>
-  </div>
-
-  <label for="email">Professional email</label>
-  <div class="input">
-    <span class="input-icon" aria-hidden="true">
-      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2Zm0 4-8 5L4 8V6l8 5 8-5v2Z"/></svg>
-    </span>
-    <input id="email" name="email" type="email" placeholder="Professional email"
-           data-auth-target="email" required>
-  </div>
-
-  <label for="password">Password</label>
-  <div class="input">
-    <span class="input-icon" aria-hidden="true">
-      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 1a5 5 0 0 0-5 5v3H5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-2V6a5 5 0 0 0-5-5Zm3 8H9V6a3 3 0 0 1 6 0v3Z"/></svg>
-    </span>
-    <input id="password" name="password" type="password" placeholder="Enter password"
-           data-auth-target="password" required>
-{% include "components/password_togle.html.twig" %}
-  </div>
-
-  <div class="checkbox-row">
-    <input type="checkbox" id="remember" name="remember">
-    <span>Remember me</span>
-  </div>
-
-  <div class="checkbox-row">
-  <input type="checkbox" id="cguv" name="cguv" required>
-  <label for="cguv">
-    I accept the <a href="/legales/TermsConditions.html" target="_blank">Terms & Conditions</a> 
-    and the <a href="/legales/Privacy.html" target="_blank">Privacy Policy</a>
-  </label>
-</div>
-
-
-  <button type="submit" class="btn-primary">Sign Up</button>
-
-  <!-- Zone d’affichage des messages -->
-  <div class="muted" data-auth-target="result" aria-live="polite"></div>
-
-  <p class="muted">Already have an account? <a href="/login">Sign In</a></p>
-</form>
-
-
-    <div data-auth-target="result" class="result"></div>
+    <div class="auth-visual__trust">
+      <span><i class="fa-solid fa-layer-group" aria-hidden="true"></i>Practical courses</span>
+      <span><i class="fa-solid fa-chart-simple" aria-hidden="true"></i>Progress tracking</span>
+      <span><i class="fa-solid fa-award" aria-hidden="true"></i>Official achievements</span>
+    </div>
   </section>
+
+  <main class="auth-main">
+    <div class="auth-main__inner">
+      <nav class="auth-switch" aria-label="Authentication pages">
+        <a href="{{ path('show_login') }}" data-action="click->auth#switchPage" data-auth-direction="backward">Sign in</a>
+        <span class="auth-switch__active"><i class="fa-solid fa-user-plus" aria-hidden="true"></i>Create account</span>
+      </nav>
+
+      <section class="auth-card auth-card--register">
+        <div class="auth-card__heading">
+          <span>Join the platform</span>
+          <h2>Create your learning workspace</h2>
+          <p>A few details and your learning journey can begin.</p>
+        </div>
+
+        <a href="{{ path('api_google_start') }}" class="auth-google">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" aria-hidden="true">
+            <path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.3l6.7-6.7C35.9 2.7 30.4 0 24 0 14.6 0 6.5 5.6 2.6 13.8l7.9 6.1C12.1 13.6 17.6 9.5 24 9.5z"/>
+            <path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.5c-.5 2.5-1.9 4.6-3.9 6.1l6.1 4.7c3.6-3.3 5.4-8.2 5.4-13.3z"/>
+            <path fill="#FBBC05" d="M10.5 28.3c-1-2.5-1.5-5.2-1.5-8.3s.6-5.8 1.5-8.3L2.6 5.6C.9 9.1 0 13.4 0 17.9s.9 8.8 2.6 12.3l7.9-6.1z"/>
+            <path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.6l-6.1-4.7c-2.2 1.5-5.1 2.4-9.8 2.4-6.4 0-11.9-4.1-13.9-9.7l-7.9 6.1C6.5 42.4 14.6 48 24 48z"/>
+          </svg>
+          Create account with Google
+        </a>
+
+        <div class="auth-divider"><span>or register with email</span></div>
+
+        <form class="auth-form" data-action="submit->auth#register">
+          <fieldset class="auth-account-type">
+            <legend>Choose your workspace</legend>
+            <div>
+              <label class="auth-account-option" for="employee">
+                <input type="radio" id="employee" name="account_type" value="employee" data-auth-target="accountType" checked>
+                <span class="auth-account-option__icon"><i class="fa-solid fa-user-graduate" aria-hidden="true"></i></span>
+                <span><strong>Learner</strong><small>For your own training</small></span>
+                <i class="fa-solid fa-check auth-account-option__check" aria-hidden="true"></i>
+              </label>
+
+              <label class="auth-account-option" for="company">
+                <input type="radio" id="company" name="account_type" value="company" data-auth-target="accountType">
+                <span class="auth-account-option__icon"><i class="fa-solid fa-building" aria-hidden="true"></i></span>
+                <span><strong>Company</strong><small>Manage team learning</small></span>
+                <i class="fa-solid fa-check auth-account-option__check" aria-hidden="true"></i>
+              </label>
+            </div>
+          </fieldset>
+
+          <div class="auth-field">
+            <label for="register-name">Full name</label>
+            <div class="auth-input">
+              <i class="fa-regular fa-user" aria-hidden="true"></i>
+              <input id="register-name" name="name" type="text" placeholder="Your full name" autocomplete="name" data-auth-target="userName" required>
+            </div>
+          </div>
+
+          <div class="auth-field">
+            <label for="register-email">Professional email</label>
+            <div class="auth-input">
+              <i class="fa-regular fa-envelope" aria-hidden="true"></i>
+              <input id="register-email" name="email" type="email" placeholder="name@company.com" autocomplete="email" data-auth-target="email" required>
+            </div>
+          </div>
+
+          <div class="auth-field">
+            <label for="register-password">Create a password</label>
+            <div class="auth-input">
+              <i class="fa-solid fa-lock" aria-hidden="true"></i>
+              <input id="register-password" name="password" type="password" placeholder="Choose a secure password" autocomplete="new-password" data-auth-target="password" data-action="input->auth#updatePasswordStrength" required>
+              <button type="button" class="auth-input__action" data-action="click->auth#togglePassword" aria-label="Show password" aria-pressed="false">
+                <i class="fa-regular fa-eye" aria-hidden="true"></i>
+              </button>
+            </div>
+            <div class="auth-password-strength" data-auth-target="passwordMeter"><span></span></div>
+            <small class="auth-password-hint" data-auth-target="passwordHint">Use 8+ characters with letters and numbers.</small>
+          </div>
+
+          <label class="auth-consent" for="terms">
+            <input type="checkbox" id="terms" name="terms" required>
+            <span><i class="fa-solid fa-check" aria-hidden="true"></i></span>
+            <small>I agree to the <a href="/legales/TermsConditions.html" target="_blank" rel="noopener">Terms & Conditions</a> and <a href="/legales/Privacy.html" target="_blank" rel="noopener">Privacy Policy</a>.</small>
+          </label>
+
+          <button type="submit" class="auth-submit" data-auth-target="button">
+            <span>Create my workspace</span>
+            <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+          </button>
+
+          <div class="auth-result" data-auth-target="result" aria-live="polite"></div>
+        </form>
+
+        <p class="auth-card__switch-copy">Already registered? <a href="{{ path('show_login') }}" data-action="click->auth#switchPage" data-auth-direction="backward"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i>Sign in instead</a></p>
+      </section>
+
+      <footer class="auth-footer">
+        <span>© {{ 'now'|date('Y') }} Les Consultants</span>
+        <nav><a href="/legales/TermsConditions.html">Terms</a><a href="/legales/Privacy.html">Privacy</a></nav>
+      </footer>
+    </div>
+  </main>
 </div>
-
-<footer class="auth-footer">
-  <nav>
-    <a href="/legales/TermsConditions.html">Terms & Condition</a>
-    <a href="/legales/Privacy.html">Privacy Policy</a>
-    <a href="#" lang="en">English</a>
-  </nav>
-  <small>© 2025, All Rights reserved.</small>
-</footer>
-
 {% endblock %}

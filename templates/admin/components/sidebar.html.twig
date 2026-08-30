@@ -1,209 +1,112 @@
-<aside class="sidebar">
+{% set currentRoute = app.request.attributes.get('_route') %}
+{% set coursesActive = currentRoute starts with 'admin_course_' or currentRoute starts with 'admin_scorm_' %}
+{% set quizActive = currentRoute starts with 'admin_quiz_attempt_' %}
+{% set certificatesActive = currentRoute starts with 'admin_certificate_' %}
+{% set subscriptionsActive = currentRoute starts with 'admin_subscription_' %}
+{% set importsActive = currentRoute starts with 'admin_user_import' %}
+{% set enrollmentsActive = currentRoute starts with 'admin_enrollment' %}
+{% set emailsActive = currentRoute starts with 'admin_email_' or currentRoute == 'admin_bulk_email' %}
+{% set articlesActive = currentRoute starts with 'admin_article' or currentRoute starts with 'admin_comment' or currentRoute starts with 'admin_category' %}
+{% set communityActive = currentRoute starts with 'admin_community_' %}
+
+<aside class="sidebar sidebar--admin" aria-label="Administration navigation">
   <div class="sidebar-header">
-  <button class="close-btn" id="close-btn">&times;</button>
-    <div class="">
-      <img src="{{ asset('images/logo.png') }}" style="margin-left:15px; width:150px;"/>
-    </div>
+    <a href="{{ path('admin_course_index') }}" class="sidebar-brand" aria-label="Go to course administration">
+      <img src="{{ asset('images/logo.png') }}" class="sidebar-brand__logo" alt="Les Consultants">
+    </a>
+    <span class="sidebar-workspace-badge">
+      <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+      Admin console
+    </span>
+    <button class="close-btn" id="close-btn" type="button" aria-label="Close navigation">
+      <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+    </button>
   </div>
 
-  <nav>
-    <ul class="nav-menu">
-
-      {# <li class="nav-item">
-        <a href="#"
-           class="nav-link {{ app.request.attributes.get('_route') == 'app_dashboard' ? 'active' : '' }}">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>
-          </svg>
-          Dashboard
-        </a>
-      </li> #}
-
-      {# <li class="nav-item">
-        <a href=""
-           class="nav-link {{ app.request.attributes.get('_route') == 'app_notifications' ? 'active' : '' }}">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/>
-          </svg>
-          Notification
-          <span class="notification-badge">9+</span>
-        </a>
-      </li> #}
-
-      <li class="nav-item">
-        <a href="{{ path('admin_course_index') }}"
-           class="nav-link {{ app.request.attributes.get('_route') == 'admin_course_index' ? 'active' : '' }}">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
-          </svg>
-          Courses
-        </a>
-      </li>
-
-      <li class="nav-item">
-        <a href="{{ path('admin_quiz_attempt_index') }}"
-           class="nav-link {{ app.request.attributes.get('_route') starts with 'admin_quiz_attempt_' ? 'active' : '' }}">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-            <path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm-8 14H7v-2h4v2zm6-4H7v-2h10v2zm0-4H7V7h10v2z"/>
-          </svg>
-          Quiz
-        </a>
-      </li>
-
-      {# <li class="nav-item">
-        <a href="{{ path('admin_scorm_generator') }}"
-           class="nav-link {{ app.request.attributes.get('_route') starts with 'admin_scorm_' ? 'active' : '' }}">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm1 7V3.5L20.5 9H15zM8 13h8v2H8v-2zm0 4h8v2H8v-2z"/>
-          </svg>
-          SCORM Generator
-        </a>
-      </li> #}
-
+  <nav class="sidebar-nav">
+    <section class="nav-section" aria-labelledby="admin-content-label">
+      <p class="nav-section__label" id="admin-content-label">Learning content</p>
+      <ul class="nav-menu">
         <li class="nav-item">
-       <a href="{{ path('admin_subscription_add') }}"
-           class="nav-link {{ app.request.attributes.get('_route') == 'admin_subscription_add' ? 'active' : '' }}">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-          </svg>
-           Les abonnements
-        </a>
-      </li>
-              <li class="nav-item">
-       <a href="{{ path('admin_certificate_list') }}"
-           class="nav-link {{ app.request.attributes.get('_route') == 'admin_certificate_list' ? 'active' : '' }}">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-          </svg>
-           Les Certificates
-        </a>
-      </li>
-            <li class="nav-item">
-        <a href="{{path('admin_user_import')}}"
-           class="nav-link {{ app.request.attributes.get('_route') == 'admin_user_import' ? 'active' : '' }}">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>
-          </svg>
-          Import utilisateurs
-        </a>
-      </li>
-      <li class="nav-item">
-       <a href="{{ path('admin_enrollments') }}"
-           class="nav-link {{ app.request.attributes.get('_route') == 'admin_enrollments' ? 'active' : '' }}">
-                     <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/>
-          </svg>
+          <a href="{{ path('admin_course_index') }}" class="nav-link {{ coursesActive ? 'active' : '' }}" aria-current="{{ coursesActive ? 'page' : 'false' }}">
+            <span class="nav-icon"><i class="fa-solid fa-book-open" aria-hidden="true"></i></span>
+            <span class="nav-link__label">Courses</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="{{ path('admin_quiz_attempt_index') }}" class="nav-link {{ quizActive ? 'active' : '' }}" aria-current="{{ quizActive ? 'page' : 'false' }}">
+            <span class="nav-icon"><i class="fa-solid fa-list-check" aria-hidden="true"></i></span>
+            <span class="nav-link__label">Quiz attempts</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="{{ path('admin_certificate_list') }}" class="nav-link {{ certificatesActive ? 'active' : '' }}" aria-current="{{ certificatesActive ? 'page' : 'false' }}">
+            <span class="nav-icon"><i class="fa-solid fa-award" aria-hidden="true"></i></span>
+            <span class="nav-link__label">Certificates</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="{{ path('admin_articles') }}" class="nav-link {{ articlesActive ? 'active' : '' }}" aria-current="{{ articlesActive ? 'page' : 'false' }}">
+            <span class="nav-icon"><i class="fa-regular fa-newspaper" aria-hidden="true"></i></span>
+            <span class="nav-link__label">Articles</span>
+          </a>
+        </li>
+      </ul>
+    </section>
 
-           Attribuer un cours
-        </a>
-      </li>
+    <section class="nav-section" aria-labelledby="admin-access-label">
+      <p class="nav-section__label" id="admin-access-label">People &amp; access</p>
+      <ul class="nav-menu">
+        <li class="nav-item">
+          <a href="{{ path('admin_subscription_add') }}" class="nav-link {{ subscriptionsActive ? 'active' : '' }}" aria-current="{{ subscriptionsActive ? 'page' : 'false' }}">
+            <span class="nav-icon"><i class="fa-regular fa-credit-card" aria-hidden="true"></i></span>
+            <span class="nav-link__label">Subscriptions</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="{{ path('admin_user_import') }}" class="nav-link {{ importsActive ? 'active' : '' }}" aria-current="{{ importsActive ? 'page' : 'false' }}">
+            <span class="nav-icon"><i class="fa-solid fa-file-arrow-up" aria-hidden="true"></i></span>
+            <span class="nav-link__label">Import users</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="{{ path('admin_enrollments') }}" class="nav-link {{ enrollmentsActive ? 'active' : '' }}" aria-current="{{ enrollmentsActive ? 'page' : 'false' }}">
+            <span class="nav-icon"><i class="fa-solid fa-user-check" aria-hidden="true"></i></span>
+            <span class="nav-link__label">Assign courses</span>
+          </a>
+        </li>
+      </ul>
+    </section>
 
-      <li class="nav-item">
-       <a href="{{ path('admin_email_choice') }}"
-           class="nav-link {{ app.request.attributes.get('_route') in ['admin_email_choice', 'admin_bulk_email', 'admin_email_password_setup'] ? 'active' : '' }}">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M20 4H4c-1.1 0-2 .9-2 2l.01 12c0 1.1.89 2 1.99 2H20c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z"/>
-          </svg>
-           Email groupé
-        </a>
-      </li>
-
-            <li class="nav-item">
-       <a href="{{ path('admin_articles') }}"
-           class="nav-link {{ app.request.attributes.get('_route') == 'admin_articles' ? 'active' : '' }}">
-<svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M4 6h16v2H4V6zm0 5h16v2H4v-2zm0 5h10v2H4v-2z"></path>
-    </svg>
-
-           Articles
-        </a>
-      </li>
-      {# <li class="nav-item">
-        <a href="{{ path('app_certificates') }}"
-           class="nav-link {{ app.request.attributes.get('_route') == 'app_certificates' ? 'active' : '' }}">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M20 12l-1.41-1.41L13 16.17V4h-2v12.17l-5.58-5.59L4 12l8 8 8-8z"/>
-          </svg>
-          Certificates
-        </a>
-      </li> #}
-{# 
-      <li class="nav-item">
-        <a href=""
-           class="nav-link {{ app.request.attributes.get('_route') == 'app_subscription' ? 'active' : '' }}">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-          </svg>
-          Subscription
-        </a>
-      </li> #}
-
-      {# <li class="nav-item">
-        <a href=""
-           class="nav-link {{ app.request.attributes.get('_route') == 'app_payment_history' ? 'active' : '' }}">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/>
-          </svg>
-          Payment History
-        </a>
-      </li>
-
-      <li class="nav-item">
-        <a href="{{path('app_progress')}}"
-           class="nav-link {{ app.request.attributes.get('_route') == 'app_progress' ? 'active' : '' }}">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
-          </svg>
-          Progress Tracking
-        </a>
-      </li> #}
-
-      <!-- Séparateur -->
-      <div class="separator"></div>
-{# 
-     <li class="nav-item">
-  <a href="mailto:?subject=Join%20Our%20Online%20Courses&body=Hello,%0A%0APlease%20sign%20up%20to%20get%20access%20to%20our%20online%20courses.%20Click%20here:%20https://elearning-lesconsultants.com/%0A%0AThank%20you!"
-     class="nav-link {{ app.request.attributes.get('_route') == 'app_invite' ? 'active' : '' }}">
-    <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
-    </svg>
-    Send An Invitation
-  </a>
-</li>
-
-
-      <li class="nav-item">
-        <a href=""
-           class="nav-link {{ app.request.attributes.get('_route') == 'app_settings' ? 'active' : '' }}">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.82,11.69,4.82,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
-          </svg>
-          Settings
-        </a>
-      </li>
-
-      <li class="nav-item">
-        <a href=""
-           class="nav-link {{ app.request.attributes.get('_route') == 'app_help' ? 'active' : '' }}">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/>
-          </svg>
-          Help & Support
-        </a>
-      </li> #}
-
-      <li class="nav-item">
-        <a href=""
-          class="nav-link"
-          data-controller="auth"
-          data-action="click->auth#logout">
-           
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
-          </svg>
-          Log Out
-        </a>
-      </li>
-    </ul>
+    <section class="nav-section" aria-labelledby="admin-communication-label">
+      <p class="nav-section__label" id="admin-communication-label">Communication</p>
+      <ul class="nav-menu">
+        <li class="nav-item">
+          <a href="{{ path('admin_email_choice') }}" class="nav-link {{ emailsActive ? 'active' : '' }}" aria-current="{{ emailsActive ? 'page' : 'false' }}">
+            <span class="nav-icon"><i class="fa-solid fa-envelope-open-text" aria-hidden="true"></i></span>
+            <span class="nav-link__label">Group email</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="{{ path('admin_community_index') }}" class="nav-link {{ communityActive ? 'active' : '' }}" aria-current="{{ communityActive ? 'page' : 'false' }}">
+            <span class="nav-icon"><i class="fa-solid fa-bullhorn" aria-hidden="true"></i></span>
+            <span class="nav-link__label">Jobs &amp; agenda</span>
+          </a>
+        </li>
+      </ul>
+    </section>
   </nav>
+
+  <div class="sidebar-footer">
+    <div class="sidebar-user">
+      <img src="{{ asset(app.user.avatar ? 'uploads/avatars/' ~ app.user.avatar : 'images/User.svg') }}" class="sidebar-user__avatar" alt="">
+      <div class="sidebar-user__info">
+        <small>Administrator</small>
+        <strong>{{ app.user.userName }}</strong>
+      </div>
+      <a href="" class="sidebar-user__logout" title="Log out" aria-label="Log out" data-controller="auth" data-action="click->auth#logout">
+        <i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i>
+      </a>
+    </div>
+  </div>
 </aside>

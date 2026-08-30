@@ -69,6 +69,9 @@ private ?string $password = null;
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $avatar = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $coverImage = null;
+
         #[ORM\OneToMany(mappedBy: 'company', targetEntity: Collaboration::class, orphanRemoval: true)]
     private Collection $collaborationsAsCompany;
 
@@ -419,6 +422,18 @@ public function getAvatar(): ?string
 public function setAvatar(?string $avatar): self
 {
     $this->avatar = $avatar;
+
+    return $this;
+}
+
+public function getCoverImage(): ?string
+{
+    return $this->coverImage;
+}
+
+public function setCoverImage(?string $coverImage): self
+{
+    $this->coverImage = $coverImage;
 
     return $this;
 }

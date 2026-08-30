@@ -3,575 +3,361 @@
 {% block title %}My Dashboard{% endblock %}
 
 {% block body %}
-<div class="dashboard-grid">
-  
-  <!-- Available Courses -->
-  <div class="card">
-    <div class="card-header">
-      <h2 class="card-title">Available Courses</h2>
-    </div>
-    <p style="color: var(--grey); margin-bottom: 1.5rem; font-size: 0.9rem;">
-      Explore all the courses currently available to you.
-    </p>
+{% set inProgressCount = 0 %}
+{% set completedCount = 0 %}
+{% set activeCourse = null %}
 
-    <ul class="course-list {{ courses|length > 3 ? 'scrollable' : '' }}">
-      {% for course in courses %}
-        <li class="course-item">
-          <a href="{{ path('app_course_show', { id: course.id }) }}" 
-             style="text-decoration:none; color:inherit; display:flex; justify-content:space-between; align-items:center;">
-            <span class="course-name">{{ course.title }}</span>
-            <svg class="course-arrow" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
-            </svg>
+{% for course in courses %}
+  {% set percent = progressData[course.id] ?? 0 %}
+  {% if percent > 0 and percent < 100 %}
+    {% set inProgressCount = inProgressCount + 1 %}
+    {% if activeCourse is null %}
+      {% set activeCourse = course %}
+    {% endif %}
+  {% elseif percent >= 100 %}
+    {% set completedCount = completedCount + 1 %}
+  {% endif %}
+{% endfor %}
+
+{% set certificateTitles = [] %}
+{% for attempt in userAttempts %}
+  {% if attempt.passed and attempt.course.title not in certificateTitles %}
+    {% set certificateTitles = certificateTitles|merge([attempt.course.title]) %}
+  {% endif %}
+{% endfor %}
+
+{% set featuredCourse = activeCourse ?? courses|first %}
+{% set featuredPercent = featuredCourse ? (progressData[featuredCourse.id] ?? 0) : 0 %}
+
+<div class="learner-dashboard">
+  <section class="ld-hero" aria-labelledby="dashboard-heading">
+    <div class="ld-hero__content">
+      <span class="ld-eyebrow">
+        <i class="fa-solid fa-graduation-cap" aria-hidden="true"></i>
+        My learning space
+      </span>
+      <h1 id="dashboard-heading">Keep your learning moving forward.</h1>
+      <p>Pick up where you left off, follow your progress and discover your next course.</p>
+
+      <div class="ld-hero__actions">
+        <a href="{{ path('app_courses') }}" class="ld-button ld-button--primary">
+          Explore courses
+          <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+        </a>
+        <a href="{{ path('app_progress') }}" class="ld-button ld-button--ghost">
+          <i class="fa-solid fa-chart-line" aria-hidden="true"></i>
+          View my progress
+        </a>
+      </div>
+    </div>
+
+    <div class="ld-hero__status" aria-label="Learning status">
+      <span class="ld-hero__status-icon">
+        <i class="fa-solid fa-bolt" aria-hidden="true"></i>
+      </span>
+      <div>
+        <span class="ld-hero__status-label">Current focus</span>
+        <strong>{{ activeCourse ? activeCourse.title : 'Choose your next course' }}</strong>
+      </div>
+    </div>
+  </section>
+
+  <section class="ld-stats" aria-label="Learning overview">
+    <article class="ld-stat-card">
+      <span class="ld-stat-card__icon ld-stat-card__icon--green">
+        <i class="fa-solid fa-book-open" aria-hidden="true"></i>
+      </span>
+      <div>
+        <strong>{{ courses|length }}</strong>
+        <span>Available courses</span>
+      </div>
+      <a href="{{ path('app_courses') }}" aria-label="View available courses">
+        <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+      </a>
+    </article>
+
+    <article class="ld-stat-card">
+      <span class="ld-stat-card__icon ld-stat-card__icon--blue">
+        <i class="fa-solid fa-chart-simple" aria-hidden="true"></i>
+      </span>
+      <div>
+        <strong>{{ inProgressCount }}</strong>
+        <span>Courses in progress</span>
+      </div>
+      <a href="{{ path('app_progress') }}" aria-label="View progress tracking">
+        <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+      </a>
+    </article>
+
+    <article class="ld-stat-card">
+      <span class="ld-stat-card__icon ld-stat-card__icon--amber">
+        <i class="fa-solid fa-award" aria-hidden="true"></i>
+      </span>
+      <div>
+        <strong>{{ certificateTitles|length }}</strong>
+        <span>Certificates earned</span>
+      </div>
+      <a href="{{ path('app_certificates') }}" aria-label="View certificates">
+        <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+      </a>
+    </article>
+
+    <article class="ld-stat-card">
+      <span class="ld-stat-card__icon ld-stat-card__icon--violet">
+        <i class="fa-solid fa-bag-shopping" aria-hidden="true"></i>
+      </span>
+      <div>
+        <strong>{{ enrollments|length }}</strong>
+        <span>Purchased courses</span>
+      </div>
+      <a href="{{ path('app_transactions') }}" aria-label="View purchased courses">
+        <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+      </a>
+    </article>
+  </section>
+
+  <section class="ld-grid ld-grid--focus" aria-label="Current learning activity">
+    <article class="ld-panel ld-continue-card">
+      <div class="ld-panel__header">
+        <div>
+          <span class="ld-panel__kicker">Continue learning</span>
+          <h2>Your next step</h2>
+        </div>
+        {% if featuredCourse %}
+          <span class="ld-progress-chip">{{ featuredPercent|round }}% complete</span>
+        {% endif %}
+      </div>
+
+      {% if featuredCourse %}
+        <div class="ld-featured-course">
+          <a href="{{ path('app_course_show', { id: featuredCourse.id }) }}" class="ld-featured-course__media" aria-label="Open {{ featuredCourse.title }}">
+            {% if featuredCourse.thumb %}
+              <img src="{{ asset('uploads/courses/' ~ featuredCourse.thumb) }}" alt="" loading="lazy">
+            {% else %}
+              <span><i class="fa-solid fa-play" aria-hidden="true"></i></span>
+            {% endif %}
+            <span class="ld-play-button"><i class="fa-solid fa-play" aria-hidden="true"></i></span>
           </a>
-        </li>
-      {% else %}
-        <li class="course-item">No courses available</li>
-      {% endfor %}
-    </ul>
-  </div>
 
-  <!-- Progress Tracking -->
-  <div class="card">
-    <div class="card-header">
-      <h2 class="card-title">Progress Tracking</h2>
-    </div>
-
-    <div style="margin-bottom: 2rem;">
-      {% set hasProgress = false %}
-      
-      {% for course in courses|slice(0, 3) %}
-        {% set percent = progressData[course.id] ?? 0 %}
-        
-        {% if percent > 0 %}
-          {% set hasProgress = true %}
-          <div class="progress-item">
-            <div class="progress-header">
-              <span class="progress-label">{{ course.title }} :</span>
+          <div class="ld-featured-course__body">
+            <div class="ld-course-meta">
+              {% if featuredCourse.category %}
+                <span>{{ featuredCourse.category.name }}</span>
+              {% endif %}
+              <span>{{ featuredCourse.videos|length }} lesson{{ featuredCourse.videos|length == 1 ? '' : 's' }}</span>
             </div>
-            <div class="progress-bar">
-              <div class="progress-fill" style="width: {{ percent }}%;"></div>
+            <h3>{{ featuredCourse.title }}</h3>
+            <p>{{ featuredCourse.description|striptags|slice(0, 135) }}{% if featuredCourse.description|striptags|length > 135 %}&hellip;{% endif %}</p>
+
+            <div class="ld-progress" aria-label="{{ featuredPercent|round }}% complete">
+              <span style="--progress: {{ featuredPercent }}%"></span>
             </div>
-          </div>
-        {% endif %}
-      {% endfor %}
 
-      {% if not hasProgress %}
-        <p>No progress yet.</p>
-      {% endif %}
-    </div>
-
-    <a href="{{ path('app_progress') }}" class="view-courses-btn">VIEW MY PROGRESS</a>
-  </div>
-
-  <!-- Transactions -->
-  <div class="card">
-    <div class="card-header">
-      <h2 class="card-title">Purchased Courses</h2>
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2">
-        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-        <line x1="16" y1="2" x2="16" y2="6"/>
-        <line x1="8" y1="2" x2="8" y2="6"/>
-        <line x1="3" y1="10" x2="21" y2="10"/>
-      </svg>
-    </div>
-
-    <div>
-      {% if enrollments is not empty %}
-          {% for e in enrollments|slice(0, 3) %}
-          <div class="transaction-item">
-            <div class="transaction-info">
-              <h4>{{ e.course.title }}</h4>
-              <p>{{ e.createdAt|date('d M, H:i') }}</p>
-            </div>
-          </div>
-        {% endfor %}
-      {% else %}
-        <p>No transactions yet.</p>
-      {% endif %}
-    </div>
-
-    <a href="{{ path('app_transactions') }}" class="view-all-btn">View All</a>
-  </div>
-</div>
-
-<style>
-.course-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.course-item {
-  padding: .8rem 1rem;
-  border-bottom: 1px solid var(--bg);
-}
-
-.course-item:last-child {
-  border-bottom: none;
-}
-
-/* Scrollable version when more than 3 courses */
-.course-list.scrollable {
-  max-height: 180px; /* environ la hauteur de 3 items */
-  overflow-y: auto;
-  padding-right: .5rem;
-}
-
-/* Scrollbar style (optionnel) */
-.course-list.scrollable::-webkit-scrollbar {
-  width: 6px;
-}
-
-.course-list.scrollable::-webkit-scrollbar-thumb {
-  background-color: var(--teal);
-  border-radius: var(--radius);
-}
-
-.certif-card {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: space-between;
-}
-
-@media (max-width: 1024px) {
-  .certif-card {
-    width: 100%;
-  }
-  .video-card {
-    width: 100%;
-  }
-  .dashboard_bottom {
-    display: grid;
-    gap: 50px;
-    flex-wrap: wrap;
-    grid-template-columns: 1fr;
-  }
-}
-/* ------- Articles Section / Feeds ------- */
-.articles-section {
-    margin-top: 3rem;
-}
-
-.articles-section .section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2rem;
-}
-
-.articles-section .section-title {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--black);
-    margin: 0;
-}
-
-.articles-section .section-title i {
-    color: var(--teal);
-    margin-right: 0.5rem;
-}
-
-/* Bouton Voir tous les articles */
-.articles-section .btn-view-all {
-    background: linear-gradient(135deg, var(--green), var(--teal));
-    color: var(--white);
-    border: none;
-    padding: 0.75rem 1.5rem;
-    border-radius: var(--radius);
-    font-weight: 600;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    transition: all 0.3s ease;
-    box-shadow: var(--shadow);
-}
-
-.articles-section .btn-view-all:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(13, 131, 131, 0.3);
-}
-
-/* Grid Articles */
-.articles-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 2rem;
-    margin-bottom:20px;
-}
-
-/* Article Card */
-.article-card {
-    background: var(--white);
-    border-radius: var(--radius);
-    overflow: hidden;
-    box-shadow: var(--shadow);
-    transition: all 0.3s ease;
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-}
-
-.article-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 8px 24px rgba(7, 23, 23, 0.15);
-}
-
-/* Image Article */
-.article-image {
-    width: 100%;
-    height: 200px;
-    object-fit: cover;
-    transition: transform 0.3s ease;
-}
-
-.article-card:hover .article-image {
-    transform: scale(1.05);
-}
-
-.article-image-placeholder {
-    width: 100%;
-    height: 200px;
-    background: linear-gradient(135deg, var(--mint), var(--teal));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.article-image-placeholder i {
-    font-size: 3rem;
-    color: var(--white);
-    opacity: 0.5;
-}
-
-/* Contenu Article */
-.article-content {
-    padding: 1.5rem;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-}
-
-.article-title {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: var(--black);
-    margin: 0 0 1rem;
-    line-height: 1.4;
-}
-
-.article-description {
-    color: var(--grey);
-    font-size: 0.9rem;
-    line-height: 1.6;
-    margin-bottom: 1rem;
-    flex: 1;
-}
-
-/* Métadonnées Article */
-.article-meta {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 0.85rem;
-    color: var(--grey);
-    padding-top: 1rem;
-    border-top: 1px solid var(--mint);
-    margin-top: auto;
-}
-
-.article-author,
-.article-date {
-    display: flex;
-    align-items: center;
-    gap: 0.35rem;
-}
-
-.article-meta i {
-    color: var(--teal);
-}
-
-/* Likes */
-.article-likes {
-    display: flex;
-    align-items: center;
-    gap: 0.35rem;
-    font-weight: 600;
-    color: var(--grey);
-    margin-top: 0.75rem;
-}
-
-.article-likes i {
-    color: #e53e3e;
-    font-size: 1.1rem;
-}
-
-/* Message vide */
-.articles-empty {
-    text-align: center;
-    padding: 3rem;
-    color: var(--grey);
-    grid-column: 1 / -1;
-}
-
-/* Animation au chargement */
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.article-card {
-    animation: fadeInUp 0.6s ease forwards;
-    opacity: 0;
-}
-
-.article-card:nth-child(1) { animation-delay: 0.1s; }
-.article-card:nth-child(2) { animation-delay: 0.2s; }
-.article-card:nth-child(3) { animation-delay: 0.3s; }
-.article-card:nth-child(4) { animation-delay: 0.4s; }
-.article-card:nth-child(5) { animation-delay: 0.5s; }
-.article-card:nth-child(6) { animation-delay: 0.6s; }
-
-/* ------- Responsive Articles ------- */
-
-
-/* Mode escalier : uniquement sur les grands écrans avec 3 colonnes */
-/* ------- Articles Section / Feeds (MOBILE FIRST) ------- */
-
-/* Header empilé sur mobile */
-.articles-section .section-header{
-  display:flex;
-  flex-direction:column;
-  align-items:flex-start;
-  gap:.75rem;
-}
-
-/* Grid mobile: 1 colonne */
-.articles-grid{
-  display:grid;
-  grid-template-columns: 1fr;
-  gap: 1rem;
-  margin-bottom: 20px;
-}
-
-/* Card un peu plus compacte sur mobile */
-.article-content{
-  padding: 1rem;
-}
-
-/* Images un peu moins hautes sur mobile */
-.article-image,
-.article-image-placeholder{
-  height: 160px;
-}
-
-/* Clamp (coupe proprement sans overflow) */
-.article-title,
-.article-description{
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-}
-
-.article-title{
-  font-size: 1rem;
-  line-height: 1.35;
-  -webkit-line-clamp: 2; /* 2 lignes max */
-  margin-bottom: .6rem;
-}
-
-.article-description{
-  font-size: .9rem;
-  line-height: 1.5;
-  -webkit-line-clamp: 3; /* 3 lignes max */
-  margin-bottom: .8rem;
-}
-
-/* Meta qui wrap si besoin */
-.article-meta{
-  flex-wrap: wrap;
-  gap: .5rem 1rem;
-}
-
-/* Tablette : 2 colonnes */
-@media (min-width: 768px){
-  .articles-section .section-header{
-    flex-direction:row;
-    align-items:center;
-    justify-content:space-between;
-  }
-
-  .articles-grid{
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1.5rem;
-  }
-
-  .article-image,
-  .article-image-placeholder{
-    height: 180px;
-  }
-
-  .article-title{ font-size: 1.05rem; }
-}
-
-/* Desktop : 3 colonnes */
-@media (min-width: 1200px){
-  .articles-grid{
-    grid-template-columns: repeat(3, 1fr);
-    gap: 2rem;
-  }
-
-  /* Mode escalier uniquement sur grands écrans */
-  .articles-grid--staggered .article-link-wrapper:nth-child(3n + 2){ margin-top: 3rem; }
-  .articles-grid--staggered .article-link-wrapper:nth-child(3n + 3){ margin-top: 6rem; }
-  .articles-grid--staggered .article-link-wrapper:nth-child(3n + 1){ margin-top: 0; }
-}
-
-/* Bonus: le lien wrapper prend toute la hauteur */
-.article-link-wrapper{
-  text-decoration:none;
-  color:inherit;
-  display:block;
-  height:100%;
-}
-
-
-</style>
-
-<div class="dashboard_bottom"> 
-  <!-- Certificates -->
-  <div class="card certif-card">
-    <div class="card-header">
-      <h2 class="card-title">My Certificates</h2>
-    </div>
-    
-    <div class="certificates-list">
-      {% set seen = [] %}
-      {% set hasCertificate = false %}
-
-      {% for attempt in userAttempts %}
-        {% if attempt.passed and attempt.course.title not in seen %}
-          {% set hasCertificate = true %}
-          <div class="certificate-item">
-            <div class="certificate-icon">🎓</div>
-            <span class="certificate-name">{{ attempt.course.title }}</span>
-          </div>
-          {% set seen = seen|merge([attempt.course.title]) %}
-        {% endif %}
-      {% endfor %}
-
-      {% if not hasCertificate %}
-        <p>No certificates yet.</p>
-      {% endif %}
-    </div>
-
-    <a href="{{ path('app_certificates') }}" class="download-all-btn">View All</a>
-  </div>
-
-  <!-- Recent Courses -->
-  <div class="card video-card">
-    <div class="card-header">
-      <h2 class="card-title">Recent Courses</h2>
-      <a href="{{ path('app_courses') }}" class="view-all-link">View All</a>
-    </div>
-    <div class="video-grid">
-      {% for course in latestCourses %}
-        <div class="video-card">
-          <div class="video-thumbnail">
-            <img class="video-thumbnail" src="{{ asset('uploads/courses/' ~ course.thumb) }}" alt="{{ course.title }}">
-            <div class="video-overlay">
-              <a href="{{ path('app_course_show', { id: course.id }) }}" class="play-button">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="var(--teal)">
-                  <path d="M8 5v14l11-7z"/>
-                </svg>
+            <div class="ld-featured-course__footer">
+              <span>{{ featuredPercent > 0 ? 'Your course is ready when you are.' : 'Start this course at your own pace.' }}</span>
+              <a href="{{ path('app_course_show', { id: featuredCourse.id }) }}" class="ld-text-link">
+                {{ featuredPercent > 0 ? 'Resume course' : 'Start course' }}
+                <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
               </a>
             </div>
           </div>
-          <div class="video-info">
-            <h3 class="video-title">{{ course.title }}</h3>
-            {% if course.videos|length > 0 %}
-              <div class="video-duration">
-                <span>00:00</span>
-                <span>{{ (course.videos|first.duration / 60)|round(0, 'floor') }}:{{ (course.videos|first.duration % 60)|default('00') }}</span>
-              </div>
-            {% else %}
-              <p class="video-subtitle">No videos yet</p>
-            {% endif %}
-          </div>
         </div>
       {% else %}
-        <p>No recent courses.</p>
-      {% endfor %}
-    </div>
-  </div>
-</div>
-{# Articles Section / Feeds #}
-<div class="articles-section">
-    <div class="section-header">
-        <h2 class="section-title">
-            <i class="fas fa-newspaper"></i>Feed
-        </h2>
-        <a href="{{ path('article_feed') }}" class="btn-view-all">
-            View All
-            <i class="fas fa-arrow-right"></i>
+        <div class="ld-empty-state">
+          <span><i class="fa-solid fa-book-open" aria-hidden="true"></i></span>
+          <h3>No courses available yet</h3>
+          <p>Your next learning opportunity will appear here.</p>
+        </div>
+      {% endif %}
+    </article>
+
+    <article class="ld-panel ld-progress-panel">
+      <div class="ld-panel__header">
+        <div>
+          <span class="ld-panel__kicker">Progress tracking</span>
+          <h2>Course activity</h2>
+        </div>
+        <a href="{{ path('app_progress') }}" class="ld-icon-link" aria-label="Open progress tracking">
+          <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
         </a>
-    </div>
+      </div>
 
-    <div class="articles-grid articles-grid--staggered">
-        {% for article in latestArticles %}
-        <a href="{{ path('article_feed')}}#article-{{article.id}}" class="article-link-wrapper">
-            <div class="article-card">
-                {% if article.image %}
-                    <img src="{{ asset('uploads/articles/' ~ article.image) }}" 
-                         class="article-image" 
-                         alt="{{ article.titre }}">
-                {# {% else %}
-                    <div class="article-image-placeholder">
-                        <i class="fas fa-image"></i>
-                    </div> #}
-                {% endif %}
-                
-                <div class="article-content">
-                    <h3 class="article-title">
-  {{ article.titre|striptags|length > 60
-      ? article.titre|striptags|slice(0, 60) ~ '…'
-      : article.titre|striptags
-  }}
-</h3>
-<p class="article-description">
-  {{ article.description|striptags|length > 120
-      ? article.description|striptags|slice(0, 120) ~ '…'
-      : article.description|striptags
-  }}
-</p>
-
-                    
-                    <div class="article-meta">
-                        <div class="article-author">
-                            <i class="fas fa-user"></i>
-                        </div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar"></i>
-                            <span>{{ article.createdAt|date('d/m/Y') }}</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+      <div class="ld-progress-list">
+        {% set shownProgress = 0 %}
+        {% for course in courses %}
+          {% set percent = progressData[course.id] ?? 0 %}
+          {% if percent > 0 and shownProgress < 4 %}
+            <a href="{{ path('app_course_show', { id: course.id }) }}" class="ld-progress-item">
+              <div class="ld-progress-item__top">
+                <span>{{ course.title }}</span>
+                <strong>{{ percent|round }}%</strong>
+              </div>
+              <div class="ld-progress"><span style="--progress: {{ percent }}%"></span></div>
             </a>
-        {% else %}
-            <div class="articles-empty">
-                <i class="fas fa-newspaper" style="font-size: 3rem; color: var(--mint); margin-bottom: 1rem;"></i>
-                <p>No news for the moment.</p>
-            </div>
+            {% set shownProgress = shownProgress + 1 %}
+          {% endif %}
         {% endfor %}
-    </div>
+
+        {% if shownProgress == 0 %}
+          <div class="ld-empty-state ld-empty-state--compact">
+            <span><i class="fa-solid fa-chart-line" aria-hidden="true"></i></span>
+            <h3>No progress yet</h3>
+            <p>Start a course and your activity will appear here.</p>
+            <a href="{{ path('app_courses') }}" class="ld-text-link">Browse courses</a>
+          </div>
+        {% endif %}
+      </div>
+
+      {% if completedCount > 0 %}
+        <div class="ld-completion-note">
+          <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+          <span><strong>{{ completedCount }}</strong> course{{ completedCount == 1 ? '' : 's' }} completed</span>
+        </div>
+      {% endif %}
+    </article>
+  </section>
+
+  <section class="ld-grid ld-grid--content" aria-label="Courses and purchases">
+    <article class="ld-panel">
+      <div class="ld-panel__header">
+        <div>
+          <span class="ld-panel__kicker">Course library</span>
+          <h2>Available courses</h2>
+        </div>
+        <a href="{{ path('app_courses') }}" class="ld-text-link">
+          View all
+          <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+        </a>
+      </div>
+
+      <div class="ld-course-list">
+        {% for course in courses|slice(0, 4) %}
+          <a href="{{ path('app_course_show', { id: course.id }) }}" class="ld-course-row">
+            <span class="ld-course-row__thumb">
+              {% if course.thumb %}
+                <img src="{{ asset('uploads/courses/' ~ course.thumb) }}" alt="" loading="lazy">
+              {% else %}
+                <i class="fa-solid fa-book-open" aria-hidden="true"></i>
+              {% endif %}
+            </span>
+            <span class="ld-course-row__content">
+              <strong>{{ course.title }}</strong>
+              <small>
+                {{ course.category ? course.category.name ~ ' · ' : '' }}
+                {{ course.videos|length }} lesson{{ course.videos|length == 1 ? '' : 's' }}
+              </small>
+            </span>
+            <span class="ld-course-row__arrow"><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span>
+          </a>
+        {% else %}
+          <div class="ld-empty-state ld-empty-state--compact">
+            <span><i class="fa-solid fa-book-open" aria-hidden="true"></i></span>
+            <h3>No courses available</h3>
+          </div>
+        {% endfor %}
+      </div>
+    </article>
+
+    <article class="ld-panel">
+      <div class="ld-panel__header">
+        <div>
+          <span class="ld-panel__kicker">Recent activity</span>
+          <h2>Purchased courses</h2>
+        </div>
+        <a href="{{ path('app_transactions') }}" class="ld-icon-link" aria-label="View payment history">
+          <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+        </a>
+      </div>
+
+      <div class="ld-activity-list">
+        {% for enrollment in enrollments|slice(0, 4) %}
+          <a href="{{ path('app_course_show', { id: enrollment.course.id }) }}" class="ld-activity-item">
+            <span class="ld-activity-item__icon"><i class="fa-solid fa-check" aria-hidden="true"></i></span>
+            <span>
+              <strong>{{ enrollment.course.title }}</strong>
+              <small>Purchased {{ enrollment.createdAt|date('d M Y') }}</small>
+            </span>
+          </a>
+        {% else %}
+          <div class="ld-empty-state ld-empty-state--compact">
+            <span><i class="fa-solid fa-bag-shopping" aria-hidden="true"></i></span>
+            <h3>No purchases yet</h3>
+            <p>Your purchased courses will be listed here.</p>
+          </div>
+        {% endfor %}
+      </div>
+    </article>
+  </section>
+
+  <section class="ld-grid ld-grid--content" aria-label="Certificates and news">
+    <article class="ld-panel">
+      <div class="ld-panel__header">
+        <div>
+          <span class="ld-panel__kicker">Achievements</span>
+          <h2>My certificates</h2>
+        </div>
+        <a href="{{ path('app_certificates') }}" class="ld-text-link">
+          View all
+          <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+        </a>
+      </div>
+
+      <div class="ld-certificate-list">
+        {% for title in certificateTitles|slice(0, 3) %}
+          <div class="ld-certificate-item">
+            <span><i class="fa-solid fa-award" aria-hidden="true"></i></span>
+            <div>
+              <strong>{{ title }}</strong>
+              <small>Certificate earned</small>
+            </div>
+            <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+          </div>
+        {% else %}
+          <div class="ld-empty-state ld-empty-state--compact">
+            <span><i class="fa-solid fa-award" aria-hidden="true"></i></span>
+            <h3>Your first certificate awaits</h3>
+            <p>Complete a course and pass its quiz to unlock it.</p>
+          </div>
+        {% endfor %}
+      </div>
+    </article>
+
+    <article class="ld-panel">
+      <div class="ld-panel__header">
+        <div>
+          <span class="ld-panel__kicker">Latest updates</span>
+          <h2>From the feed</h2>
+        </div>
+        <a href="{{ path('article_feed') }}" class="ld-text-link">
+          View feed
+          <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+        </a>
+      </div>
+
+      <div class="ld-feed-list">
+        {% for article in latestArticles|slice(0, 3) %}
+          <a href="{{ path('app_public_article', {id: article.id, slug: article.slug}) }}" class="ld-feed-item">
+            <span class="ld-feed-item__media">
+              {% if article.image %}
+                <img src="{{ asset('uploads/articles/' ~ article.image) }}" alt="" loading="lazy">
+              {% else %}
+                <i class="fa-regular fa-newspaper" aria-hidden="true"></i>
+              {% endif %}
+            </span>
+            <span class="ld-feed-item__content">
+              <small>{{ article.createdAt|date('d M Y') }}</small>
+              <strong>{{ article.titre|striptags|slice(0, 72) }}{% if article.titre|striptags|length > 72 %}&hellip;{% endif %}</strong>
+            </span>
+            <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+          </a>
+        {% else %}
+          <div class="ld-empty-state ld-empty-state--compact">
+            <span><i class="fa-regular fa-newspaper" aria-hidden="true"></i></span>
+            <h3>No news for the moment</h3>
+          </div>
+        {% endfor %}
+      </div>
+    </article>
+  </section>
 </div>
 {% endblock %}

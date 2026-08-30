@@ -18,9 +18,11 @@ final class ScormSourcePolicyTest extends TestCase
         ];
         $files = [
             $projectDirectory.DIRECTORY_SEPARATOR.'src'.DIRECTORY_SEPARATOR.'Controller'.DIRECTORY_SEPARATOR.'Admin'.DIRECTORY_SEPARATOR.'CourseScormExportController.php',
+            $projectDirectory.DIRECTORY_SEPARATOR.'src'.DIRECTORY_SEPARATOR.'Controller'.DIRECTORY_SEPARATOR.'Admin'.DIRECTORY_SEPARATOR.'BilingualScormExportController.php',
             $projectDirectory.DIRECTORY_SEPARATOR.'src'.DIRECTORY_SEPARATOR.'Controller'.DIRECTORY_SEPARATOR.'Admin'.DIRECTORY_SEPARATOR.'ScormGeneratorController.php',
             $projectDirectory.DIRECTORY_SEPARATOR.'src'.DIRECTORY_SEPARATOR.'Controller'.DIRECTORY_SEPARATOR.'Admin'.DIRECTORY_SEPARATOR.'ScormVideoUploadController.php',
             $projectDirectory.DIRECTORY_SEPARATOR.'src'.DIRECTORY_SEPARATOR.'Command'.DIRECTORY_SEPARATOR.'GenerateTestScormPackageCommand.php',
+            $projectDirectory.DIRECTORY_SEPARATOR.'src'.DIRECTORY_SEPARATOR.'Command'.DIRECTORY_SEPARATOR.'GenerateBilingualScormPackageCommand.php',
             $projectDirectory.DIRECTORY_SEPARATOR.'src'.DIRECTORY_SEPARATOR.'Enum'.DIRECTORY_SEPARATOR.'ScormLanguage.php',
         ];
 
