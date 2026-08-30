@@ -273,6 +273,11 @@
   letter-spacing: -0.06em;
 }
 
+.landing-hero h1 span {
+  display: block;
+  color: var(--landing-primary);
+}
+
 .landing-hero__copy > p {
   max-width: 680px;
   margin: 1.35rem 0 0;
