@@ -390,7 +390,10 @@
 
 .certificate-item__visual > img {
   display: block;
-  object-fit: cover;
+  padding: 0.75rem;
+  background: #e8f3ef;
+  object-fit: contain;
+  object-position: center;
 }
 
 .certificate-item.needs-retry .certificate-item__visual > img {

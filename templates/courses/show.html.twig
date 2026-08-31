@@ -88,8 +88,7 @@
           {% endif %}
         </div>
 
-        <div class="video-container course-detail__video">
-          {% if hasFrench or hasItalian %}
+        {% if hasFrench or hasItalian %}
             <div
               class="course-detail__player-language"
               aria-label="Course language"
@@ -131,7 +130,9 @@
                 {% endif %}
               </div>
             </div>
-          {% endif %}
+        {% endif %}
+
+        <div class="video-container course-detail__video">
           {% if currentVideo %}
             <iframe
               src="{{ currentVideoUrl }}"

@@ -69,9 +69,9 @@ class Article
         return $this;
     }
 
-    public function getSlug(): ?string
+    public function getSlug(): string
     {
-        return $this->slug;
+        return $this->slugify((string) ($this->slug ?: $this->titre));
     }
 
     public function getDescription(): ?string

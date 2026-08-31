@@ -72,6 +72,11 @@ private ?string $password = null;
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $coverImage = null;
 
+    /** @var Collection<int, ProfessionalExperience> */
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: ProfessionalExperience::class, cascade: ['persist'], orphanRemoval: true)]
+    #[ORM\OrderBy(['startDate' => 'DESC'])]
+    private Collection $professionalExperiences;
+
         #[ORM\OneToMany(mappedBy: 'company', targetEntity: Collaboration::class, orphanRemoval: true)]
     private Collection $collaborationsAsCompany;
 
@@ -116,6 +121,7 @@ public function __construct()
         $this->collaborationsAsEmployee = new ArrayCollection();
         $this->subscriptions = new ArrayCollection();
         $this->userSessions = new ArrayCollection();
+        $this->professionalExperiences = new ArrayCollection();
 }
 
     public function getId(): ?int
@@ -434,6 +440,32 @@ public function getCoverImage(): ?string
 public function setCoverImage(?string $coverImage): self
 {
     $this->coverImage = $coverImage;
+
+    return $this;
+}
+
+/** @return Collection<int, ProfessionalExperience> */
+public function getProfessionalExperiences(): Collection
+{
+    return $this->professionalExperiences;
+}
+
+public function addProfessionalExperience(ProfessionalExperience $professionalExperience): self
+{
+    if (!$this->professionalExperiences->contains($professionalExperience)) {
+        $this->professionalExperiences->add($professionalExperience);
+        $professionalExperience->setUser($this);
+    }
+
+    return $this;
+}
+
+public function removeProfessionalExperience(ProfessionalExperience $professionalExperience): self
+{
+    if ($this->professionalExperiences->removeElement($professionalExperience)
+        && $professionalExperience->getUser() === $this) {
+        $professionalExperience->setUser(null);
+    }
 
     return $this;
 }

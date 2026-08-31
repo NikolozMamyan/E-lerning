@@ -6,6 +6,7 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\File;
 
 class AvatarType extends AbstractType
 {
@@ -15,6 +16,11 @@ class AvatarType extends AbstractType
             'label' => 'Profile Picture',
             'mapped' => false,
             'required' => false,
+            'constraints' => [new File(
+                maxSize: '8M',
+                mimeTypes: ['image/jpeg', 'image/png', 'image/webp'],
+                mimeTypesMessage: 'Use a JPEG, PNG or WebP image.',
+            )],
         ]);
     }
 

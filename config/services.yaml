@@ -57,6 +57,10 @@ services:
         arguments:
             $directory: '%profile_covers_directory%'
 
+    App\Service\AvatarStorage:
+        arguments:
+            $directory: '%uploads_directory%'
+
     App\Service\JobApplicationCvStorage:
         arguments:
             $directory: '%job_application_cvs_directory%'

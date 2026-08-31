@@ -13,13 +13,10 @@
 {% set completedFields = completedFields + (user.email ? 1 : 0) %}
 {% set completedFields = completedFields + (user.phone ? 1 : 0) %}
 {% set completedFields = completedFields + (user.bio ? 1 : 0) %}
-{% set completedFields = completedFields + (user.country ? 1 : 0) %}
-{% set completedFields = completedFields + (user.city ? 1 : 0) %}
-{% set completedFields = completedFields + (user.postalCode ? 1 : 0) %}
-{% set completedFields = completedFields + (user.taxId ? 1 : 0) %}
 {% set completedFields = completedFields + (user.masterDegree ? 1 : 0) %}
 {% set completedFields = completedFields + (user.bachelorDegree ? 1 : 0) %}
-{% set completionPercentage = ((completedFields / 10) * 100)|round %}
+{% set completedFields = completedFields + (user.professionalExperiences|length > 0 ? 1 : 0) %}
+{% set completionPercentage = ((completedFields / 7) * 100)|round %}
 
 {% set roleLabel = 'Learner' %}
 {% set roleIcon = 'fa-user-graduate' %}
@@ -39,7 +36,7 @@
         Account preferences
       </span>
       <h1>Your profile, clearly organised.</h1>
-      <p>Keep your personal, professional and billing information accurate from one simple workspace.</p>
+      <p>Keep your personal, professional and learning information accurate from one simple workspace.</p>
     </div>
 
     <div class="settings-hero__progress" aria-label="Profile {{ completionPercentage }}% complete">
@@ -48,7 +45,7 @@
       </span>
       <span>
         <small>Profile completion</small>
-        <strong>{{ completedFields }} of 10 details added</strong>
+        <strong>{{ completedFields }} of 7 details added</strong>
       </span>
     </div>
   </header>
@@ -84,22 +81,22 @@
         {% include 'settings/_card_personal.html.twig' with { user: user } %}
       </article>
 
-      <article class="settings-card settings-section-card" id="address-information">
+      <article class="settings-card settings-section-card" id="experience-information">
         <header class="settings-section-card__header">
           <div class="settings-section-card__identity">
-            <span><i class="fa-regular fa-map" aria-hidden="true"></i></span>
+            <span><i class="fa-solid fa-briefcase" aria-hidden="true"></i></span>
             <div>
-              <small>Location &amp; billing</small>
-              <h2>Address information</h2>
-              <p>Useful details for invoices, certificates and regional content.</p>
+              <small>Professional profile</small>
+              <h2>Experience</h2>
+              <p>Add current and previous roles in a clear LinkedIn-style timeline.</p>
             </div>
           </div>
-          <button type="button" class="settings-edit-button js-settings-edit" data-section="address" data-settings-url="{{ path('app_settings_edit', {section: 'address'}) }}">
+          <button type="button" class="settings-edit-button js-settings-edit" data-section="experience" data-settings-url="{{ path('app_settings_edit', {section: 'experience'}) }}">
             <i class="fa-regular fa-pen-to-square" aria-hidden="true"></i>
-            Edit address
+            Edit experience
           </button>
         </header>
-        {% include 'settings/_card_address.html.twig' with { user: user } %}
+        {% include 'settings/_card_experience.html.twig' with { user: user } %}
       </article>
 
       <article class="settings-card settings-section-card" id="education-information">
@@ -125,7 +122,7 @@
       <nav class="settings-card settings-nav" aria-label="Settings sections">
         <span class="settings-rail__label">On this page</span>
         <a href="#personal-information"><i class="fa-regular fa-user" aria-hidden="true"></i><span>Personal information</span><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></a>
-        <a href="#address-information"><i class="fa-solid fa-location-dot" aria-hidden="true"></i><span>Address information</span><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></a>
+        <a href="#experience-information"><i class="fa-solid fa-briefcase" aria-hidden="true"></i><span>Professional experience</span><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></a>
         <a href="#education-information"><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i><span>Educational background</span><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></a>
       </nav>
 
@@ -137,7 +134,7 @@
         <ul>
           <li class="{{ user.username and user.email ? 'is-complete' : '' }}" data-checklist-fields="username,email"><i class="fa-solid {{ user.username and user.email ? 'fa-check' : 'fa-circle' }}" aria-hidden="true"></i><span><strong>Identity</strong><small>Name and email</small></span></li>
           <li class="{{ user.phone ? 'is-complete' : '' }}" data-checklist-fields="phone"><i class="fa-solid {{ user.phone ? 'fa-check' : 'fa-circle' }}" aria-hidden="true"></i><span><strong>Contact</strong><small>Phone number</small></span></li>
-          <li class="{{ user.country and user.city ? 'is-complete' : '' }}" data-checklist-fields="country,city"><i class="fa-solid {{ user.country and user.city ? 'fa-check' : 'fa-circle' }}" aria-hidden="true"></i><span><strong>Location</strong><small>Country and city</small></span></li>
+          <li class="{{ user.professionalExperiences|length > 0 ? 'is-complete' : '' }}" data-checklist-fields="experience"><i class="fa-solid {{ user.professionalExperiences|length > 0 ? 'fa-check' : 'fa-circle' }}" aria-hidden="true"></i><span><strong>Experience</strong><small>Professional history</small></span></li>
           <li class="{{ user.masterDegree or user.bachelorDegree ? 'is-complete' : '' }}" data-checklist-fields="masterDegree,bachelorDegree" data-checklist-mode="any"><i class="fa-solid {{ user.masterDegree or user.bachelorDegree ? 'fa-check' : 'fa-circle' }}" aria-hidden="true"></i><span><strong>Education</strong><small>Academic background</small></span></li>
         </ul>
       </section>
@@ -214,16 +211,141 @@ document.addEventListener('DOMContentLoaded', () => {
     window.setTimeout(() => modal.remove(), 180);
   };
 
-  const bindAvatarPreview = (modal) => {
+  const bindAvatarCropper = (modal) => {
+    const cropper = modal.querySelector('[data-avatar-cropper]');
     const fileInput = modal.querySelector('input[type="file"]');
     const preview = modal.querySelector('[data-avatar-preview]');
-    if (!fileInput || !preview) return;
+    const viewport = modal.querySelector('[data-avatar-viewport]');
+    const zoomInput = modal.querySelector('[data-avatar-zoom]');
+    const xInput = modal.querySelector('[data-avatar-x]');
+    const yInput = modal.querySelector('[data-avatar-y]');
+    if (!cropper || !fileInput || !preview || !viewport || !zoomInput || !xInput || !yInput) return;
+
+    let objectUrl = null;
+
+    const values = () => ({
+      zoom: Number.parseFloat(zoomInput.value) || 1,
+      x: Number.parseFloat(xInput.value) || 50,
+      y: Number.parseFloat(yInput.value) || 50,
+    });
+
+    const imageGeometry = (width, height) => {
+      const { zoom, x, y } = values();
+      const scale = Math.max(width / preview.naturalWidth, height / preview.naturalHeight) * zoom;
+      const imageWidth = preview.naturalWidth * scale;
+      const imageHeight = preview.naturalHeight * scale;
+
+      return {
+        imageWidth,
+        imageHeight,
+        left: (width - imageWidth) * (x / 100),
+        top: (height - imageHeight) * (y / 100),
+      };
+    };
+
+    const updatePreview = () => {
+      if (!preview.naturalWidth || !preview.naturalHeight) return;
+      const geometry = imageGeometry(viewport.clientWidth, viewport.clientHeight);
+      Object.assign(preview.style, {
+        width: `${geometry.imageWidth}px`,
+        height: `${geometry.imageHeight}px`,
+        left: `${geometry.left}px`,
+        top: `${geometry.top}px`,
+      });
+    };
+
+    preview.addEventListener('load', updatePreview);
+    [zoomInput, xInput, yInput].forEach((input) => input.addEventListener('input', updatePreview));
 
     fileInput.addEventListener('change', (event) => {
       const file = event.target.files?.[0];
       if (!file) return;
-      preview.src = URL.createObjectURL(file);
-    }, { once: true });
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+      objectUrl = URL.createObjectURL(file);
+      cropper.dataset.hasAvatar = 'true';
+      zoomInput.value = '1';
+      xInput.value = '50';
+      yInput.value = '50';
+      preview.src = objectUrl;
+    });
+
+    cropper.createBlob = async () => {
+      if (cropper.dataset.hasAvatar !== 'true') return null;
+      if (preview.decode) {
+        try { await preview.decode(); } catch (error) { /* load event handles older images */ }
+      }
+      if (!preview.naturalWidth || !preview.naturalHeight) throw new Error('The selected image could not be read.');
+
+      const size = 512;
+      const geometry = imageGeometry(size, size);
+      const canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+      const context = canvas.getContext('2d');
+      context.fillStyle = '#eef5f2';
+      context.fillRect(0, 0, size, size);
+      context.drawImage(preview, geometry.left, geometry.top, geometry.imageWidth, geometry.imageHeight);
+
+      return new Promise((resolve, reject) => {
+        canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error('The profile crop could not be created.')), 'image/jpeg', 0.9);
+      });
+    };
+
+    if (preview.complete) updatePreview();
+  };
+
+  const bindExperienceEditor = (modal) => {
+    const collection = modal.querySelector('[data-experience-collection]');
+    if (!collection) return;
+    const items = collection.querySelector('[data-experience-items]');
+    const addButton = collection.querySelector('[data-experience-add]');
+    if (!items || !addButton) return;
+
+    const updateHeadings = () => {
+      items.querySelectorAll('[data-experience-item]').forEach((item, index) => {
+        const heading = item.querySelector('.settings-experience-editor__heading strong');
+        if (heading) heading.textContent = `Experience ${index + 1}`;
+      });
+    };
+
+    const bindCurrentRole = (item) => {
+      const current = item.querySelector('input[id$="_isCurrent"]');
+      const endDate = item.querySelector('input[id$="_endDate"]');
+      if (!current || !endDate) return;
+      const update = () => {
+        endDate.disabled = current.checked;
+        if (current.checked) endDate.value = '';
+      };
+      current.addEventListener('change', update);
+      update();
+    };
+
+    items.querySelectorAll('[data-experience-item]').forEach(bindCurrentRole);
+
+    addButton.addEventListener('click', () => {
+      const index = Number.parseInt(collection.dataset.index || '0', 10);
+      const item = document.createElement('article');
+      item.className = 'settings-experience-editor';
+      item.dataset.experienceItem = '';
+      item.innerHTML = `<div class="settings-experience-editor__heading"><strong>Experience</strong><button type="button" data-experience-remove><i class="fa-regular fa-trash-can" aria-hidden="true"></i>Remove</button></div><div class="settings-form-fields">${collection.dataset.prototype.replace(/__name__/g, String(index))}</div>`;
+      items.appendChild(item);
+      collection.dataset.index = String(index + 1);
+      bindCurrentRole(item);
+      updateHeadings();
+      item.querySelector('input, select, textarea')?.focus();
+    });
+
+    collection.addEventListener('click', (event) => {
+      const removeButton = event.target.closest('[data-experience-remove]');
+      if (!removeButton) return;
+      removeButton.closest('[data-experience-item]')?.remove();
+      updateHeadings();
+    });
+  };
+
+  const bindModalEditors = (modal) => {
+    bindAvatarCropper(modal);
+    bindExperienceEditor(modal);
   };
 
   const focusModal = (modal) => {
@@ -250,7 +372,7 @@ document.addEventListener('DOMContentLoaded', () => {
       document.body.appendChild(modal);
       activeModal = modal;
       document.body.classList.add('settings-modal-open');
-      bindAvatarPreview(modal);
+      bindModalEditors(modal);
       focusModal(modal);
       requestAnimationFrame(() => modal.classList.add('is-visible'));
     } catch (error) {
@@ -291,9 +413,19 @@ document.addEventListener('DOMContentLoaded', () => {
     saveButton.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin" aria-hidden="true"></i> Saving changes';
 
     try {
+      const payload = new FormData(form);
+      if (section === 'avatar') {
+        const cropper = modal.querySelector('[data-avatar-cropper]');
+        const fileInput = modal.querySelector('input[type="file"]');
+        const croppedAvatar = await cropper?.createBlob?.();
+        if (croppedAvatar && fileInput?.name) {
+          payload.set(fileInput.name, croppedAvatar, 'profile-photo.jpg');
+        }
+      }
+
       const response = await fetch(endpoint, {
         method: 'POST',
-        body: new FormData(form),
+        body: payload,
         headers: { 'X-Requested-With': 'XMLHttpRequest' }
       });
 
@@ -337,7 +469,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (!response.ok) throw new Error('Unable to save your changes.');
       modal.innerHTML = await response.text();
-      bindAvatarPreview(modal);
+      bindModalEditors(modal);
       focusModal(modal);
     } catch (error) {
       showToast(error.message, 'error');

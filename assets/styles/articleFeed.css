@@ -1553,26 +1553,11 @@
   padding-right: 0.3rem;
   overflow-y: auto;
   overscroll-behavior: contain;
-  scrollbar-color: rgba(21, 122, 97, 0.32) transparent;
-  scrollbar-gutter: stable;
-  scrollbar-width: thin;
+  scrollbar-width: none;
 }
 
 .community-feed__rail::-webkit-scrollbar {
-  width: 5px;
-}
-
-.community-feed__rail::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.community-feed__rail::-webkit-scrollbar-thumb {
-  border-radius: 999px;
-  background: rgba(21, 122, 97, 0.28);
-}
-
-.community-feed__rail::-webkit-scrollbar-thumb:hover {
-  background: rgba(21, 122, 97, 0.48);
+  display: none;
 }
 
 .community-feed__rail > * {

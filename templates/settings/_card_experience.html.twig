@@ -1,0 +1,18 @@
+<div class="settings-experience-list {{ user.professionalExperiences|length == 0 ? 'is-empty' : '' }}" data-settings-section-content="experience" data-settings-field="experience">
+  {% for experience in user.professionalExperiences %}
+    <article class="settings-experience-summary">
+      <span class="settings-experience-summary__logo" aria-hidden="true">{{ experience.companyName|slice(0, 1)|upper }}</span>
+      <div>
+        <strong>{{ experience.title }}</strong>
+        <span>{{ experience.companyName }}{% if experience.employmentType %} · {{ experience.employmentType }}{% endif %}</span>
+        <small>{{ experience.startDate|date('M Y') }} – {{ experience.current ? 'Present' : (experience.endDate ? experience.endDate|date('M Y') : 'Present') }}</small>
+        {% if experience.location or experience.workplaceType %}<small>{{ [experience.location, experience.workplaceType]|filter(value => value)|join(' · ') }}</small>{% endif %}
+      </div>
+    </article>
+  {% else %}
+    <div class="settings-experience-empty">
+      <span><i class="fa-solid fa-briefcase" aria-hidden="true"></i></span>
+      <div><strong>Add your first role</strong><p>Your professional history will be displayed on your public profile.</p></div>
+    </div>
+  {% endfor %}
+</div>

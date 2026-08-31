@@ -16,8 +16,13 @@
   },
   avatar: {
     title: 'Profile photo',
-    description: 'Choose a clear image that helps other learners recognise you.',
+    description: 'Choose a photo, then zoom and position it inside the frame.',
     icon: 'fa-solid fa-camera'
+  },
+  experience: {
+    title: 'Professional experience',
+    description: 'Show your current and previous roles on your public profile.',
+    icon: 'fa-solid fa-briefcase'
   }
 } %}
 {% set modal = modalContent[section] %}
@@ -35,15 +40,42 @@
 
   <form id="ajaxForm" method="post" enctype="multipart/form-data">
     {% if section == 'avatar' %}
-      <div class="settings-upload-preview">
-        <img src="{{ asset(form.vars.data.avatar ? 'uploads/avatars/' ~ form.vars.data.avatar : 'images/User.svg') }}" alt="New profile preview" data-avatar-preview>
-        <span><i class="fa-solid fa-image" aria-hidden="true"></i>JPG, PNG or WEBP</span>
+      <div class="settings-avatar-cropper" data-avatar-cropper data-has-avatar="{{ form.vars.data.avatar ? 'true' : 'false' }}">
+        <div class="settings-avatar-cropper__viewport" data-avatar-viewport>
+          <img src="{{ asset(form.vars.data.avatar ? 'uploads/avatars/' ~ form.vars.data.avatar : 'images/User.svg') }}" alt="Profile crop preview" draggable="false" data-avatar-preview>
+          <span aria-hidden="true"></span>
+        </div>
+        <div class="settings-avatar-cropper__controls">
+          <label>Zoom<input type="range" min="1" max="3" step="0.01" value="1" data-avatar-zoom></label>
+          <label>Horizontal position<input type="range" min="0" max="100" step="1" value="50" data-avatar-x></label>
+          <label>Vertical position<input type="range" min="0" max="100" step="1" value="50" data-avatar-y></label>
+        </div>
+        <p><i class="fa-solid fa-arrows-up-down-left-right" aria-hidden="true"></i>Adjust the controls until the face is centred in the circle.</p>
       </div>
     {% endif %}
 
-    <div class="settings-form-fields">
-      {{ form_widget(form) }}
-    </div>
+    {% if section == 'experience' %}
+      <div class="settings-experience-collection"
+           data-experience-collection
+           data-index="{{ form.professionalExperiences|length }}"
+           data-prototype="{{ form_widget(form.professionalExperiences.vars.prototype)|e('html_attr') }}">
+        <div class="settings-experience-collection__items" data-experience-items>
+          {% for experienceForm in form.professionalExperiences %}
+            <article class="settings-experience-editor" data-experience-item>
+              <div class="settings-experience-editor__heading"><strong>Experience {{ loop.index }}</strong><button type="button" data-experience-remove><i class="fa-regular fa-trash-can" aria-hidden="true"></i>Remove</button></div>
+              <div class="settings-form-fields">{{ form_widget(experienceForm) }}</div>
+            </article>
+          {% endfor %}
+        </div>
+        <button type="button" class="settings-experience-add" data-experience-add><i class="fa-solid fa-plus" aria-hidden="true"></i>Add an experience</button>
+      </div>
+      {% do form.professionalExperiences.setRendered() %}
+      {{ form_rest(form) }}
+    {% else %}
+      <div class="settings-form-fields">
+        {{ form_widget(form) }}
+      </div>
+    {% endif %}
 
     <div class="settings-modal__footer">
       <button type="button" class="btn-close" data-modal-close>Cancel</button>

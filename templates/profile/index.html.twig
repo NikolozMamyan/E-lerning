@@ -56,10 +56,6 @@
   {% set profileRoleIcon = 'fa-building' %}
 {% endif %}
 
-{% set locationParts = [] %}
-{% if profileUser.city %}{% set locationParts = locationParts|merge([profileUser.city]) %}{% endif %}
-{% if profileUser.country %}{% set locationParts = locationParts|merge([profileUser.country]) %}{% endif %}
-{% set profileLocation = locationParts is not empty ? locationParts|join(', ') : 'Location not added' %}
 {% set profileRoute = isOwnProfile ? 'app_profile' : 'app_public_profile' %}
 {% set profileRouteParams = isOwnProfile ? {} : {id: profileUser.id} %}
 
@@ -118,7 +114,6 @@
           </div>
           <p>{{ profileUser.bio ?? 'Learning, progressing and sharing knowledge with the community.' }}</p>
           <div class="profile-identity__meta">
-            <span><i class="fa-solid fa-location-dot" aria-hidden="true"></i>{{ profileLocation }}</span>
             {% if isOwnProfile %}
               <span><i class="fa-regular fa-envelope" aria-hidden="true"></i>{{ profileUser.email }}</span>
             {% else %}
@@ -166,6 +161,7 @@
     <div>
       <a href="#activity" class="is-active"><i class="fa-regular fa-rectangle-list" aria-hidden="true"></i>Activity <span>{{ postStats.posts }}</span></a>
       <a href="#achievements"><i class="fa-solid fa-award" aria-hidden="true"></i>Certificates <span>{{ certificateCount }}</span></a>
+      <a href="#experience"><i class="fa-solid fa-briefcase" aria-hidden="true"></i>Experience <span>{{ profileUser.professionalExperiences|length }}</span></a>
       <a href="#about"><i class="fa-regular fa-user" aria-hidden="true"></i>About</a>
     </div>
     <span class="profile-visibility"><i class="fa-solid fa-earth-europe" aria-hidden="true"></i>Public profile</span>
@@ -224,6 +220,40 @@
         <span><i class="fa-solid fa-award" aria-hidden="true"></i></span>
         <div><h3>{{ isOwnProfile ? 'Your achievement collection starts here' : 'No public certificates yet' }}</h3><p>{{ isOwnProfile ? 'Completed courses and verified certificates will appear on your profile.' : 'Verified course achievements will appear here when they are earned.' }}</p></div>
         {% if isOwnProfile and is_granted('ROLE_EMPLOYEE') %}<a href="{{ path('app_courses') }}">Explore courses</a>{% endif %}
+      </div>
+    {% endif %}
+  </section>
+
+  <section class="profile-experience" id="experience">
+    <header class="profile-section-heading">
+      <div>
+        <span class="profile-section-heading__eyebrow"><i class="fa-solid fa-briefcase" aria-hidden="true"></i>Career path</span>
+        <h2>Professional experience</h2>
+        <p>Current and previous roles, responsibilities and workplace experience.</p>
+      </div>
+      {% if isOwnProfile %}<a href="{{ path('app_settings') }}#experience-information">Manage experience <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>{% endif %}
+    </header>
+
+    {% if profileUser.professionalExperiences is not empty %}
+      <div class="profile-experience__list">
+        {% for experience in profileUser.professionalExperiences %}
+          <article class="profile-experience__item">
+            <span class="profile-experience__logo" aria-hidden="true">{{ experience.companyName|slice(0, 1)|upper }}</span>
+            <div class="profile-experience__content">
+              <h3>{{ experience.title }}</h3>
+              <span>{{ experience.companyName }}{% if experience.employmentType %} · {{ experience.employmentType }}{% endif %}</span>
+              <small><i class="fa-regular fa-calendar" aria-hidden="true"></i>{{ experience.startDate|date('M Y') }} – {{ experience.current ? 'Present' : (experience.endDate ? experience.endDate|date('M Y') : 'Present') }}</small>
+              {% if experience.location or experience.workplaceType %}<small><i class="fa-solid fa-location-dot" aria-hidden="true"></i>{{ [experience.location, experience.workplaceType]|filter(value => value)|join(' · ') }}</small>{% endif %}
+              {% if experience.description %}<p>{{ experience.description|nl2br }}</p>{% endif %}
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="profile-experience__empty">
+        <span><i class="fa-solid fa-briefcase" aria-hidden="true"></i></span>
+        <div><h3>{{ isOwnProfile ? 'Add your professional journey' : 'No professional experience added yet' }}</h3><p>{{ isOwnProfile ? 'Highlight your roles, companies and key responsibilities.' : 'Professional roles will be shown here when they are added.' }}</p></div>
+        {% if isOwnProfile %}<a href="{{ path('app_settings') }}#experience-information">Add experience</a>{% endif %}
       </div>
     {% endif %}
   </section>
@@ -289,7 +319,6 @@
         <header><span><i class="fa-regular fa-user" aria-hidden="true"></i></span><div><small>Profile details</small><h2>About</h2></div></header>
         <p>{{ profileUser.bio ?? (isOwnProfile ? 'Add a short professional introduction from your profile settings.' : 'This member has not added a professional introduction yet.') }}</p>
         <dl>
-          <div><dt><i class="fa-solid fa-location-dot" aria-hidden="true"></i>Location</dt><dd>{{ profileLocation }}</dd></div>
           <div><dt><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i>Education</dt><dd>{{ profileUser.masterDegree ?? profileUser.bachelorDegree ?? 'Not added yet' }}</dd></div>
           <div><dt><i class="fa-solid {{ profileRoleIcon }}" aria-hidden="true"></i>Role</dt><dd>{{ profileRole }}</dd></div>
         </dl>

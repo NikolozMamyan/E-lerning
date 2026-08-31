@@ -1,28 +1,34 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller;
 
-use App\Form\UserType;
-use App\Form\AvatarType;
+use App\Entity\User;
 use App\Form\AddressType;
+use App\Form\AvatarType;
 use App\Form\EducationType;
 use App\Form\PersonalInfoType;
+use App\Form\ProfessionalExperienceType;
+use App\Form\UserType;
+use App\Service\AvatarStorage;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\File\Exception\FileException;
 
-class SettingsController extends AbstractController
+final class SettingsController extends AbstractController
 {
     #[Route('/settings', name: 'app_settings')]
-    public function index(Request $request, EntityManagerInterface $em): Response
-    {
+    public function index(
+        Request $request,
+        EntityManagerInterface $entityManager,
+        AvatarStorage $avatarStorage,
+    ): Response {
         $user = $this->getUser();
-
-        if (!$user) {
+        if (!$user instanceof User) {
             return $this->redirectToRoute('show_login');
         }
 
@@ -30,28 +36,20 @@ class SettingsController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-
-            // Gestion upload avatar
             $avatarFile = $form->get('avatar')->getData();
-            if ($avatarFile) {
-                $newFilename = uniqid().'.'.$avatarFile->guessExtension();
-
+            if ($avatarFile instanceof UploadedFile) {
                 try {
-                    $avatarFile->move(
-                        $this->getParameter('uploads_directory'),
-                        $newFilename
-                    );
-                } catch (FileException $e) {
-                    $this->addFlash('error', 'Erreur lors de l’upload de l’image.');
-                }
+                    $avatarStorage->save($user, $avatarFile);
+                } catch (\RuntimeException $exception) {
+                    $this->addFlash('error', $exception->getMessage());
 
-                $user->setAvatar($newFilename);
+                    return $this->redirectToRoute('app_settings');
+                }
+            } else {
+                $entityManager->flush();
             }
 
-            $em->persist($user);
-            $em->flush();
-
-            $this->addFlash('success', 'Profil mis à jour avec succès ✅');
+            $this->addFlash('success', 'Your profile has been updated.');
 
             return $this->redirectToRoute('app_settings');
         }
@@ -62,55 +60,55 @@ class SettingsController extends AbstractController
         ]);
     }
 
-
-#[Route('/settings/edit/{section}', name: 'app_settings_edit', methods: ['GET','POST'])]
-public function editSection(string $section, Request $request, EntityManagerInterface $em): Response
-{
-    $user = $this->getUser();
-    if (!$user) {
-        throw $this->createAccessDeniedException();
-    }
-
-    $formClass = match ($section) {
-        'personal'  => PersonalInfoType::class,
-        'address'   => AddressType::class,
-        'education' => EducationType::class,
-        'avatar'    => AvatarType::class,
-        default     => PersonalInfoType::class,
-    };
-
-    $form = $this->createForm($formClass, $user);
-    $form->handleRequest($request);
-
-    if ($form->isSubmitted() && $form->isValid()) {
-        if ($section === 'avatar') {
-            $avatarFile = $form->get('avatar')->getData();
-            if ($avatarFile) {
-                $newFilename = uniqid().'.'.$avatarFile->guessExtension();
-                try {
-                    $avatarFile->move($this->getParameter('uploads_directory'), $newFilename);
-                } catch (FileException $e) {
-                    return $this->json(['success' => false, 'error' => 'Upload failed']);
-                }
-                $user->setAvatar($newFilename);
-            }
+    #[Route('/settings/edit/{section}', name: 'app_settings_edit', methods: ['GET', 'POST'])]
+    public function editSection(
+        string $section,
+        Request $request,
+        EntityManagerInterface $entityManager,
+        AvatarStorage $avatarStorage,
+    ): Response {
+        $user = $this->getUser();
+        if (!$user instanceof User) {
+            throw $this->createAccessDeniedException();
         }
 
-        $em->flush();
+        $formClass = match ($section) {
+            'personal' => PersonalInfoType::class,
+            'address' => AddressType::class,
+            'education' => EducationType::class,
+            'avatar' => AvatarType::class,
+            'experience' => ProfessionalExperienceType::class,
+            default => throw $this->createNotFoundException('Unknown profile section.'),
+        };
 
-        return $this->json([
-            'success' => true,
-            'html' => $this->renderView("settings/_card_$section.html.twig", [
-                'user' => $user
-            ])
+        $form = $this->createForm($formClass, $user);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            if ($section === 'avatar') {
+                $avatarFile = $form->get('avatar')->getData();
+                if ($avatarFile instanceof UploadedFile) {
+                    try {
+                        $avatarStorage->save($user, $avatarFile);
+                    } catch (\RuntimeException $exception) {
+                        return $this->json(['success' => false, 'error' => $exception->getMessage()], 422);
+                    }
+                }
+            } else {
+                $entityManager->flush();
+            }
+
+            return $this->json([
+                'success' => true,
+                'html' => $this->renderView(sprintf('settings/_card_%s.html.twig', $section), [
+                    'user' => $user,
+                ]),
+            ]);
+        }
+
+        return $this->render('settings/_form.html.twig', [
+            'form' => $form->createView(),
+            'section' => $section,
         ]);
     }
-
-    return $this->render('settings/_form.html.twig', [
-        'form' => $form->createView(),
-        'section' => $section
-    ]);
-}
-
-
 }

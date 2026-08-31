@@ -99,11 +99,13 @@
 
   <div class="sidebar-footer">
     <div class="sidebar-user">
-      <img src="{{ asset(app.user.avatar ? 'uploads/avatars/' ~ app.user.avatar : 'images/User.svg') }}" class="sidebar-user__avatar" alt="">
-      <div class="sidebar-user__info">
-        <small>Administrator</small>
-        <strong>{{ app.user.userName }}</strong>
-      </div>
+      <a href="{{ path('app_profile') }}" class="sidebar-user__profile" aria-label="Open your profile">
+        <img src="{{ asset(app.user.avatar ? 'uploads/avatars/' ~ app.user.avatar : 'images/User.svg') }}" class="sidebar-user__avatar" alt="">
+        <span class="sidebar-user__info">
+          <small>Administrator</small>
+          <strong>{{ app.user.userName }}</strong>
+        </span>
+      </a>
       <a href="" class="sidebar-user__logout" title="Log out" aria-label="Log out" data-controller="auth" data-action="click->auth#logout">
         <i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i>
       </a>

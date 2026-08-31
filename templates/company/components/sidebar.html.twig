@@ -59,12 +59,6 @@
             <span class="nav-link__label">Available courses</span>
           </a>
         </li>
-        <li class="nav-item">
-          <a href="mailto:?subject=You're%20invited%20to%20join%20our%20Compliance%20E-learning%20Platform&amp;body=Hello,%0A%0AI%27d%20like%20to%20invite%20you%20to%20join%20the%20E-learning%20platform%20from%20Les%20Consultants.%0A%0AYou%20can%20sign%20up%20here:%20https://elearning-lesconsultants.com%0A%0ABest%20regards," class="nav-link nav-link--soft">
-            <span class="nav-icon"><i class="fa-solid fa-user-plus" aria-hidden="true"></i></span>
-            <span class="nav-link__label">Invite a learner</span>
-          </a>
-        </li>
       </ul>
     </section>
 
@@ -84,11 +78,13 @@
 
   <div class="sidebar-footer">
     <div class="sidebar-user">
-      <img src="{{ asset(app.user.avatar ? 'uploads/avatars/' ~ app.user.avatar : 'images/User.svg') }}" class="sidebar-user__avatar" alt="">
-      <div class="sidebar-user__info">
-        <small>Signed in as</small>
-        <strong>{{ app.user.userName }}</strong>
-      </div>
+      <a href="{{ path('app_profile') }}" class="sidebar-user__profile" aria-label="Open your profile">
+        <img src="{{ asset(app.user.avatar ? 'uploads/avatars/' ~ app.user.avatar : 'images/User.svg') }}" class="sidebar-user__avatar" alt="">
+        <span class="sidebar-user__info">
+          <small>Signed in as</small>
+          <strong>{{ app.user.userName }}</strong>
+        </span>
+      </a>
       <a href="" class="sidebar-user__logout" title="Log out" aria-label="Log out" data-controller="auth" data-action="click->auth#logout">
         <i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i>
       </a>
