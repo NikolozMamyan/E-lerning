@@ -107,6 +107,7 @@
   </nav>
 
   {% set featuredTrendingArticle = trendingArticles|first %}
+  {% set featuredJobOffer = jobOffers|first %}
   {% set nextCommunityEvent = upcomingEvents|first %}
   <nav class="community-feed__mobile-insights" aria-label="Community highlights">
     <a href="{{ featuredTrendingArticle ? path('app_public_article', {id: featuredTrendingArticle.id, slug: featuredTrendingArticle.slug}) : path('article_feed', {filter: 'popular'}) }}" class="mobile-insight mobile-insight--trending" aria-label="View the leading trending conversation">
@@ -115,11 +116,11 @@
       <span class="mobile-insight__badge">{{ trendingArticles|length }}</span>
     </a>
 
-    {% if currentJobOffer %}
-      <button type="button" class="mobile-insight mobile-insight--job" data-community-modal-open="job-modal-{{ currentJobOffer.id }}" aria-label="Open the current job opportunity">
+    {% if featuredJobOffer %}
+      <button type="button" class="mobile-insight mobile-insight--job" data-community-carousel-open="jobs" data-community-carousel-index="0" aria-label="Open current job opportunities">
         <span class="mobile-insight__icon"><i class="fa-solid fa-briefcase" aria-hidden="true"></i></span>
-        <span class="mobile-insight__copy"><strong>Jobs</strong><small>Live offer</small></span>
-        <span class="mobile-insight__badge mobile-insight__badge--live" aria-hidden="true"></span>
+        <span class="mobile-insight__copy"><strong>Jobs</strong><small>{{ jobOffers|length }} live offer{{ jobOffers|length == 1 ? '' : 's' }}</small></span>
+        <span class="mobile-insight__badge">{{ jobOffers|length }}</span>
       </button>
     {% else %}
       <span class="mobile-insight mobile-insight--job is-muted">
@@ -129,7 +130,7 @@
     {% endif %}
 
     {% if nextCommunityEvent %}
-      <button type="button" class="mobile-insight mobile-insight--agenda" data-community-modal-open="event-modal-{{ nextCommunityEvent.id }}" aria-label="Open the next community event">
+      <button type="button" class="mobile-insight mobile-insight--agenda" data-community-carousel-open="events" data-community-carousel-index="0" aria-label="Open upcoming community events">
         <span class="mobile-insight__icon"><i class="fa-solid fa-calendar-check" aria-hidden="true"></i></span>
         <span class="mobile-insight__copy"><strong>Agenda</strong><small>{{ upcomingEvents|length }} upcoming</small></span>
         <span class="mobile-insight__badge">{{ upcomingEvents|length }}</span>
@@ -244,60 +245,82 @@
         </section>
       {% endif %}
 
-      <section class="feed-opportunity" id="job-offer">
+      <section class="feed-opportunity" id="job-offer" data-community-carousel data-carousel-autoplay="6500">
         <header class="feed-opportunity__header">
           <span class="feed-opportunity__icon"><i class="fa-solid fa-briefcase" aria-hidden="true"></i></span>
-          <div><small>Featured opportunity</small><strong>Now hiring</strong></div>
-          <span class="feed-opportunity__live"><i class="fa-solid fa-circle" aria-hidden="true"></i>Live</span>
+          <div><small>Featured opportunities</small><strong>Now hiring</strong></div>
+          {% if jobOffers|length %}
+            <div class="feed-mini-carousel__nav" aria-label="Browse job opportunities">
+              <button type="button" data-carousel-prev aria-label="Previous opportunity"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>
+              <span><strong data-carousel-current>1</strong>/{{ jobOffers|length }}</span>
+              <button type="button" data-carousel-next aria-label="Next opportunity"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button>
+            </div>
+          {% endif %}
         </header>
-        {% if currentJobOffer %}
-          <button type="button" class="feed-opportunity__summary" data-community-modal-open="job-modal-{{ currentJobOffer.id }}">
-            <span>{{ currentJobOffer.title }}</span>
-            <small>{{ currentJobOffer.description|striptags|slice(0, 125) }}{% if currentJobOffer.description|striptags|length > 125 %}&hellip;{% endif %}</small>
-            <em>View full opportunity <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></em>
-          </button>
-          <div class="feed-opportunity__actions">
-            {% if is_granted('ROLE_EMPLOYEE') %}
-              {% if hasAppliedToCurrentJob %}
-                <span class="feed-opportunity__done"><i class="fa-solid fa-circle-check" aria-hidden="true"></i>CV submitted</span>
-              {% else %}
-                <form method="post" action="{{ path('community_job_apply', {id: currentJobOffer.id}) }}" enctype="multipart/form-data" class="feed-cv-quick-form">
-                  <input type="hidden" name="_token" value="{{ csrf_token('job_apply_' ~ currentJobOffer.id) }}">
-                  <input type="file" name="cv" id="quick-cv-{{ currentJobOffer.id }}" accept=".pdf,.doc,.docx" required hidden data-community-cv-input>
-                  <label for="quick-cv-{{ currentJobOffer.id }}"><i class="fa-solid fa-paperclip" aria-hidden="true"></i>Submit my CV</label>
-                </form>
-              {% endif %}
-            {% else %}
-              <a href="{{ path('show_login') }}"><i class="fa-solid fa-arrow-right-to-bracket" aria-hidden="true"></i>Sign in to apply</a>
-            {% endif %}
+        {% if jobOffers|length %}
+          <div class="feed-mini-carousel__track" aria-live="polite">
+            {% for jobOffer in jobOffers %}
+              <article class="feed-mini-carousel__slide" data-carousel-slide data-carousel-index="{{ loop.index0 }}"{% if not loop.first %} hidden{% endif %}>
+                <button type="button" class="feed-opportunity__summary" data-community-carousel-open="jobs" data-community-carousel-index="{{ loop.index0 }}">
+                  <span>{{ jobOffer.title }}</span>
+                  <small>{{ jobOffer.description|striptags|slice(0, 125) }}{% if jobOffer.description|striptags|length > 125 %}&hellip;{% endif %}</small>
+                  <em>View full opportunity <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></em>
+                </button>
+                <div class="feed-opportunity__actions">
+                  {% if is_granted('ROLE_EMPLOYEE') %}
+                    {% if jobOffer.id in appliedJobOfferIds %}
+                      <span class="feed-opportunity__done"><i class="fa-solid fa-circle-check" aria-hidden="true"></i>CV submitted</span>
+                    {% else %}
+                      <form method="post" action="{{ path('community_job_apply', {id: jobOffer.id}) }}" enctype="multipart/form-data" class="feed-cv-quick-form">
+                        <input type="hidden" name="_token" value="{{ csrf_token('job_apply_' ~ jobOffer.id) }}">
+                        <input type="file" name="cv" id="quick-cv-{{ jobOffer.id }}" accept=".pdf,.doc,.docx" required hidden data-community-cv-input>
+                        <label for="quick-cv-{{ jobOffer.id }}"><i class="fa-solid fa-paperclip" aria-hidden="true"></i>Submit my CV</label>
+                      </form>
+                    {% endif %}
+                  {% else %}
+                    <a href="{{ path('show_login') }}"><i class="fa-solid fa-arrow-right-to-bracket" aria-hidden="true"></i>Sign in to apply</a>
+                  {% endif %}
+                </div>
+                <small class="feed-opportunity__file-note">PDF, DOC or DOCX &middot; 5 MB max</small>
+              </article>
+            {% endfor %}
           </div>
-          <small class="feed-opportunity__file-note">PDF, DOC or DOCX · 5 MB max</small>
         {% else %}
           <div class="feed-opportunity__empty"><strong>New opportunities soon.</strong><span>Follow the feed to discover the next role.</span></div>
         {% endif %}
       </section>
 
-      <section class="feed-agenda" id="community-agenda">
+      <section class="feed-agenda" id="community-agenda" data-community-carousel data-carousel-autoplay="7200">
         <header class="feed-agenda__header">
           <div><small>Advertisement</small><strong>Community agenda</strong></div>
-          <span><i class="fa-solid fa-calendar-days" aria-hidden="true"></i></span>
+          {% if upcomingEvents|length %}
+            <div class="feed-mini-carousel__nav feed-mini-carousel__nav--agenda" aria-label="Browse upcoming events">
+              <button type="button" data-carousel-prev aria-label="Previous event"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>
+              <span><strong data-carousel-current>1</strong>/{{ upcomingEvents|length }}</span>
+              <button type="button" data-carousel-next aria-label="Next event"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button>
+            </div>
+          {% else %}
+            <span><i class="fa-solid fa-calendar-days" aria-hidden="true"></i></span>
+          {% endif %}
         </header>
-        <div class="feed-agenda__list">
+        <div class="feed-agenda__list feed-mini-carousel__track" aria-live="polite">
           {% for event in upcomingEvents %}
-            <article class="feed-agenda__item">
-              <button type="button" class="feed-agenda__details" data-community-modal-open="event-modal-{{ event.id }}">
+            <article class="feed-agenda__item feed-mini-carousel__slide" data-carousel-slide data-carousel-index="{{ loop.index0 }}"{% if not loop.first %} hidden{% endif %}>
+              <button type="button" class="feed-agenda__details" data-community-carousel-open="events" data-community-carousel-index="{{ loop.index0 }}">
                 <time datetime="{{ event.startsAt|date('c') }}"><strong>{{ event.startsAt|date('d') }}</strong><span>{{ event.startsAt|date('M')|upper }}</span></time>
-                <span><strong>{{ event.title }}</strong><small><i class="fa-solid {{ event.location ? 'fa-location-dot' : 'fa-video' }}" aria-hidden="true"></i>{{ event.location ?: 'Online event' }} · {{ event.startsAt|date('H:i') }}</small></span>
+                <span><strong>{{ event.title }}</strong><small><i class="fa-solid {{ event.location ? 'fa-location-dot' : 'fa-video' }}" aria-hidden="true"></i>{{ event.location ?: 'Online event' }} &middot; {{ event.startsAt|date('H:i') }}</small></span>
               </button>
-              {% if is_granted('ROLE_EMPLOYEE') %}
-                {% if event.id in registeredEventIds %}
-                  <span class="feed-agenda__registered"><i class="fa-solid fa-check" aria-hidden="true"></i>Registered</span>
+              <div class="feed-agenda__reservation">
+                {% if is_granted('ROLE_EMPLOYEE') %}
+                  {% if event.id in registeredEventIds %}
+                    <span class="feed-agenda__registered"><i class="fa-solid fa-check" aria-hidden="true"></i>Registered</span>
+                  {% else %}
+                    <form method="post" action="{{ path('community_event_register', {id: event.id}) }}"><input type="hidden" name="_token" value="{{ csrf_token('event_register_' ~ event.id) }}"><button type="submit">Reserve my place</button></form>
+                  {% endif %}
                 {% else %}
-                  <form method="post" action="{{ path('community_event_register', {id: event.id}) }}"><input type="hidden" name="_token" value="{{ csrf_token('event_register_' ~ event.id) }}"><button type="submit">Reserve my place</button></form>
+                  <a href="{{ path('show_login') }}">Sign in to register</a>
                 {% endif %}
-              {% else %}
-                <a href="{{ path('show_login') }}">Sign in to register</a>
-              {% endif %}
+              </div>
             </article>
           {% else %}
             <div class="feed-agenda__empty"><i class="fa-regular fa-calendar" aria-hidden="true"></i><span><strong>The next event is on its way.</strong><small>New dates will appear here.</small></span></div>
@@ -314,37 +337,59 @@
     {% include 'components/feed/_modal_create.html.twig' %}
   {% endif %}
 
-  {% if currentJobOffer %}
-    <dialog class="community-info-modal" id="job-modal-{{ currentJobOffer.id }}" aria-labelledby="job-modal-title-{{ currentJobOffer.id }}">
+  {% if jobOffers|length %}
+    <dialog class="community-info-modal" data-community-carousel data-community-carousel-modal="jobs" aria-label="Job opportunities">
       <div class="community-info-modal__accent community-info-modal__accent--job"></div>
       <button type="button" class="community-info-modal__close" data-community-modal-close aria-label="Close"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
-      <header><span class="community-info-modal__icon"><i class="fa-solid fa-briefcase" aria-hidden="true"></i></span><div><small>Current opportunity</small><h2 id="job-modal-title-{{ currentJobOffer.id }}">{{ currentJobOffer.title }}</h2></div></header>
-      <div class="community-info-modal__content">{{ currentJobOffer.description|e|nl2br }}</div>
-      <footer>
-        <span><i class="fa-solid fa-shield-halved" aria-hidden="true"></i>Your CV is stored privately and only accessible to the recruitment administrator.</span>
-        {% if is_granted('ROLE_EMPLOYEE') %}
-          {% if hasAppliedToCurrentJob %}<span class="community-info-modal__confirmed"><i class="fa-solid fa-circle-check" aria-hidden="true"></i>CV already submitted</span>{% else %}<form method="post" action="{{ path('community_job_apply', {id: currentJobOffer.id}) }}" enctype="multipart/form-data"><input type="hidden" name="_token" value="{{ csrf_token('job_apply_' ~ currentJobOffer.id) }}"><label>Choose your CV<input type="file" name="cv" accept=".pdf,.doc,.docx" required></label><button type="submit"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i>Submit my application</button></form>{% endif %}
-        {% else %}
-          <a href="{{ path('show_login') }}" class="community-info-modal__primary">Sign in to submit your CV <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
-        {% endif %}
-      </footer>
+      <div class="community-info-modal__slides" aria-live="polite">
+        {% for jobOffer in jobOffers %}
+          <article class="community-info-modal__slide" data-carousel-slide data-carousel-index="{{ loop.index0 }}"{% if not loop.first %} hidden{% endif %}>
+            <header><span class="community-info-modal__icon"><i class="fa-solid fa-briefcase" aria-hidden="true"></i></span><div><small>Current opportunity</small><h2>{{ jobOffer.title }}</h2></div></header>
+            <div class="community-info-modal__content">{{ jobOffer.description|e|nl2br }}</div>
+            <footer>
+              <span><i class="fa-solid fa-shield-halved" aria-hidden="true"></i>Your CV is stored privately and only accessible to the recruitment administrator.</span>
+              {% if is_granted('ROLE_EMPLOYEE') %}
+                {% if jobOffer.id in appliedJobOfferIds %}<span class="community-info-modal__confirmed"><i class="fa-solid fa-circle-check" aria-hidden="true"></i>CV already submitted</span>{% else %}<form method="post" action="{{ path('community_job_apply', {id: jobOffer.id}) }}" enctype="multipart/form-data"><input type="hidden" name="_token" value="{{ csrf_token('job_apply_' ~ jobOffer.id) }}"><label>Choose your CV<input type="file" name="cv" accept=".pdf,.doc,.docx" required></label><button type="submit"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i>Submit my application</button></form>{% endif %}
+              {% else %}
+                <a href="{{ path('show_login') }}" class="community-info-modal__primary">Sign in to submit your CV <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+              {% endif %}
+            </footer>
+          </article>
+        {% endfor %}
+      </div>
+      <nav class="community-info-modal__navigation" aria-label="Browse job opportunities">
+        <button type="button" data-carousel-prev aria-label="Previous opportunity"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i></button>
+        <span><strong data-carousel-current>1</strong><i>/</i>{{ jobOffers|length }}</span>
+        <button type="button" data-carousel-next aria-label="Next opportunity"><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>
+      </nav>
     </dialog>
   {% endif %}
 
-  {% for event in upcomingEvents %}
-    <dialog class="community-info-modal" id="event-modal-{{ event.id }}" aria-labelledby="event-modal-title-{{ event.id }}">
+  {% if upcomingEvents|length %}
+    <dialog class="community-info-modal" data-community-carousel data-community-carousel-modal="events" aria-label="Upcoming community events">
       <div class="community-info-modal__accent community-info-modal__accent--event"></div>
       <button type="button" class="community-info-modal__close" data-community-modal-close aria-label="Close"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
-      <header><span class="community-info-modal__date"><strong>{{ event.startsAt|date('d') }}</strong><small>{{ event.startsAt|date('M')|upper }}</small></span><div><small>Community event</small><h2 id="event-modal-title-{{ event.id }}">{{ event.title }}</h2></div></header>
-      <div class="community-info-modal__facts"><span><i class="fa-regular fa-clock" aria-hidden="true"></i>{{ event.startsAt|date('l, d F Y · H:i') }}</span><span><i class="fa-solid {{ event.location ? 'fa-location-dot' : 'fa-video' }}" aria-hidden="true"></i>{{ event.location ?: 'Online event' }}</span><span><i class="fa-solid fa-users" aria-hidden="true"></i>{{ event.registrations|length }} member{{ event.registrations|length == 1 ? '' : 's' }} registered</span></div>
-      <div class="community-info-modal__content">{{ event.description|e|nl2br }}</div>
-      <footer>
-        {% if is_granted('ROLE_EMPLOYEE') %}
-          {% if event.id in registeredEventIds %}<span class="community-info-modal__confirmed"><i class="fa-solid fa-circle-check" aria-hidden="true"></i>Your place is confirmed</span>{% else %}<form method="post" action="{{ path('community_event_register', {id: event.id}) }}"><input type="hidden" name="_token" value="{{ csrf_token('event_register_' ~ event.id) }}"><button type="submit"><i class="fa-solid fa-calendar-check" aria-hidden="true"></i>Reserve my place</button></form>{% endif %}
-        {% else %}<a href="{{ path('show_login') }}" class="community-info-modal__primary">Sign in to reserve your place <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>{% endif %}
-      </footer>
+      <div class="community-info-modal__slides" aria-live="polite">
+        {% for event in upcomingEvents %}
+          <article class="community-info-modal__slide" data-carousel-slide data-carousel-index="{{ loop.index0 }}"{% if not loop.first %} hidden{% endif %}>
+            <header><span class="community-info-modal__date"><strong>{{ event.startsAt|date('d') }}</strong><small>{{ event.startsAt|date('M')|upper }}</small></span><div><small>Community event</small><h2>{{ event.title }}</h2></div></header>
+            <div class="community-info-modal__facts"><span><i class="fa-regular fa-clock" aria-hidden="true"></i>{{ event.startsAt|date('l, d F Y · H:i') }}</span><span><i class="fa-solid {{ event.location ? 'fa-location-dot' : 'fa-video' }}" aria-hidden="true"></i>{{ event.location ?: 'Online event' }}</span><span><i class="fa-solid fa-users" aria-hidden="true"></i>{{ event.registrations|length }} member{{ event.registrations|length == 1 ? '' : 's' }} registered</span></div>
+            <div class="community-info-modal__content">{{ event.description|e|nl2br }}</div>
+            <footer class="community-info-modal__reservation">
+              {% if is_granted('ROLE_EMPLOYEE') %}
+                {% if event.id in registeredEventIds %}<span class="community-info-modal__confirmed"><i class="fa-solid fa-circle-check" aria-hidden="true"></i>Your place is confirmed</span>{% else %}<form method="post" action="{{ path('community_event_register', {id: event.id}) }}"><input type="hidden" name="_token" value="{{ csrf_token('event_register_' ~ event.id) }}"><button type="submit"><i class="fa-solid fa-calendar-check" aria-hidden="true"></i>Reserve my place</button></form>{% endif %}
+              {% else %}<a href="{{ path('show_login') }}" class="community-info-modal__primary">Sign in to reserve your place <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>{% endif %}
+            </footer>
+          </article>
+        {% endfor %}
+      </div>
+      <nav class="community-info-modal__navigation community-info-modal__navigation--event" aria-label="Browse upcoming events">
+        <button type="button" data-carousel-prev aria-label="Previous event"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i></button>
+        <span><strong data-carousel-current>1</strong><i>/</i>{{ upcomingEvents|length }}</span>
+        <button type="button" data-carousel-next aria-label="Next event"><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>
+      </nav>
     </dialog>
-  {% endfor %}
+  {% endif %}
 </section>
 
 {# Scripts en bas de page #}
@@ -1076,16 +1121,128 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const automaticCarousels = new Set();
+  let automaticResumeTimer = null;
+
+  const stopAutomaticCarousels = () => {
+    if (automaticResumeTimer) window.clearTimeout(automaticResumeTimer);
+    automaticResumeTimer = null;
+    automaticCarousels.forEach((root) => root.communityCarousel?.stop());
+  };
+
+  const startAutomaticCarousels = () => {
+    if (document.querySelector('.community-info-modal[open]')) return;
+    const carouselIsBeingUsed = Array.from(automaticCarousels).some((root) => root.matches(':hover') || root.contains(document.activeElement));
+    if (carouselIsBeingUsed) return;
+    automaticCarousels.forEach((root) => root.communityCarousel?.start());
+  };
+
+  const pauseAutomaticCarousels = (duration = 0) => {
+    stopAutomaticCarousels();
+    if (duration > 0) {
+      automaticResumeTimer = window.setTimeout(() => {
+        automaticResumeTimer = null;
+        startAutomaticCarousels();
+      }, duration);
+    }
+  };
+
+  const initialiseCarousel = (root) => {
+    const slides = Array.from(root.querySelectorAll('[data-carousel-slide]'))
+      .filter((slide) => slide.closest('[data-community-carousel]') === root);
+    const counters = root.querySelectorAll('[data-carousel-current]');
+    const previousButton = root.querySelector('[data-carousel-prev]');
+    const nextButton = root.querySelector('[data-carousel-next]');
+    const autoplayDelay = Number.parseInt(root.dataset.carouselAutoplay || '0', 10);
+    let currentIndex = 0;
+    let timer = null;
+
+    const render = (requestedIndex, animate = true) => {
+      if (!slides.length) return;
+      currentIndex = (requestedIndex + slides.length) % slides.length;
+      slides.forEach((slide, index) => {
+        const active = index === currentIndex;
+        slide.hidden = !active;
+        slide.setAttribute('aria-hidden', active ? 'false' : 'true');
+        if (active && animate && slides.length > 1 && !reducedMotion) {
+          slide.classList.remove('is-carousel-entering');
+          void slide.offsetWidth;
+          slide.classList.add('is-carousel-entering');
+        }
+      });
+      counters.forEach((counter) => { counter.textContent = String(currentIndex + 1); });
+    };
+
+    const stop = () => {
+      if (timer) window.clearInterval(timer);
+      timer = null;
+    };
+    const start = () => {
+      stop();
+      if (reducedMotion || slides.length < 2 || autoplayDelay < 2000) return;
+      if (document.querySelector('.community-info-modal[open]')) return;
+      if (root.matches(':hover') || root.contains(document.activeElement)) return;
+      timer = window.setInterval(() => render(currentIndex + 1), autoplayDelay);
+    };
+    const move = (direction) => {
+      render(currentIndex + direction);
+      pauseAutomaticCarousels(8000);
+    };
+
+    previousButton?.addEventListener('click', () => move(-1));
+    nextButton?.addEventListener('click', () => move(1));
+    if (slides.length < 2) {
+      if (previousButton) previousButton.disabled = true;
+      if (nextButton) nextButton.disabled = true;
+    }
+
+    root.addEventListener('mouseenter', () => pauseAutomaticCarousels());
+    root.addEventListener('mouseleave', startAutomaticCarousels);
+    root.addEventListener('focusin', () => pauseAutomaticCarousels());
+    root.addEventListener('focusout', (event) => { if (!root.contains(event.relatedTarget)) startAutomaticCarousels(); });
+
+    root.communityCarousel = { goTo: (index) => render(index, false), stop, start };
+    if (autoplayDelay >= 2000) automaticCarousels.add(root);
+    render(0, false);
+    start();
+  };
+
+  document.querySelectorAll('[data-community-carousel]').forEach(initialiseCarousel);
+
+  document.querySelectorAll('[data-community-carousel-open]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const modal = document.querySelector(`[data-community-carousel-modal="${button.dataset.communityCarouselOpen}"]`);
+      if (!modal) return;
+      stopAutomaticCarousels();
+      modal.communityCarousel?.goTo(Number.parseInt(button.dataset.communityCarouselIndex || '0', 10));
+      if (!modal.open) modal.showModal();
+    });
+  });
+
   document.querySelectorAll('[data-community-modal-open]').forEach((button) => {
     button.addEventListener('click', () => document.getElementById(button.dataset.communityModalOpen)?.showModal());
   });
+  document.addEventListener('click', (event) => {
+    const closeButton = event.target.closest('[data-community-modal-close]');
+    if (!closeButton) return;
+    const dialog = closeButton.closest('dialog');
+    if (!(dialog instanceof HTMLDialogElement)) return;
+    event.preventDefault();
+    event.stopPropagation();
+    if (dialog.open) dialog.close();
+  }, true);
   document.querySelectorAll('.community-info-modal').forEach((dialog) => {
-    dialog.querySelector('[data-community-modal-close]')?.addEventListener('click', () => dialog.close());
-    dialog.addEventListener('click', (event) => {
-      const box = dialog.getBoundingClientRect();
-      if (event.clientX < box.left || event.clientX > box.right || event.clientY < box.top || event.clientY > box.bottom) dialog.close();
+    dialog.querySelectorAll('[data-carousel-prev], [data-carousel-next]').forEach((button) => {
+      button.addEventListener('click', (event) => event.stopPropagation());
     });
+    dialog.addEventListener('click', (event) => {
+      if (event.target === dialog) dialog.close();
+    });
+    dialog.addEventListener('close', startAutomaticCarousels);
+    dialog.addEventListener('cancel', stopAutomaticCarousels);
   });
+  document.addEventListener('visibilitychange', () => document.hidden ? stopAutomaticCarousels() : startAutomaticCarousels());
   document.querySelectorAll('[data-community-cv-input]').forEach((input) => {
     input.addEventListener('change', () => { if (input.files?.length) input.form?.requestSubmit(); });
   });

@@ -171,58 +171,14 @@
       {% endif %}
     </article>
 
-    <article class="ld-panel ld-progress-panel">
-      <div class="ld-panel__header">
-        <div>
-          <span class="ld-panel__kicker">Progress tracking</span>
-          <h2>Course activity</h2>
-        </div>
-        <a href="{{ path('app_progress') }}" class="ld-icon-link" aria-label="Open progress tracking">
-          <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
-        </a>
-      </div>
-
-      <div class="ld-progress-list">
-        {% set shownProgress = 0 %}
-        {% for course in courses %}
-          {% set percent = progressData[course.id] ?? 0 %}
-          {% if percent > 0 and shownProgress < 4 %}
-            <a href="{{ path('app_course_show', { id: course.id }) }}" class="ld-progress-item">
-              <div class="ld-progress-item__top">
-                <span>{{ course.title }}</span>
-                <strong>{{ percent|round }}%</strong>
-              </div>
-              <div class="ld-progress"><span style="--progress: {{ percent }}%"></span></div>
-            </a>
-            {% set shownProgress = shownProgress + 1 %}
-          {% endif %}
-        {% endfor %}
-
-        {% if shownProgress == 0 %}
-          <div class="ld-empty-state ld-empty-state--compact">
-            <span><i class="fa-solid fa-chart-line" aria-hidden="true"></i></span>
-            <h3>No progress yet</h3>
-            <p>Start a course and your activity will appear here.</p>
-            <a href="{{ path('app_courses') }}" class="ld-text-link">Browse courses</a>
-          </div>
-        {% endif %}
-      </div>
-
-      {% if completedCount > 0 %}
-        <div class="ld-completion-note">
-          <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
-          <span><strong>{{ completedCount }}</strong> course{{ completedCount == 1 ? '' : 's' }} completed</span>
-        </div>
-      {% endif %}
-    </article>
   </section>
 
-  <section class="ld-grid ld-grid--content" aria-label="Courses and purchases">
+  <section class="ld-grid ld-grid--content" aria-label="Courses and job opportunities">
     <article class="ld-panel">
       <div class="ld-panel__header">
         <div>
           <span class="ld-panel__kicker">Course library</span>
-          <h2>Available courses</h2>
+          <h2>Newest courses</h2>
         </div>
         <a href="{{ path('app_courses') }}" class="ld-text-link">
           View all
@@ -231,7 +187,7 @@
       </div>
 
       <div class="ld-course-list">
-        {% for course in courses|slice(0, 4) %}
+        {% for course in latestCourses %}
           <a href="{{ path('app_course_show', { id: course.id }) }}" class="ld-course-row">
             <span class="ld-course-row__thumb">
               {% if course.thumb %}
@@ -247,7 +203,12 @@
                 {{ course.videos|length }} lesson{{ course.videos|length == 1 ? '' : 's' }}
               </small>
             </span>
-            <span class="ld-course-row__arrow"><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span>
+            <span class="ld-row-actions">
+              {% if loop.index <= 3 %}
+                <span class="ld-new-badge"><i class="fa-solid fa-fire-flame-curved" aria-hidden="true"></i>New</span>
+              {% endif %}
+              <span class="ld-course-row__arrow"><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span>
+            </span>
           </a>
         {% else %}
           <div class="ld-empty-state ld-empty-state--compact">
@@ -258,75 +219,67 @@
       </div>
     </article>
 
-    <article class="ld-panel">
-      <div class="ld-panel__header">
-        <div>
-          <span class="ld-panel__kicker">Recent activity</span>
-          <h2>Purchased courses</h2>
+    <article class="ld-panel ld-community-card ld-community-card--jobs" data-ld-carousel data-ld-autoplay="6500">
+      <div class="ld-community-card__topline"></div>
+      <div class="ld-panel__header ld-community-card__header">
+        <div class="ld-community-card__heading">
+          <span class="ld-community-card__icon"><i class="fa-solid fa-briefcase" aria-hidden="true"></i></span>
+          <span>
+            <span class="ld-panel__kicker">Opportunities</span>
+            <h2>Jobs for you</h2>
+          </span>
         </div>
-        <a href="{{ path('app_transactions') }}" class="ld-icon-link" aria-label="View payment history">
-          <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
-        </a>
+        {% if jobOffers|length %}
+          <div class="ld-carousel-nav" aria-label="Browse job opportunities">
+            <button type="button" data-ld-prev aria-label="Previous opportunity"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>
+            <span><strong data-ld-current>1</strong>/{{ jobOffers|length }}</span>
+            <button type="button" data-ld-next aria-label="Next opportunity"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button>
+          </div>
+        {% endif %}
       </div>
 
-      <div class="ld-activity-list">
-        {% for enrollment in enrollments|slice(0, 4) %}
-          <a href="{{ path('app_course_show', { id: enrollment.course.id }) }}" class="ld-activity-item">
-            <span class="ld-activity-item__icon"><i class="fa-solid fa-check" aria-hidden="true"></i></span>
-            <span>
-              <strong>{{ enrollment.course.title }}</strong>
-              <small>Purchased {{ enrollment.createdAt|date('d M Y') }}</small>
-            </span>
-          </a>
-        {% else %}
-          <div class="ld-empty-state ld-empty-state--compact">
-            <span><i class="fa-solid fa-bag-shopping" aria-hidden="true"></i></span>
-            <h3>No purchases yet</h3>
-            <p>Your purchased courses will be listed here.</p>
-          </div>
-        {% endfor %}
-      </div>
+      {% if jobOffers|length %}
+        <div class="ld-carousel-track" aria-live="polite">
+          {% for jobOffer in jobOffers %}
+            <article class="ld-carousel-slide ld-job-slide" data-ld-slide data-ld-index="{{ loop.index0 }}"{% if not loop.first %} hidden{% endif %}>
+              <button type="button" class="ld-job-slide__summary" data-ld-modal-open="jobs" data-ld-modal-index="{{ loop.index0 }}">
+                <span class="ld-job-slide__eyebrow"><i class="fa-solid fa-bolt" aria-hidden="true"></i>Featured opportunity</span>
+                <strong>{{ jobOffer.title }}</strong>
+                <span>{{ jobOffer.description|striptags|slice(0, 150) }}{% if jobOffer.description|striptags|length > 150 %}&hellip;{% endif %}</span>
+                <em>View full opportunity <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></em>
+              </button>
+
+              <div class="ld-job-slide__action">
+                {% if jobOffer.id in appliedJobOfferIds %}
+                  <span class="ld-application-done"><i class="fa-solid fa-circle-check" aria-hidden="true"></i>CV submitted</span>
+                {% else %}
+                  <form method="post" action="{{ path('community_job_apply', {id: jobOffer.id}) }}" enctype="multipart/form-data" class="ld-cv-quick-form">
+                    <input type="hidden" name="_token" value="{{ csrf_token('job_apply_' ~ jobOffer.id) }}">
+                    <input type="file" name="cv" id="dashboard-cv-{{ jobOffer.id }}" accept=".pdf,.doc,.docx" required hidden data-ld-cv-input>
+                    <label for="dashboard-cv-{{ jobOffer.id }}"><i class="fa-solid fa-paperclip" aria-hidden="true"></i>Submit my CV</label>
+                  </form>
+                {% endif %}
+                <small>PDF, DOC or DOCX &middot; 5 MB max</small>
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="ld-empty-state ld-empty-state--compact">
+          <span><i class="fa-solid fa-briefcase" aria-hidden="true"></i></span>
+          <h3>New opportunities soon</h3>
+          <p>The next role will appear here as soon as it is published.</p>
+        </div>
+      {% endif %}
     </article>
   </section>
 
-  <section class="ld-grid ld-grid--content" aria-label="Certificates and news">
+  <section class="ld-grid ld-grid--content" aria-label="Community news and agenda">
     <article class="ld-panel">
       <div class="ld-panel__header">
         <div>
-          <span class="ld-panel__kicker">Achievements</span>
-          <h2>My certificates</h2>
-        </div>
-        <a href="{{ path('app_certificates') }}" class="ld-text-link">
-          View all
-          <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
-        </a>
-      </div>
-
-      <div class="ld-certificate-list">
-        {% for title in certificateTitles|slice(0, 3) %}
-          <div class="ld-certificate-item">
-            <span><i class="fa-solid fa-award" aria-hidden="true"></i></span>
-            <div>
-              <strong>{{ title }}</strong>
-              <small>Certificate earned</small>
-            </div>
-            <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
-          </div>
-        {% else %}
-          <div class="ld-empty-state ld-empty-state--compact">
-            <span><i class="fa-solid fa-award" aria-hidden="true"></i></span>
-            <h3>Your first certificate awaits</h3>
-            <p>Complete a course and pass its quiz to unlock it.</p>
-          </div>
-        {% endfor %}
-      </div>
-    </article>
-
-    <article class="ld-panel">
-      <div class="ld-panel__header">
-        <div>
-          <span class="ld-panel__kicker">Latest updates</span>
-          <h2>From the feed</h2>
+          <span class="ld-panel__kicker">Community feed</span>
+          <h2>Latest conversations</h2>
         </div>
         <a href="{{ path('article_feed') }}" class="ld-text-link">
           View feed
@@ -335,7 +288,7 @@
       </div>
 
       <div class="ld-feed-list">
-        {% for article in latestArticles|slice(0, 3) %}
+        {% for article in latestArticles %}
           <a href="{{ path('app_public_article', {id: article.id, slug: article.slug}) }}" class="ld-feed-item">
             <span class="ld-feed-item__media">
               {% if article.image %}
@@ -345,10 +298,15 @@
               {% endif %}
             </span>
             <span class="ld-feed-item__content">
-              <small>{{ article.createdAt|date('d M Y') }}</small>
-              <strong>{{ article.titre|striptags|slice(0, 72) }}{% if article.titre|striptags|length > 72 %}&hellip;{% endif %}</strong>
+              <small>{{ article.author.username }} &middot; {{ article.createdAt|date('d M Y') }}</small>
+              <strong>{{ article.titre|striptags|slice(0, 90) }}{% if article.titre|striptags|length > 90 %}&hellip;{% endif %}</strong>
             </span>
-            <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+            <span class="ld-row-actions">
+              {% if loop.index <= 3 %}
+                <span class="ld-new-badge"><i class="fa-solid fa-fire-flame-curved" aria-hidden="true"></i>New</span>
+              {% endif %}
+              <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+            </span>
           </a>
         {% else %}
           <div class="ld-empty-state ld-empty-state--compact">
@@ -358,6 +316,228 @@
         {% endfor %}
       </div>
     </article>
+
+    <article class="ld-panel ld-community-card ld-community-card--agenda" data-ld-carousel data-ld-autoplay="7200">
+      <div class="ld-panel__header ld-community-card__header">
+        <div class="ld-community-card__heading">
+          <span class="ld-community-card__icon ld-community-card__icon--agenda"><i class="fa-solid fa-calendar-days" aria-hidden="true"></i></span>
+          <span>
+            <span class="ld-panel__kicker">Advertisement</span>
+            <h2>Community agenda</h2>
+          </span>
+        </div>
+        {% if upcomingEvents|length %}
+          <div class="ld-carousel-nav ld-carousel-nav--agenda" aria-label="Browse upcoming events">
+            <button type="button" data-ld-prev aria-label="Previous event"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>
+            <span><strong data-ld-current>1</strong>/{{ upcomingEvents|length }}</span>
+            <button type="button" data-ld-next aria-label="Next event"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button>
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="ld-carousel-track" aria-live="polite">
+        {% for event in upcomingEvents %}
+          <article class="ld-carousel-slide ld-event-slide" data-ld-slide data-ld-index="{{ loop.index0 }}"{% if not loop.first %} hidden{% endif %}>
+            <button type="button" class="ld-event-slide__button" data-ld-modal-open="events" data-ld-modal-index="{{ loop.index0 }}">
+              <time datetime="{{ event.startsAt|date('c') }}"><strong>{{ event.startsAt|date('d') }}</strong><span>{{ event.startsAt|date('M')|upper }}</span></time>
+              <span class="ld-event-slide__content">
+                <small>Next community event</small>
+                <strong>{{ event.title }}</strong>
+                <span><i class="fa-solid {{ event.location ? 'fa-location-dot' : 'fa-video' }}" aria-hidden="true"></i>{{ event.location ?: 'Online event' }}</span>
+                <span><i class="fa-regular fa-clock" aria-hidden="true"></i>{{ event.startsAt|date('H:i') }}</span>
+              </span>
+              <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+            </button>
+          </article>
+        {% else %}
+          <div class="ld-empty-state ld-empty-state--compact">
+            <span><i class="fa-regular fa-calendar" aria-hidden="true"></i></span>
+            <h3>The next event is on its way</h3>
+            <p>New dates will appear here.</p>
+          </div>
+        {% endfor %}
+      </div>
+    </article>
   </section>
+
+  {% if jobOffers|length %}
+    <dialog class="ld-community-modal" data-ld-carousel data-ld-modal="jobs" aria-label="Job opportunities">
+      <div class="ld-community-modal__accent ld-community-modal__accent--jobs"></div>
+      <button type="button" class="ld-community-modal__close" data-ld-modal-close aria-label="Close"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+      <div class="ld-community-modal__slides" aria-live="polite">
+        {% for jobOffer in jobOffers %}
+          <article class="ld-community-modal__slide" data-ld-slide data-ld-index="{{ loop.index0 }}"{% if not loop.first %} hidden{% endif %}>
+            <header>
+              <span class="ld-community-modal__icon"><i class="fa-solid fa-briefcase" aria-hidden="true"></i></span>
+              <div><small>Current opportunity</small><h2>{{ jobOffer.title }}</h2></div>
+            </header>
+            <div class="ld-community-modal__content">{{ jobOffer.description|e|nl2br }}</div>
+            <footer>
+              <span class="ld-community-modal__notice"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i>Your CV is stored privately and is only available to the recruitment administrator.</span>
+              {% if jobOffer.id in appliedJobOfferIds %}
+                <span class="ld-application-done"><i class="fa-solid fa-circle-check" aria-hidden="true"></i>CV already submitted</span>
+              {% else %}
+                <form method="post" action="{{ path('community_job_apply', {id: jobOffer.id}) }}" enctype="multipart/form-data" class="ld-community-modal__form">
+                  <input type="hidden" name="_token" value="{{ csrf_token('job_apply_' ~ jobOffer.id) }}">
+                  <label>Choose your CV<input type="file" name="cv" accept=".pdf,.doc,.docx" required></label>
+                  <button type="submit"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i>Submit my application</button>
+                </form>
+              {% endif %}
+            </footer>
+          </article>
+        {% endfor %}
+      </div>
+      <nav class="ld-community-modal__navigation" aria-label="Browse job opportunities">
+        <button type="button" data-ld-prev aria-label="Previous opportunity"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i></button>
+        <span><strong data-ld-current>1</strong><i>/</i>{{ jobOffers|length }}</span>
+        <button type="button" data-ld-next aria-label="Next opportunity"><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>
+      </nav>
+    </dialog>
+  {% endif %}
+
+  {% if upcomingEvents|length %}
+    <dialog class="ld-community-modal" data-ld-carousel data-ld-modal="events" aria-label="Upcoming community events">
+      <div class="ld-community-modal__accent ld-community-modal__accent--events"></div>
+      <button type="button" class="ld-community-modal__close" data-ld-modal-close aria-label="Close"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+      <div class="ld-community-modal__slides" aria-live="polite">
+        {% for event in upcomingEvents %}
+          <article class="ld-community-modal__slide" data-ld-slide data-ld-index="{{ loop.index0 }}"{% if not loop.first %} hidden{% endif %}>
+            <header>
+              <span class="ld-community-modal__date"><strong>{{ event.startsAt|date('d') }}</strong><small>{{ event.startsAt|date('M')|upper }}</small></span>
+              <div><small>Community event</small><h2>{{ event.title }}</h2></div>
+            </header>
+            <div class="ld-community-modal__facts">
+              <span><i class="fa-regular fa-clock" aria-hidden="true"></i>{{ event.startsAt|date('l, d F Y · H:i') }}</span>
+              <span><i class="fa-solid {{ event.location ? 'fa-location-dot' : 'fa-video' }}" aria-hidden="true"></i>{{ event.location ?: 'Online event' }}</span>
+              <span><i class="fa-solid fa-users" aria-hidden="true"></i>{{ event.registrations|length }} member{{ event.registrations|length == 1 ? '' : 's' }} registered</span>
+            </div>
+            <div class="ld-community-modal__content">{{ event.description|e|nl2br }}</div>
+          </article>
+        {% endfor %}
+      </div>
+      <nav class="ld-community-modal__navigation ld-community-modal__navigation--events" aria-label="Browse upcoming events">
+        <button type="button" data-ld-prev aria-label="Previous event"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i></button>
+        <span><strong data-ld-current>1</strong><i>/</i>{{ upcomingEvents|length }}</span>
+        <button type="button" data-ld-next aria-label="Next event"><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>
+      </nav>
+    </dialog>
+  {% endif %}
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const carousels = new Map();
+  let openedModal = null;
+
+  const initialiseCarousel = (root) => {
+    const slides = Array.from(root.querySelectorAll('[data-ld-slide]'))
+      .filter((slide) => slide.closest('[data-ld-carousel]') === root);
+    const counters = Array.from(root.querySelectorAll('[data-ld-current]'))
+      .filter((counter) => counter.closest('[data-ld-carousel]') === root);
+    const previousButtons = Array.from(root.querySelectorAll('[data-ld-prev]'))
+      .filter((button) => button.closest('[data-ld-carousel]') === root);
+    const nextButtons = Array.from(root.querySelectorAll('[data-ld-next]'))
+      .filter((button) => button.closest('[data-ld-carousel]') === root);
+    const interval = Number(root.dataset.ldAutoplay || 0);
+    let current = 0;
+    let timer = null;
+
+    const stop = () => {
+      if (timer) window.clearInterval(timer);
+      timer = null;
+    };
+
+    const start = () => {
+      stop();
+      if (interval > 0 && slides.length > 1 && !window.matchMedia('(prefers-reduced-motion: reduce)').matches && !openedModal) {
+        timer = window.setInterval(() => show(current + 1, false), interval);
+      }
+    };
+
+    const show = (requestedIndex, restart = true) => {
+      if (!slides.length) return;
+      current = (requestedIndex + slides.length) % slides.length;
+      slides.forEach((slide, index) => {
+        slide.hidden = index !== current;
+        slide.setAttribute('aria-hidden', index === current ? 'false' : 'true');
+      });
+      counters.forEach((counter) => { counter.textContent = String(current + 1); });
+      if (restart) start();
+    };
+
+    previousButtons.forEach((button) => button.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      show(current - 1);
+    }));
+    nextButtons.forEach((button) => button.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      show(current + 1);
+    }));
+
+    root.addEventListener('mouseenter', stop);
+    root.addEventListener('mouseleave', start);
+    root.addEventListener('focusin', stop);
+    root.addEventListener('focusout', (event) => {
+      if (!root.contains(event.relatedTarget)) start();
+    });
+
+    const api = { show, start, stop };
+    carousels.set(root, api);
+    show(0);
+  };
+
+  document.querySelectorAll('[data-ld-carousel]').forEach(initialiseCarousel);
+
+  const closeModal = (modal) => {
+    if (!(modal instanceof HTMLDialogElement) || !modal.open) return;
+    modal.close();
+  };
+
+  document.addEventListener('click', (event) => {
+    const opener = event.target.closest('[data-ld-modal-open]');
+    if (opener) {
+      event.preventDefault();
+      event.stopPropagation();
+      const modal = document.querySelector(`[data-ld-modal="${opener.dataset.ldModalOpen}"]`);
+      if (!(modal instanceof HTMLDialogElement)) return;
+      carousels.forEach((api) => api.stop());
+      carousels.get(modal)?.show(Number(opener.dataset.ldModalIndex || 0), false);
+      openedModal = modal;
+      if (!modal.open) modal.showModal();
+      return;
+    }
+
+    const closeButton = event.target.closest('[data-ld-modal-close]');
+    if (closeButton) {
+      event.preventDefault();
+      event.stopPropagation();
+      closeModal(closeButton.closest('[data-ld-modal]'));
+    }
+  });
+
+  document.querySelectorAll('[data-ld-modal]').forEach((modal) => {
+    modal.addEventListener('click', (event) => {
+      if (event.target === modal) closeModal(modal);
+    });
+    modal.addEventListener('cancel', (event) => {
+      event.preventDefault();
+      closeModal(modal);
+    });
+    modal.addEventListener('close', () => {
+      if (openedModal === modal) openedModal = null;
+      carousels.forEach((api, root) => {
+        if (!root.matches('[data-ld-modal]')) api.start();
+      });
+    });
+  });
+
+  document.querySelectorAll('[data-ld-cv-input]').forEach((input) => {
+    input.addEventListener('change', () => {
+      if (input.files?.length) input.form?.requestSubmit();
+    });
+  });
+});
+</script>
 {% endblock %}

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Team course purchase confirmed</title>
+</head>
+<body style="margin:0; padding:32px 16px; background:#f2f7f5; color:#193129; font-family:Arial, sans-serif;">
+  <div style="max-width:640px; margin:0 auto; overflow:hidden; border:1px solid #dcebe6; border-radius:8px; background:#ffffff;">
+    <div style="padding:28px; background:#176f59; color:#ffffff;">
+      <p style="margin:0 0 8px; font-size:12px; font-weight:700; letter-spacing:1px; text-transform:uppercase;">Team learning</p>
+      <h1 style="margin:0; font-size:25px;">Your purchase is confirmed</h1>
+    </div>
+
+    <div style="padding:28px;">
+      <p style="margin:0 0 20px; line-height:1.6;">Hello {{ company.username }}, the selected employees now have access to <strong>{{ course.title }}</strong>.</p>
+
+      <div style="margin-bottom:22px; padding:18px; border:1px solid #e2ece8; border-radius:6px; background:#f8fbfa;">
+        <div style="display:flex; justify-content:space-between; gap:16px; margin-bottom:10px;"><span style="color:#64776f;">Seats purchased</span><strong>{{ quantity }}</strong></div>
+        <div style="display:flex; justify-content:space-between; gap:16px;"><span style="color:#64776f;">Total paid</span><strong>{{ amount is not null ? amount|number_format(2, '.', ',') ~ ' ' ~ currency : 'Confirmed by Stripe' }}</strong></div>
+      </div>
+
+      <p style="margin:0 0 10px; font-size:13px; font-weight:700;">Assigned employees</p>
+      <ul style="margin:0; padding-left:20px; color:#52665f; line-height:1.7;">
+        {% for employee in employees %}
+          <li>{{ employee.username ?? employee.email }} — {{ employee.email }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</body>
+</html>

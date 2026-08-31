@@ -1,137 +1,107 @@
 <?php
-// src/Controller/Company/CompanyStripeController.php
+
+declare(strict_types=1);
 
 namespace App\Controller\Company;
 
+use App\Entity\User;
 use App\Repository\CourseRepository;
-use App\Repository\UserRepository;
+use App\Service\CompanyCourseCheckoutService;
+use Stripe\Checkout\Session;
+use Stripe\Stripe;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
-class CompanyStripeController extends AbstractController
+final class CompanyStripeController extends AbstractController
 {
     #[Route('/company/pay/course/{id}', name: 'company_course_checkout', methods: ['POST'])]
     public function checkoutCourse(
         int $id,
         Request $request,
-        CourseRepository $courseRepo
+        CourseRepository $courseRepository,
+        CompanyCourseCheckoutService $checkoutService,
     ): Response {
-        $companyUser = $this->getUser(); // admin entreprise
-        if (!$companyUser) {
+        $company = $this->getUser();
+        if (!$company instanceof User) {
             return $this->redirectToRoute('show_login');
         }
 
-        $course = $courseRepo->find($id);
-        if (!$course) {
-            throw $this->createNotFoundException();
+        if (!$this->isCsrfTokenValid('company_checkout', (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Invalid checkout token.');
         }
 
-        // Email de l’employé demandé dans le formulaire
-        $targetEmail = $request->request->get('email');
-        if (!$targetEmail) {
-            $this->addFlash('error', 'Veuillez saisir un email employé.');
+        $course = $courseRepository->find($id);
+        if ($course === null) {
+            throw $this->createNotFoundException('Course not found.');
+        }
+
+        try {
+            $session = $checkoutService->createCheckout(
+                $course,
+                $company,
+                $request->request->all('employee_ids'),
+            );
+        } catch (\DomainException $exception) {
+            $this->addFlash('error', $exception->getMessage());
+
             return $this->redirectToRoute('company_courses');
         }
 
-        // Récupère le prix EUR (en centimes)
-        $euroPrice = null;
-        foreach ($course->getCoursePrices() as $price) {
-            if ($price->getCurrency() === 'EUR') {
-                $euroPrice = $price->getPrice();
-                break;
-            }
-        }
-        if ($euroPrice === null) {
-            $this->addFlash('error', 'Aucun prix EUR trouvé pour ce cours.');
-            return $this->redirectToRoute('company_courses');
-        }
-
-        \Stripe\Stripe::setApiKey($_SERVER['STRIPE_SECRET_KEY'] ?? $_ENV['STRIPE_SECRET_KEY']);
-
-        $session = \Stripe\Checkout\Session::create([
-            'mode' => 'payment',
-            'payment_method_types' => ['card'],
-            'line_items' => [[
-                'price_data' => [
-                    'currency' => 'eur',
-                    'unit_amount' => $euroPrice,
-                    'product_data' => ['name' => $course->getTitle()],
-                ],
-                'quantity' => 1,
-            ]],
-            // C’est l’entreprise qui paie, on peut mettre son email
-            'customer_email' => $companyUser->getEmail(),
-            'metadata' => [
-                'company_user_id' => (string) $companyUser->getId(),
-                'course_id'       => (string) $course->getId(),
-                'target_email'    => $targetEmail, // <- employé à qui assigner APRÈS paiement
-                'context'         => 'company_single_seat',
-            ],
-            'success_url' => $this->generateUrl('company_payment_success', [], UrlGeneratorInterface::ABSOLUTE_URL)
-                . '?session_id={CHECKOUT_SESSION_ID}',
-            'cancel_url'  => $this->generateUrl('company_payment_cancel', ['c' => $course->getId()], UrlGeneratorInterface::ABSOLUTE_URL),
-        ]);
-
-        return $this->redirect($session->url, 303);
+        return $this->redirect((string) $session->url, 303);
     }
 
-       #[Route('/company/pay/success', name: 'company_payment_success', methods: ['GET'])]
-    public function success(Request $request, CourseRepository $courseRepo): Response
+    #[Route('/company/pay/success', name: 'company_payment_success', methods: ['GET'])]
+    public function success(Request $request, CourseRepository $courseRepository): Response
     {
-        $sessionId = $request->query->get('session_id');
-        $vars = [
-            'hasSession'   => false,
-            'context'      => null,
-            'courseTitle'  => null,
-            'courseId'     => null,
-            'targetEmail'  => null,   // email de l’employé si achat company
-            'buyerEmail'   => null,   // email de l’acheteur (company admin)
-            'amount'       => null,
-            'currency'     => 'EUR',
-            'paymentStatus'=> null,
+        $sessionId = $request->query->getString('session_id');
+        $variables = [
+            'hasSession' => false,
+            'context' => null,
+            'courseTitle' => null,
+            'courseId' => null,
+            'targetEmail' => null,
+            'quantity' => null,
+            'buyerEmail' => null,
+            'amount' => null,
+            'currency' => 'EUR',
+            'paymentStatus' => null,
         ];
 
-        if ($sessionId) {
+        if ($sessionId !== '') {
             try {
-                \Stripe\Stripe::setApiKey($_SERVER['STRIPE_SECRET_KEY'] ?? $_ENV['STRIPE_SECRET_KEY']);
+                $this->configureStripe();
 
-                /** @var \Stripe\Checkout\Session $session */
-                $session = \Stripe\Checkout\Session::retrieve([
+                /** @var Session $session */
+                $session = Session::retrieve([
                     'id' => $sessionId,
                     'expand' => ['payment_intent', 'line_items.data.price.product'],
                 ]);
 
-                $metadata = $session->metadata ?? (object)[];
-                $context  = $metadata->context ?? null;
+                $metadata = $session->metadata ?? (object) [];
+                $courseId = isset($metadata->course_id) ? (int) $metadata->course_id : null;
+                $course = $courseId !== null ? $courseRepository->find($courseId) : null;
 
-                $courseId = $metadata->course_id ?? null;
-                $courseTitle = null;
-                if ($courseId) {
-                    $course = $courseRepo->find($courseId);
-                    $courseTitle = $course?->getTitle();
-                }
-
-                $vars = [
-                    'hasSession'   => true,
-                    'context'      => $context, // 'company_single_seat' | 'employee_purchase' | etc.
-                    'courseTitle'  => $courseTitle,
-                    'courseId'     => $courseId,
-                    'targetEmail'  => $metadata->target_email ?? null,
-                    'buyerEmail'   => $session->customer_details->email ?? $session->customer_email ?? null,
-                    'amount'       => isset($session->amount_total) ? $session->amount_total / 100 : null,
-                    'currency'     => strtoupper($session->currency ?? 'EUR'),
-                    'paymentStatus'=> $session->payment_status ?? null, // 'paid' attendu en mode payment
+                $variables = [
+                    'hasSession' => true,
+                    'context' => $metadata->context ?? null,
+                    'courseTitle' => $course?->getTitle(),
+                    'courseId' => $courseId,
+                    'targetEmail' => $metadata->target_email ?? null,
+                    'quantity' => isset($metadata->quantity) ? (int) $metadata->quantity : null,
+                    'buyerEmail' => $session->customer_details->email ?? $session->customer_email ?? null,
+                    'amount' => isset($session->amount_total) ? $session->amount_total / 100 : null,
+                    'currency' => strtoupper((string) ($session->currency ?? 'EUR')),
+                    'paymentStatus' => $session->payment_status ?? null,
                 ];
-            } catch (\Throwable $e) {
-                // On ne bloque pas l’affichage : on montre juste un message générique
-                $this->addFlash('warning', 'Le récapitulatif du paiement n’a pas pu être récupéré, mais si le paiement est réussi, l’accès sera activé sous peu.');
+            } catch (\Throwable) {
+                $this->addFlash('warning', 'The payment summary could not be retrieved, but paid access will still be activated automatically.');
             }
         }
 
-        return $this->render('company/payments/success.html.twig', $vars);
+        return $this->render('company/payments/success.html.twig', $variables);
     }
 
     #[Route('/company/pay/cancel', name: 'company_payment_cancel', methods: ['GET'])]
@@ -141,7 +111,17 @@ class CompanyStripeController extends AbstractController
 
         return $this->render('company/payments/cancel.html.twig', [
             'courseId' => $courseId,
-            'backUrl'  => $this->generateUrl('company_courses', [], UrlGeneratorInterface::ABSOLUTE_URL),
+            'backUrl' => $this->generateUrl('company_courses', [], UrlGeneratorInterface::ABSOLUTE_URL),
         ]);
+    }
+
+    private function configureStripe(): void
+    {
+        $secret = $_SERVER['STRIPE_SECRET_KEY'] ?? $_ENV['STRIPE_SECRET_KEY'] ?? null;
+        if (!is_string($secret) || $secret === '') {
+            throw new \RuntimeException('Stripe is not configured.');
+        }
+
+        Stripe::setApiKey($secret);
     }
 }

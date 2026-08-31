@@ -1,35 +1,58 @@
 {% extends 'base.html.twig' %}
-{% block title %}Available Courses{% endblock %}
-{% block body %}
 
-<section class="course-section"
+{% block title %}Company course catalogue{% endblock %}
+
+{% block body %}
+<section
+  class="company-course-catalog"
   data-controller="assign"
   data-assign-has-collabs-value="{{ collaborations is not empty ? 'true' : 'false' }}"
-  data-assign-rows-per-page-value="10">
+  data-assign-rows-per-page-value="10"
+  data-assign-checkout-url-template-value="{{ path('company_course_checkout', {id: '__COURSE__'}) }}">
 
-  <h2 class="section-title">Available Courses</h2>
+  <header class="company-course-catalog__hero">
+    <div>
+      <span class="company-course-catalog__eyebrow"><i class="fa-solid fa-layer-group" aria-hidden="true"></i>Team learning</span>
+      <h1>Course catalogue</h1>
+      <p>Select a course, choose several employees and purchase every required seat in one secure checkout.</p>
+    </div>
+    <div class="company-course-catalog__metric">
+      <span><i class="fa-solid fa-users" aria-hidden="true"></i></span>
+      <div><strong>{{ collaborations|length }}</strong><small>team member{{ collaborations|length == 1 ? '' : 's' }}</small></div>
+    </div>
+  </header>
 
-  <div class="course-grid">
+  <div class="course-grid company-course-grid">
     {% for course in courses %}
-      <div class="course-card">
-        <div class="course-thumbnail bg-aml">
-          
-            <img src="{{ asset('uploads/courses/' ~ course.thumb) }}" alt="{{ course.title }}">
-          
+      {% set euroPrice = null %}
+      {% for price in course.coursePrices %}
+        {% if price.currency|upper == 'EUR' %}
+          {% set euroPrice = price.price %}
+        {% endif %}
+      {% endfor %}
+
+      <article class="course-card company-course-card" id="course-{{ course.id }}">
+        <a href="{{ path('company_course_show', {id: course.id}) }}" class="course-thumbnail bg-aml company-course-card__media" aria-label="Open {{ course.title }}">
+          {% if course.thumb %}
+            <img src="{{ asset('uploads/courses/' ~ course.thumb) }}" alt="" loading="lazy">
+          {% else %}
+            <span class="company-course-card__placeholder"><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i></span>
+          {% endif %}
 
           {% if course.videos|length > 0 %}
             <span class="duration-badge">
-              {{ (course.videos|first.duration / 60)|round(0, 'floor') }}:
-              {{ '%02d'|format(course.videos|first.duration % 60) }}
+              {{ (course.videos|first.duration / 60)|round(0, 'floor') }}:{{ '%02d'|format(course.videos|first.duration % 60) }}
             </span>
           {% endif %}
-        </div>
+        </a>
 
-        <div class="course-info">
-          <h3 class="course-title">{{ course.title }}</h3>
-          <p class="course-subtitle">
-            {{ course.description|slice(0, 120) }}{% if course.description|length > 120 %}...{% endif %}
-          </p>
+        <div class="course-info company-course-card__body">
+          <div class="company-course-card__meta">
+            <span>{{ course.videos|length }} lesson{{ course.videos|length == 1 ? '' : 's' }}</span>
+            {% if euroPrice is not null %}<strong>{{ (euroPrice / 100)|number_format(2, '.', ',') }} EUR / seat</strong>{% endif %}
+          </div>
+          <h2 class="course-title">{{ course.title }}</h2>
+          <p class="course-subtitle">{{ course.description|striptags|slice(0, 120) }}{% if course.description|striptags|length > 120 %}&hellip;{% endif %}</p>
 
           <div class="course-footer">
             <button
@@ -37,215 +60,140 @@
               class="see-course-btn"
               data-action="assign#tryAssign"
               data-course-id="{{ course.id }}"
-              data-course-title="{{ course.title|e('html_attr') }}">
-              Buy & Assign
-              <svg class="icon-plus" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" aria-hidden="true">
-                <rect x="28" y="12" width="8" height="40" />
-                <rect x="12" y="28" width="40" height="8" />
-              </svg>
+              data-course-title="{{ course.title|e('html_attr') }}"
+              data-course-price-cents="{{ euroPrice ?? 0 }}"
+              {% if euroPrice is null %}disabled aria-disabled="true"{% endif %}>
+              <span>{{ euroPrice is null ? 'Price unavailable' : 'Buy & assign' }}</span>
+              <i class="fa-solid {{ euroPrice is null ? 'fa-circle-exclamation' : 'fa-arrow-right' }}" aria-hidden="true"></i>
             </button>
           </div>
         </div>
+      </article>
+    {% else %}
+      <div class="company-course-catalog__empty">
+        <i class="fa-solid fa-book-open" aria-hidden="true"></i>
+        <h2>No courses available</h2>
+        <p>The next course will appear here once it is published.</p>
       </div>
     {% endfor %}
   </div>
-  <!-- Modal -->
-<div id="assignModal"
-     class="modal-overlay"
-     data-assign-target="modal"
-     data-action="click->assign#onOverlayClick keydown@window->assign#handleKeydown">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h3 class="modal-title">
-        <svg class="modal-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-          <circle cx="8.5" cy="7" r="4"/>
-          <line x1="20" y1="8" x2="20" y2="14"/>
-          <line x1="23" y1="11" x2="17" y2="11"/>
-        </svg>
-        Assign Course
-      </h3>
-      <button type="button" class="modal-close" data-action="assign#close">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="18" y1="6" x2="6" y2="18"/>
-          <line x1="6" y1="6" x2="18" y2="18"/>
-        </svg>
-      </button>
-    </div>
 
-    <div class="modal-body">
-      <div class="course-info-banner">
-        <svg class="banner-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
-          <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
-        </svg>
-        <span data-assign-target="courseName"></span>
-      </div>
-
-      <!-- Tabs -->
-      <div class="tabs-container">
-        <button class="tab-btn active"
-                data-assign-target="tabs"
-                data-tab="team"
-                data-action="assign#showTeamTab">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-            <circle cx="9" cy="7" r="4"/>
-            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-          </svg>
-          Your Team ({{ collaborations|length }})
+  <div
+    id="assignModal"
+    class="modal-overlay company-assign-modal"
+    data-assign-target="modal"
+    data-action="click->assign#onOverlayClick keydown@window->assign#handleKeydown"
+    aria-hidden="true">
+    <div class="modal-content company-assign-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="assign-modal-title">
+      <header class="modal-header company-assign-modal__header">
+        <div>
+          <span class="company-assign-modal__icon"><i class="fa-solid fa-users-viewfinder" aria-hidden="true"></i></span>
+          <span><small>Bulk assignment</small><h2 id="assign-modal-title">Choose your team</h2></span>
+        </div>
+        <button type="button" class="modal-close" data-action="assign#close" aria-label="Close">
+          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
         </button>
+      </header>
 
-        <button style="display:none" class="tab-btn"
-                data-assign-target="tabs"
-                data-tab="email"
-                data-action="assign#showEmailTab">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-            <polyline points="22,6 12,13 2,6"/>
-          </svg>
-          Assign by Email
-        </button>
-      </div>
-
-      <!-- Team Tab -->
-      <div id="teamTab" class="tab-content active" data-assign-target="teamTab">
-        {% if collaborations is not empty %}
-          <div class="table-controls">
-            <div class="search-box">
-              <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="11" cy="11" r="8"/>
-                <path d="m21 21-4.35-4.35"/>
-              </svg>
-              <input type="text"
-                     placeholder="Search by name or email..."
-                     data-assign-target="searchInput"
-                     data-action="input->assign#filterTable">
-            </div>
-            <div class="results-info">
-              <span data-assign-target="resultsCount">{{ collaborations|length }}</span> members
-            </div>
+      <form class="company-assign-modal__form" method="post" data-assign-target="checkoutForm" data-action="submit->assign#submitSelection">
+        <div class="modal-body company-assign-modal__body">
+          <div class="course-info-banner company-assign-modal__course">
+            <span><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i></span>
+            <div><small>Course selected</small><strong data-assign-target="courseName"></strong></div>
           </div>
 
-          <div class="table-wrapper" data-assign-target="tableWrapper">
-            <table class="assign-table" data-assign-target="table">
-              <thead>
-                <tr>
-                  <th>
-                    <div class="th-content">
-                      Member
-                      <svg class="sort-icon" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M7 10l5 5 5-5z"/>
-                      </svg>
-                    </div>
-                  </th>
-                  <th class="email-col">Email</th>
-                  <th class="action-col">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for collab in collaborations %}
-                  <tr class="user-row">
-                    <td>
-                      <div class="user-cell">
-                        <div class="user-avatar">
-                          <img class="user-avatar" src="{{ asset(collab.employee.avatar ? 'uploads/avatars/' ~ collab.employee.avatar : 'images/User.svg') }}" />
-                        </div>
-                        <span class="user-name">{{ collab.employee.username ?? '—' }}</span>
-                      </div>
-                    </td>
-                    <td class="email-col">
-                      <span class="user-email">{{ collab.employee.email ?? '—' }}</span>
-                    </td>
-                    <td class="action-col">
-                      <button type="button"
-                              class="assign-btn-quick"
-                              title="Assign in 1 click"
-                              data-action="assign#quickAssign"
-                              data-email="{{ collab.employee.email }}"
-                              data-username="{{ collab.employee.username|e('html_attr') }}">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                          <path d="M5 12h14"/>
-                          <path d="M12 5l7 7-7 7"/>
-                        </svg>
-                        Assign
-                      </button>
-                    </td>
+          {% if collaborations is not empty %}
+            <div class="table-controls company-assign-controls">
+              <label class="search-box">
+                <i class="fa-solid fa-magnifying-glass search-icon" aria-hidden="true"></i>
+                <input
+                  type="search"
+                  placeholder="Search by name or email..."
+                  autocomplete="off"
+                  data-assign-target="searchInput"
+                  data-action="input->assign#filterTable">
+              </label>
+              <div class="results-info"><span data-assign-target="resultsCount">{{ collaborations|length }}</span> members</div>
+            </div>
+
+            <div class="table-wrapper company-assign-table-wrap" data-assign-target="tableWrapper">
+              <table class="assign-table company-assign-table" data-assign-target="table">
+                <thead>
+                  <tr>
+                    <th class="company-assign-table__check">
+                      <input type="checkbox" data-assign-target="selectAll" data-action="change->assign#toggleAll" aria-label="Select all available members">
+                    </th>
+                    <th>Member</th>
+                    <th class="email-col">Email</th>
+                    <th class="action-col">Access</th>
                   </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {% for collab in collaborations %}
+                    {% set employee = collab.employee %}
+                    <tr
+                      class="user-row"
+                      data-search="{{ ((employee.username ?? '') ~ ' ' ~ employee.email)|lower|e('html_attr') }}"
+                      data-enrolled-course-ids="{{ (enrolledCourseIdsByEmployee[employee.id] ?? [])|json_encode|e('html_attr') }}"
+                      data-action="click->assign#toggleRow">
+                      <td class="company-assign-table__check">
+                        <input
+                          type="checkbox"
+                          name="employee_ids[]"
+                          value="{{ employee.id }}"
+                          data-assign-target="memberCheckbox"
+                          data-action="click->assign#stopPropagation change->assign#updateSelection"
+                          aria-label="Select {{ employee.username ?? employee.email }}">
+                      </td>
+                      <td>
+                        <div class="user-cell">
+                          <img class="user-avatar" src="{{ asset(employee.avatar ? 'uploads/avatars/' ~ employee.avatar : 'images/User.svg') }}" alt="" loading="lazy">
+                          <span><strong class="user-name">{{ employee.username ?? 'Unnamed member' }}</strong><small>ID {{ employee.id }}</small></span>
+                        </div>
+                      </td>
+                      <td class="email-col"><span class="user-email">{{ employee.email }}</span></td>
+                      <td class="action-col"><span class="company-access-state" data-assign-access-state>Available</span></td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
 
-          <div class="no-results" style="display:none" data-assign-target="noResults">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="11" cy="11" r="8"/>
-              <path d="m21 21-4.35-4.35"/>
-            </svg>
-            <p>No members found</p>
-          </div>
+            <div class="no-results" hidden data-assign-target="noResults">
+              <i class="fa-solid fa-user-slash" aria-hidden="true"></i>
+              <p>No members found</p>
+            </div>
 
-          <div class="pagination" data-assign-target="pagination"></div>
-        {% else %}
-          <div class="empty-state">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-              <circle cx="9" cy="7" r="4"/>
-              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-            </svg>
-            <h4>No team members yet</h4>
-            <p>Add collaborators to assign courses directly</p>
-          </div>
+            <div class="pagination" data-assign-target="pagination"></div>
+          {% else %}
+            <div class="empty-state">
+              <i class="fa-solid fa-user-plus" aria-hidden="true"></i>
+              <h3>No team members yet</h3>
+              <p>Add employees before assigning a course.</p>
+            </div>
+          {% endif %}
+        </div>
+
+        {% if collaborations is not empty %}
+          <footer class="company-assign-modal__footer">
+            <input type="hidden" name="_token" value="{{ csrf_token('company_checkout') }}">
+            <div class="company-seat-summary" aria-live="polite">
+              <span><strong data-assign-target="selectionCount">0</strong> seat<span data-assign-target="seatPlural">s</span></span>
+              <span class="company-seat-summary__operator">&times;</span>
+              <span data-assign-target="unitPrice">0.00 EUR</span>
+              <span class="company-seat-summary__total">Total <strong data-assign-target="selectionTotal">0.00 EUR</strong></span>
+            </div>
+            <div class="company-assign-modal__actions">
+              <button type="button" class="btn-cancel" data-action="assign#close">Cancel</button>
+              <button type="submit" class="btn-primary" data-assign-target="checkoutButton" disabled>
+                <i class="fa-solid fa-lock" aria-hidden="true"></i>
+                <span data-assign-target="checkoutButtonText">Select employees</span>
+              </button>
+            </div>
+          </footer>
         {% endif %}
-      </div>
-
-      <!-- Email Tab -->
-      <div id="emailTab" class="tab-content" data-assign-target="emailTab">
-        <form class="assign-form" method="POST" data-action="submit->assign#submitEmailForm">
-          <div class="form-group">
-            <label for="userEmail">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-                <polyline points="22,6 12,13 2,6"/>
-              </svg>
-              Recipient Email
-            </label>
-            <input type="email"
-                   id="userEmail"
-                   name="email"
-                   placeholder="collaborator@company.com"
-                   required
-                   autocomplete="email"
-                   data-assign-target="userEmail">
-            <div class="form-error" data-assign-target="emailError"></div>
-          </div>
-
-          <input type="hidden"
-                 name="_token"
-                 value="{{ csrf_token('company_checkout') }}"
-                 data-assign-target="csrfToken">
-
-          <div class="form-actions">
-            <button type="button" class="btn-cancel" data-action="assign#close">
-              Cancel
-            </button>
-            <button type="submit" class="btn-primary" data-assign-target="submitBtn">
-              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10"/>
-                <path d="M12 16v-4"/>
-                <path d="M12 8h.01"/>
-              </svg>
-              <span data-assign-target="btnText">Buy & Assign</span>
-              <span class="spinner" style="display:none" data-assign-target="spinner"></span>
-            </button>
-          </div>
-        </form>
-      </div>
-
+      </form>
     </div>
   </div>
-</div>
 </section>
 {% endblock %}

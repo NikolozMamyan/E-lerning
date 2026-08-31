@@ -11,6 +11,7 @@ use App\Repository\UserRepository;
 use App\Repository\CourseRepository;
 use App\Service\NotificationService;
 use App\Service\GuestPurchaseProvisioner;
+use App\Service\CompanyCourseCheckoutService;
 use App\Repository\EnrollmentRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\SubscriptionRepository;
@@ -33,6 +34,7 @@ class StripeWebhookController extends AbstractController
         MailerService $mailer,
         NotificationService $notificationService,
         GuestPurchaseProvisioner $guestPurchaseProvisioner,
+        CompanyCourseCheckoutService $companyCourseCheckoutService,
         LoggerInterface $logger
     ): Response {
         $payload   = $request->getContent();
@@ -452,6 +454,153 @@ class StripeWebhookController extends AbstractController
                 }
 
                 return new Response('Enrollment created', 200);
+            }
+
+            if ($context === 'company_bulk_seats') {
+                $companyId = isset($metadata->company_user_id) ? (int) $metadata->company_user_id : 0;
+                $company = $companyId > 0 ? $userRepo->find($companyId) : null;
+                $recipientIds = $companyCourseCheckoutService->recipientIdsFromMetadata($metadata);
+
+                if (!$company || $recipientIds === []) {
+                    $logger->error('Invalid company bulk checkout metadata.', [
+                        'companyId' => $companyId,
+                        'sessionId' => $session->id ?? null,
+                    ]);
+
+                    return new Response('Invalid company bulk metadata', 200);
+                }
+
+                $allowedRecipientIds = [];
+                foreach ($company->getCollaborationsAsCompany() as $collaboration) {
+                    $employeeId = $collaboration->getEmployee()?->getId();
+                    if ($employeeId !== null) {
+                        $allowedRecipientIds[$employeeId] = true;
+                    }
+                }
+
+                $validRecipientIds = array_values(array_filter(
+                    $recipientIds,
+                    static fn (int $recipientId): bool => isset($allowedRecipientIds[$recipientId]),
+                ));
+
+                if (count($validRecipientIds) !== count($recipientIds)) {
+                    $logger->warning('Company bulk checkout contains recipients outside the company team.', [
+                        'companyId' => $companyId,
+                        'sessionId' => $session->id ?? null,
+                    ]);
+                }
+
+                if ($validRecipientIds === []) {
+                    return new Response('No valid company recipients', 200);
+                }
+
+                $employeesById = [];
+                foreach ($userRepo->findBy(['id' => $validRecipientIds]) as $employee) {
+                    $employeesById[$employee->getId()] = $employee;
+                }
+
+                $createdEnrollments = [];
+                foreach ($validRecipientIds as $recipientId) {
+                    $employee = $employeesById[$recipientId] ?? null;
+                    if (!$employee || $enrollmentRepo->findOneBy(['user' => $employee, 'course' => $course])) {
+                        continue;
+                    }
+
+                    $enrollment = new Enrollment();
+                    $enrollment->setUser($employee);
+                    $enrollment->setCourse($course);
+                    $em->persist($enrollment);
+                    $createdEnrollments[] = $enrollment;
+                }
+
+                if (!$enrollmentRepo->findOneBy(['user' => $company, 'course' => $course])) {
+                    $companyEnrollment = new Enrollment();
+                    $companyEnrollment->setUser($company);
+                    $companyEnrollment->setCourse($course);
+                    $em->persist($companyEnrollment);
+                }
+
+                $em->flush();
+
+                if ($createdEnrollments === []) {
+                    return new Response('Company bulk enrollment already processed', 200);
+                }
+
+                foreach ($createdEnrollments as $enrollment) {
+                    $employee = $enrollment->getUser();
+                    if (!$employee) {
+                        continue;
+                    }
+
+                    try {
+                        $notificationService->createEntityNotification(
+                            $employee,
+                            'A new course is ready for you',
+                            $enrollment,
+                            sprintf('Your company assigned you the course "%s".', $course->getTitle()),
+                            Notification::TYPE_INFO,
+                            '/app/course/'.$course->getId(),
+                            'company-enrollment',
+                            Notification::PRIORITY_NORMAL,
+                        );
+                    } catch (\Throwable $exception) {
+                        $logger->error('Unable to create a bulk enrollment notification.', [
+                            'employeeId' => $employee->getId(),
+                            'exception' => $exception,
+                        ]);
+                    }
+
+                    try {
+                        $mailer->send(
+                            $employee->getEmail(),
+                            'Your company assigned you a new course',
+                            'emails/enrolled.html.twig',
+                            [
+                                'employee' => $employee,
+                                'user' => $company,
+                                'course' => $course,
+                            ],
+                        );
+                    } catch (\Throwable $exception) {
+                        $logger->error('Unable to send a bulk enrollment email.', [
+                            'employeeId' => $employee->getId(),
+                            'exception' => $exception,
+                        ]);
+                    }
+                }
+
+                try {
+                    $mailer->send(
+                        $company->getEmail(),
+                        'Team course purchase confirmed - '.$course->getTitle(),
+                        'emails/company_bulk_receipt.html.twig',
+                        [
+                            'company' => $company,
+                            'course' => $course,
+                            'employees' => array_map(
+                                static fn (Enrollment $enrollment) => $enrollment->getUser(),
+                                $createdEnrollments,
+                            ),
+                            'quantity' => (int) ($metadata->quantity ?? count($recipientIds)),
+                            'amount' => $amount,
+                            'currency' => $currency,
+                        ],
+                    );
+                } catch (\Throwable $exception) {
+                    $logger->error('Unable to send the company bulk purchase receipt.', [
+                        'companyId' => $company->getId(),
+                        'exception' => $exception,
+                    ]);
+                }
+
+                $logger->info('Company bulk checkout processed.', [
+                    'companyId' => $company->getId(),
+                    'courseId' => $course->getId(),
+                    'quantity' => count($recipientIds),
+                    'enrollmentsCreated' => count($createdEnrollments),
+                ]);
+
+                return new Response('Company bulk enrollments created', 200);
             }
 
             // === Branche 2 : achat entreprise (1 place) ===

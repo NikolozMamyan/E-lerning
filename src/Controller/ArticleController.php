@@ -49,7 +49,8 @@ class ArticleController extends AbstractController
         }
 
         $articles = $articleRepository->findFeed($filter, $user instanceof User ? $user : null, $limit, $offset);
-        $currentJobOffer = $jobOfferRepository->findCurrent();
+        $jobOffers = $jobOfferRepository->findActive();
+        $upcomingEvents = $eventRepository->findUpcoming(10);
 
         return $this->render('article/feed.html.twig', [
             'articles' => $articles,
@@ -60,11 +61,11 @@ class ArticleController extends AbstractController
             'userStats' => $user instanceof User
                 ? $articleRepository->getAuthorStats($user)
                 : ['posts' => 0, 'likesReceived' => 0, 'commentsReceived' => 0],
-            'currentJobOffer' => $currentJobOffer,
-            'hasAppliedToCurrentJob' => $user instanceof User && $currentJobOffer
-                ? $jobApplicationRepository->findOneBy(['jobOffer' => $currentJobOffer, 'applicant' => $user]) !== null
-                : false,
-            'upcomingEvents' => $eventRepository->findUpcoming(),
+            'jobOffers' => $jobOffers,
+            'appliedJobOfferIds' => $user instanceof User
+                ? $jobApplicationRepository->findJobOfferIdsForApplicant($user)
+                : [],
+            'upcomingEvents' => $upcomingEvents,
             'registeredEventIds' => $user instanceof User
                 ? $eventRegistrationRepository->findEventIdsForMember($user)
                 : [],

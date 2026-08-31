@@ -84,15 +84,13 @@
       <span class="profile-cover__orb profile-cover__orb--one" aria-hidden="true"></span>
       <span class="profile-cover__orb profile-cover__orb--two" aria-hidden="true"></span>
       {% if isOwnProfile %}
-        <form class="profile-cover__edit" action="{{ path('app_profile_cover_upload') }}" method="post" enctype="multipart/form-data" data-profile-cover-form>
-          <input type="hidden" name="_token" value="{{ csrf_token('profile_cover') }}">
-          <input id="profile-cover-file" class="profile-cover__file" type="file" name="cover" accept="image/jpeg,image/png,image/webp" data-profile-cover-input>
-          <label for="profile-cover-file" title="Change cover image">
+        <div class="profile-cover__edit">
+          <button type="button" title="Adjust cover image" data-profile-cover-open>
             <i class="fa-solid fa-pen" aria-hidden="true"></i>
             <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
-            <span>Change cover</span>
-          </label>
-        </form>
+            <span>Adjust cover</span>
+          </button>
+        </div>
       {% endif %}
       <div class="profile-cover__message">
         <i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i>
@@ -339,15 +337,205 @@
   </div>
 </div>
 {% if isOwnProfile %}
+  <div class="profile-cover-editor" data-profile-cover-editor data-has-cover="{{ profileUser.coverImage ? 'true' : 'false' }}" hidden>
+    <div class="profile-cover-editor__dialog" role="dialog" aria-modal="true" aria-labelledby="profile-cover-editor-title">
+      <header class="profile-cover-editor__header">
+        <span><i class="fa-solid fa-panorama" aria-hidden="true"></i></span>
+        <div>
+          <small>Public profile</small>
+          <h2 id="profile-cover-editor-title">Adjust your cover image</h2>
+          <p>Choose an image, then zoom and position it inside the panoramic frame.</p>
+        </div>
+        <button type="button" data-profile-cover-close aria-label="Close cover editor"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+      </header>
+
+      <form class="profile-cover-editor__form" action="{{ path('app_profile_cover_upload') }}" method="post" enctype="multipart/form-data" data-profile-cover-form>
+        <input type="hidden" name="_token" value="{{ csrf_token('profile_cover') }}">
+
+        <div class="profile-cover-editor__viewport" data-profile-cover-viewport>
+          <img src="{{ profileUser.coverImage ? asset('uploads/covers/' ~ profileUser.coverImage) : '' }}" alt="Cover crop preview" draggable="false" data-profile-cover-preview{% if not profileUser.coverImage %} hidden{% endif %}>
+          <div class="profile-cover-editor__empty" data-profile-cover-empty{% if profileUser.coverImage %} hidden{% endif %}>
+            <i class="fa-regular fa-image" aria-hidden="true"></i>
+            <strong>Choose a cover image</strong>
+            <small>JPEG, PNG or WebP · maximum 8 MB</small>
+          </div>
+          <span class="profile-cover-editor__safe-area" aria-hidden="true"></span>
+        </div>
+
+        <div class="profile-cover-editor__controls">
+          <label><span><i class="fa-solid fa-magnifying-glass-plus" aria-hidden="true"></i>Zoom</span><input type="range" min="1" max="3" step="0.01" value="1" data-profile-cover-zoom></label>
+          <label><span><i class="fa-solid fa-arrows-left-right" aria-hidden="true"></i>Horizontal position</span><input type="range" min="0" max="100" step="1" value="50" data-profile-cover-x></label>
+          <label><span><i class="fa-solid fa-arrows-up-down" aria-hidden="true"></i>Vertical position</span><input type="range" min="0" max="100" step="1" value="45" data-profile-cover-y></label>
+        </div>
+
+        <p class="profile-cover-editor__error" data-profile-cover-error role="alert" hidden></p>
+
+        <footer class="profile-cover-editor__actions">
+          <label for="profile-cover-file"><i class="fa-regular fa-image" aria-hidden="true"></i>{{ profileUser.coverImage ? 'Choose another image' : 'Choose an image' }}</label>
+          <input id="profile-cover-file" class="profile-cover__file" type="file" name="cover" accept="image/jpeg,image/png,image/webp" data-profile-cover-input>
+          <div>
+            <button type="button" class="profile-cover-editor__cancel" data-profile-cover-close>Cancel</button>
+            <button type="submit" class="profile-cover-editor__save" data-profile-cover-save {{ profileUser.coverImage ? '' : 'disabled' }}><i class="fa-solid fa-check" aria-hidden="true"></i><span>Save cover</span></button>
+          </div>
+        </footer>
+      </form>
+    </div>
+  </div>
+
   <script>
-    document.querySelectorAll('[data-profile-cover-form]').forEach((form) => {
-      const input = form.querySelector('[data-profile-cover-input]');
-      input?.addEventListener('change', () => {
-        if (!input.files?.length) return;
-        form.classList.add('is-uploading');
-        form.requestSubmit();
+    (() => {
+      const editor = document.querySelector('[data-profile-cover-editor]');
+      const openButton = document.querySelector('[data-profile-cover-open]');
+      const form = editor?.querySelector('[data-profile-cover-form]');
+      const fileInput = editor?.querySelector('[data-profile-cover-input]');
+      const preview = editor?.querySelector('[data-profile-cover-preview]');
+      const emptyState = editor?.querySelector('[data-profile-cover-empty]');
+      const viewport = editor?.querySelector('[data-profile-cover-viewport]');
+      const zoomInput = editor?.querySelector('[data-profile-cover-zoom]');
+      const xInput = editor?.querySelector('[data-profile-cover-x]');
+      const yInput = editor?.querySelector('[data-profile-cover-y]');
+      const saveButton = editor?.querySelector('[data-profile-cover-save]');
+      const errorBox = editor?.querySelector('[data-profile-cover-error]');
+      if (!editor || !openButton || !form || !fileInput || !preview || !viewport || !zoomInput || !xInput || !yInput || !saveButton || !errorBox) return;
+
+      let objectUrl = null;
+
+      const values = () => ({
+        zoom: Number.parseFloat(zoomInput.value) || 1,
+        x: Number.parseFloat(xInput.value) || 50,
+        y: Number.parseFloat(yInput.value) || 45,
       });
-    });
+
+      const imageGeometry = (width, height) => {
+        const { zoom, x, y } = values();
+        const scale = Math.max(width / preview.naturalWidth, height / preview.naturalHeight) * zoom;
+        const imageWidth = preview.naturalWidth * scale;
+        const imageHeight = preview.naturalHeight * scale;
+
+        return {
+          imageWidth,
+          imageHeight,
+          left: (width - imageWidth) * (x / 100),
+          top: (height - imageHeight) * (y / 100),
+        };
+      };
+
+      const updatePreview = () => {
+        if (!preview.naturalWidth || !preview.naturalHeight) return;
+        const geometry = imageGeometry(viewport.clientWidth, viewport.clientHeight);
+        Object.assign(preview.style, {
+          width: `${geometry.imageWidth}px`,
+          height: `${geometry.imageHeight}px`,
+          left: `${geometry.left}px`,
+          top: `${geometry.top}px`,
+        });
+      };
+
+      const showError = (message = '') => {
+        errorBox.textContent = message;
+        errorBox.hidden = message === '';
+      };
+
+      const openEditor = () => {
+        editor.hidden = false;
+        document.body.classList.add('profile-cover-editor-open');
+        requestAnimationFrame(() => {
+          editor.classList.add('is-visible');
+          updatePreview();
+        });
+      };
+
+      const closeEditor = () => {
+        if (form.classList.contains('is-uploading')) return;
+        editor.classList.remove('is-visible');
+        document.body.classList.remove('profile-cover-editor-open');
+        window.setTimeout(() => { editor.hidden = true; }, 180);
+        showError();
+      };
+
+      openButton.addEventListener('click', openEditor);
+      editor.querySelectorAll('[data-profile-cover-close]').forEach((button) => button.addEventListener('click', closeEditor));
+      editor.addEventListener('click', (event) => { if (event.target === editor) closeEditor(); });
+      document.addEventListener('keydown', (event) => { if (event.key === 'Escape' && !editor.hidden) closeEditor(); });
+
+      preview.addEventListener('load', updatePreview);
+      [zoomInput, xInput, yInput].forEach((input) => input.addEventListener('input', updatePreview));
+
+      fileInput.addEventListener('change', () => {
+        const file = fileInput.files?.[0];
+        if (!file) return;
+        if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+          showError('Use a JPEG, PNG or WebP image.');
+          fileInput.value = '';
+          return;
+        }
+        if (file.size > 8 * 1024 * 1024) {
+          showError('The cover image must be smaller than 8 MB.');
+          fileInput.value = '';
+          return;
+        }
+
+        showError();
+        if (objectUrl) URL.revokeObjectURL(objectUrl);
+        objectUrl = URL.createObjectURL(file);
+        editor.dataset.hasCover = 'true';
+        zoomInput.value = '1';
+        xInput.value = '50';
+        yInput.value = '45';
+        preview.hidden = false;
+        if (emptyState) emptyState.hidden = true;
+        preview.src = objectUrl;
+        saveButton.disabled = false;
+      });
+
+      const createCroppedCover = async () => {
+        if (editor.dataset.hasCover !== 'true') throw new Error('Choose a cover image first.');
+        if (preview.decode) {
+          try { await preview.decode(); } catch (error) { /* handled below */ }
+        }
+        if (!preview.naturalWidth || !preview.naturalHeight) throw new Error('The selected image could not be read.');
+
+        const width = 1800;
+        const height = 600;
+        const geometry = imageGeometry(width, height);
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const context = canvas.getContext('2d');
+        context.fillStyle = '#e8f4f0';
+        context.fillRect(0, 0, width, height);
+        context.drawImage(preview, geometry.left, geometry.top, geometry.imageWidth, geometry.imageHeight);
+
+        return new Promise((resolve, reject) => {
+          canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error('The cover crop could not be created.')), 'image/jpeg', 0.9);
+        });
+      };
+
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        showError();
+        form.classList.add('is-uploading');
+        saveButton.disabled = true;
+        const defaultLabel = saveButton.innerHTML;
+        saveButton.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin" aria-hidden="true"></i><span>Saving cover</span>';
+
+        try {
+          const croppedCover = await createCroppedCover();
+          const payload = new FormData(form);
+          payload.set('cover', croppedCover, 'profile-cover.jpg');
+          const response = await fetch(form.action, { method: 'POST', body: payload });
+          if (!response.ok) throw new Error('Unable to save the cover image.');
+          window.location.assign(response.url || '{{ path('app_profile') }}');
+        } catch (error) {
+          showError(error.message || 'Unable to save the cover image.');
+          form.classList.remove('is-uploading');
+          saveButton.disabled = false;
+          saveButton.innerHTML = defaultLabel;
+        }
+      });
+
+      if (preview.complete && preview.src) updatePreview();
+    })();
   </script>
 {% endif %}
 {% endblock %}

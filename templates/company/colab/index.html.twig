@@ -1,9 +1,13 @@
 {% extends 'base.html.twig' %}
 
 {% block body %}
-<div class="employees-page">
-  <div class="page-header">
-    <h1 class="page-title">Employees</h1>
+<div class="employees-page company-employees-page">
+  <div class="page-header company-employees-header">
+    <div>
+      <span class="company-employees-header__eyebrow"><i class="fa-solid fa-users" aria-hidden="true"></i>Team management</span>
+      <h1 class="page-title">Employees</h1>
+      <p>Manage your {{ collaborations|length }} team member{{ collaborations|length == 1 ? '' : 's' }} from one clear workspace.</p>
+    </div>
     <button class="btn-primary" id="openModalBtn">
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
         <path d="M10 4V16M4 10H16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -12,28 +16,36 @@
     </button>
   </div>
 
-  <div class="card">
+  <div class="card company-user-panel company-user-panel--employees">
+    <div class="company-user-panel__header">
+      <div>
+        <span><i class="fa-solid fa-address-book" aria-hidden="true"></i>Directory</span>
+        <h2>Your company team</h2>
+        <p>Review profiles, account activity and employee details.</p>
+      </div>
+      <strong class="company-user-panel__count">{{ collaborations|length }} member{{ collaborations|length == 1 ? '' : 's' }}</strong>
+    </div>
     <div class="table-container">
-      <table class="employee-table">
+      <table class="employee-table company-user-table">
         <thead>
           <tr>
             <th class="checkbox-col">
               <input type="checkbox" class="main-checkbox">
             </th>
             <th></th>
-            <th>Nom</th>
+            <th>Member</th>
             <th class="hide-mobile">User ID</th>
             <th class="hide-tablet">Email</th>
-            <th class="hide-mobile">Date</th>
-            <th>Rôle</th>
-            <th>Statut</th>
+            <th class="hide-mobile">Added</th>
+            <th>Profile</th>
+            <th>Status</th>
             <th>Actions</th>
           </tr>
         </thead>
         <tbody>
   {% for collaboration in collaborations %}
     {% set employee = collaboration.employee %}
-    <tr>
+    <tr class="company-user-row">
       <td><input type="checkbox" class="row-checkbox"></td>
         <td><img class="user-avatar" src="{{ asset(employee.avatar ? 'uploads/avatars/' ~ employee.avatar : 'images/User.svg') }}" /> </td>
       <td class="name-cell">
@@ -44,10 +56,10 @@
       </td>
       <td class="hide-mobile">{{ employee.id }}</td>
       <td class="hide-tablet">{{ employee.email }}</td>
-      <td class="hide-mobile"></td>
+      <td class="hide-mobile">{{ collaboration.createdAt|date('d M Y') }}</td>
       <td>{{ employee.bachelorDegree ?? 'No info' }}</td>
       <td>
-        <span class="status"></span>
+        <span class="status {{ employee.apiToken is not empty ? 'is-online' : 'is-offline' }}"></span>
       </td>
       <td class="actions-cell">
         <a href="{{ path('company_colab_delete', {id: collaboration.id}) }}"
@@ -64,7 +76,7 @@
     </tr>
   {% else %}
     <tr>
-      <td colspan="8" class="empty-state">You don’t have any collaboration</td>
+      <td colspan="9" class="empty-state">You don’t have any collaboration</td>
     </tr>
   {% endfor %}
 </tbody>

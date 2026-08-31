@@ -2,12 +2,14 @@
 
 namespace App\Controller;
 
-use App\Service\MailerService;
+use App\Entity\User;
+use App\Repository\CommunityEventRepository;
 use App\Repository\CourseRepository;
 use App\Repository\ProgressRepository;
 use App\Repository\EnrollmentRepository;
-use App\Repository\ArticleRepository; // Ajouter ceci
-use Doctrine\ORM\EntityManagerInterface;
+use App\Repository\ArticleRepository;
+use App\Repository\JobApplicationRepository;
+use App\Repository\JobOfferRepository;
 use App\Repository\QuizAttemptRepository;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -21,14 +23,16 @@ public function index(
     ProgressRepository $progressRepo,
     QuizAttemptRepository $quizAttemptRepo,
     EnrollmentRepository $enrollmentRepo,
-    ArticleRepository $articleRepo, // Ajouter ceci
-    EntityManagerInterface $em
+    ArticleRepository $articleRepo,
+    JobOfferRepository $jobOfferRepository,
+    JobApplicationRepository $jobApplicationRepository,
+    CommunityEventRepository $eventRepository,
 ): Response {
     $user = $this->getUser();
 
     // Tous les cours
     $courses = $courseRepo->findAll();
-    $latestCourses = $courseRepo->findBy([], ['updatedAt' => 'DESC'], 3);
+    $latestCourses = $courseRepo->findBy([], ['updatedAt' => 'DESC', 'id' => 'DESC'], 5);
 
     // Progression par cours
     $progressData = [];
@@ -68,39 +72,28 @@ public function index(
         }
     }
 
-    // Vidéos récentes
-    $recentVideos = [];
-    if ($user) {
-        $qb = $em->createQueryBuilder()
-            ->select('p', 'v', 'c')
-            ->from('App\Entity\Progress', 'p')
-            ->join('p.video', 'v')
-            ->join('v.course', 'c')
-            ->where('p.user = :user')
-            ->setParameter('user', $user)
-            ->orderBy('p.id', 'DESC')
-            ->setMaxResults(3);
-
-        $recentVideos = $qb->getQuery()->getResult();
-    }
-
     // Quiz attempts
     $userAttempts = $user ? $quizAttemptRepo->findByUser($user) : [];
 
     // Enrollments (transactions)
     $enrollments = $user ? $enrollmentRepo->findByUserWithCourse($user) : [];
 
-    // Articles récents (ajouter ceci)
-    $latestArticles = $articleRepo->findBy([], ['createdAt' => 'DESC'], 6);
+    $latestArticles = $articleRepo->findBy([], ['createdAt' => 'DESC'], 5);
+    $jobOffers = $jobOfferRepository->findActive();
+    $upcomingEvents = $eventRepository->findUpcoming(10);
 
     return $this->render('dashboard/index.html.twig', [
         'courses' => $courses,
         'progressData' => $progressData,
-        'recentVideos' => $recentVideos,
         'userAttempts' => $userAttempts,
         'latestCourses' => $latestCourses,
         'enrollments' => $enrollments,
-        'latestArticles' => $latestArticles, // Ajouter ceci
+        'latestArticles' => $latestArticles,
+        'jobOffers' => $jobOffers,
+        'appliedJobOfferIds' => $user instanceof User
+            ? $jobApplicationRepository->findJobOfferIdsForApplicant($user)
+            : [],
+        'upcomingEvents' => $upcomingEvents,
     ]);
 }
 }

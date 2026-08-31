@@ -9,7 +9,10 @@
 
     {% if hasSession %}
       <p style="margin:0 0 16px; color:#4b5563;">
-        {% if context == 'company_single_seat' %}
+        {% if context == 'company_bulk_seats' %}
+          Your payment has been received. Access for <strong>{{ quantity }} team member{{ quantity == 1 ? '' : 's' }}</strong>
+          will be activated automatically within the next few minutes.
+        {% elseif context == 'company_single_seat' %}
           Your payment has been received. Access to the course for
           <strong>{{ targetEmail }}</strong>
           will be activated automatically within the next few minutes.
@@ -33,7 +36,16 @@
             {% endif %}
           </strong>
         </div>
-        {% if context == 'company_single_seat' %}
+        {% if context == 'company_bulk_seats' %}
+          <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+            <span style="color:#6b7280;">Seats</span>
+            <strong>{{ quantity ?? '—' }}</strong>
+          </div>
+          <div style="display:flex; justify-content:space-between;">
+            <span style="color:#6b7280;">Buyer</span>
+            <strong>{{ buyerEmail ?? '—' }}</strong>
+          </div>
+        {% elseif context == 'company_single_seat' %}
           <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
             <span style="color:#6b7280;">Employee</span>
             <strong>{{ targetEmail ?? '—' }}</strong>

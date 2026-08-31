@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\User;
+use App\Entity\Course;
 use App\Entity\Enrollment;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -72,5 +73,27 @@ class EnrollmentRepository extends ServiceEntityRepository
             ->orderBy('e.createdAt', 'DESC')
             ->getQuery()
             ->getResult();
+    }
+
+    /**
+     * @param int[] $userIds
+     * @return int[]
+     */
+    public function findEnrolledUserIdsForCourse(Course $course, array $userIds): array
+    {
+        if ($userIds === []) {
+            return [];
+        }
+
+        $rows = $this->createQueryBuilder('enrollment')
+            ->select('IDENTITY(enrollment.user) AS userId')
+            ->andWhere('enrollment.course = :course')
+            ->andWhere('enrollment.user IN (:userIds)')
+            ->setParameter('course', $course)
+            ->setParameter('userIds', $userIds)
+            ->getQuery()
+            ->getArrayResult();
+
+        return array_map(static fn (array $row): int => (int) $row['userId'], $rows);
     }
 }

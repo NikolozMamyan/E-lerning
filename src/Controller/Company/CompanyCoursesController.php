@@ -39,11 +39,28 @@ class CompanyCoursesController extends AbstractController
             }
         }
         $collaborations = $user->getCollaborationsAsCompany();
+        $employeeIds = [];
+        foreach ($collaborations as $collaboration) {
+            $employeeId = $collaboration->getEmployee()?->getId();
+            if ($employeeId !== null) {
+                $employeeIds[] = $employeeId;
+            }
+        }
+
+        $enrolledCourseIdsByEmployee = [];
+        foreach ($enrollmentRepo->findByUserIdsWithCourse($employeeIds) as $enrollment) {
+            $employeeId = $enrollment->getUser()?->getId();
+            $courseId = $enrollment->getCourse()?->getId();
+            if ($employeeId !== null && $courseId !== null) {
+                $enrolledCourseIdsByEmployee[$employeeId][] = $courseId;
+            }
+        }
 
         return $this->render('company/courses/index.html.twig', [
             'courses' => $courses,
             'access' => $access,
-            'collaborations' =>$collaborations
+            'collaborations' => $collaborations,
+            'enrolledCourseIdsByEmployee' => $enrolledCourseIdsByEmployee,
         ]);
     }
 

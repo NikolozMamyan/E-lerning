@@ -95,11 +95,25 @@ final class CompanyDashboardController extends AbstractController
                 $employeeProgress[$course->getId()] = $percent;
             }
 
+            $average = $employeeProgress !== []
+                ? round(array_sum($employeeProgress) / count($employeeProgress), 2)
+                : 0;
+            $activeCourses = count(array_filter(
+                $employeeProgress,
+                static fn (float|int $percent): bool => $percent > 0
+            ));
+
             $collaboratorsProgress[] = [
                 'employee' => $employee,
                 'progress' => $employeeProgress,
+                'average' => $average,
+                'activeCourses' => $activeCourses,
             ];
         }
+
+        $teamAverage = $collaboratorsProgress !== []
+            ? round(array_sum(array_column($collaboratorsProgress, 'average')) / count($collaboratorsProgress), 2)
+            : 0;
 
         return $this->render('company/dashboard/index.html.twig', [
             'courses' => $courses,
@@ -109,6 +123,7 @@ final class CompanyDashboardController extends AbstractController
             'employees' => $employees,
             'collaborations' => $collaborations,
             'collaboratorsProgress' => $collaboratorsProgress,
+            'teamAverage' => $teamAverage,
         ]);
     }
 

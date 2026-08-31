@@ -16,9 +16,10 @@ final class JobOfferRepository extends ServiceEntityRepository
         parent::__construct($registry, JobOffer::class);
     }
 
-    public function findCurrent(): ?JobOffer
+    /** @return JobOffer[] */
+    public function findActive(int $limit = 10): array
     {
-        return $this->findOneBy(['isActive' => true], ['createdAt' => 'DESC']);
+        return $this->findBy(['isActive' => true], ['createdAt' => 'DESC'], $limit);
     }
 
     public function deactivateAllExcept(?JobOffer $jobOffer = null): void

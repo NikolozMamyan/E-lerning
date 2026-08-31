@@ -10,3 +10,5 @@ import './styles/quiz.css';
 import './styles/subscription.css';
 import './styles/transactions.css';
 import './styles/company/assign.css';
+import './styles/company/tables.css';
+import './styles/company/dashboard.css';
