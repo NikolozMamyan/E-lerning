@@ -1,4 +1,5 @@
 import './bootstrap.js';
+import './communityRichText.js';
 import './styles/global.css';
 import './styles/nav.css';
 import './styles/dashboard.css';

@@ -230,10 +230,14 @@
           </span>
         </div>
         {% if jobOffers|length %}
-          <div class="ld-carousel-nav" aria-label="Browse job opportunities">
-            <button type="button" data-ld-prev aria-label="Previous opportunity"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>
-            <span><strong data-ld-current>1</strong>/{{ jobOffers|length }}</span>
-            <button type="button" data-ld-next aria-label="Next opportunity"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button>
+          <div class="ld-carousel-controls">
+            <span class="ld-carousel-counter" aria-label="Opportunity 1 of {{ jobOffers|length }}"><strong data-ld-current>1</strong>/{{ jobOffers|length }}</span>
+            {% if jobOffers|length > 1 %}
+              <nav class="ld-carousel-nav ld-carousel-nav--compact" aria-label="Browse job opportunities">
+                <button type="button" data-ld-prev aria-label="Previous opportunity"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>
+                <button type="button" data-ld-next aria-label="Next opportunity"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button>
+              </nav>
+            {% endif %}
           </div>
         {% endif %}
       </div>
@@ -327,10 +331,14 @@
           </span>
         </div>
         {% if upcomingEvents|length %}
-          <div class="ld-carousel-nav ld-carousel-nav--agenda" aria-label="Browse upcoming events">
-            <button type="button" data-ld-prev aria-label="Previous event"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>
-            <span><strong data-ld-current>1</strong>/{{ upcomingEvents|length }}</span>
-            <button type="button" data-ld-next aria-label="Next event"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button>
+          <div class="ld-carousel-controls">
+            <span class="ld-carousel-counter ld-carousel-counter--agenda" aria-label="Event 1 of {{ upcomingEvents|length }}"><strong data-ld-current>1</strong>/{{ upcomingEvents|length }}</span>
+            {% if upcomingEvents|length > 1 %}
+              <nav class="ld-carousel-nav ld-carousel-nav--compact ld-carousel-nav--agenda" aria-label="Browse upcoming events">
+                <button type="button" data-ld-prev aria-label="Previous event"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>
+                <button type="button" data-ld-next aria-label="Next event"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button>
+              </nav>
+            {% endif %}
           </div>
         {% endif %}
       </div>
@@ -371,7 +379,7 @@
               <span class="ld-community-modal__icon"><i class="fa-solid fa-briefcase" aria-hidden="true"></i></span>
               <div><small>Current opportunity</small><h2>{{ jobOffer.title }}</h2></div>
             </header>
-            <div class="ld-community-modal__content">{{ jobOffer.description|e|nl2br }}</div>
+            <div class="ld-community-modal__content">{% if jobOffer.description|striptags == jobOffer.description %}{{ jobOffer.description|e|nl2br }}{% else %}{{ jobOffer.description|sanitize_html('app.community_content_sanitizer') }}{% endif %}</div>
             <footer>
               <span class="ld-community-modal__notice"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i>Your CV is stored privately and is only available to the recruitment administrator.</span>
               {% if jobOffer.id in appliedJobOfferIds %}
@@ -411,7 +419,7 @@
               <span><i class="fa-solid {{ event.location ? 'fa-location-dot' : 'fa-video' }}" aria-hidden="true"></i>{{ event.location ?: 'Online event' }}</span>
               <span><i class="fa-solid fa-users" aria-hidden="true"></i>{{ event.registrations|length }} member{{ event.registrations|length == 1 ? '' : 's' }} registered</span>
             </div>
-            <div class="ld-community-modal__content">{{ event.description|e|nl2br }}</div>
+            <div class="ld-community-modal__content">{% if event.description|striptags == event.description %}{{ event.description|e|nl2br }}{% else %}{{ event.description|sanitize_html('app.community_content_sanitizer') }}{% endif %}</div>
           </article>
         {% endfor %}
       </div>

@@ -345,7 +345,7 @@
         {% for jobOffer in jobOffers %}
           <article class="community-info-modal__slide" data-carousel-slide data-carousel-index="{{ loop.index0 }}"{% if not loop.first %} hidden{% endif %}>
             <header><span class="community-info-modal__icon"><i class="fa-solid fa-briefcase" aria-hidden="true"></i></span><div><small>Current opportunity</small><h2>{{ jobOffer.title }}</h2></div></header>
-            <div class="community-info-modal__content">{{ jobOffer.description|e|nl2br }}</div>
+            <div class="community-info-modal__content">{% if jobOffer.description|striptags == jobOffer.description %}{{ jobOffer.description|e|nl2br }}{% else %}{{ jobOffer.description|sanitize_html('app.community_content_sanitizer') }}{% endif %}</div>
             <footer>
               <span><i class="fa-solid fa-shield-halved" aria-hidden="true"></i>Your CV is stored privately and only accessible to the recruitment administrator.</span>
               {% if is_granted('ROLE_EMPLOYEE') %}
@@ -374,7 +374,7 @@
           <article class="community-info-modal__slide" data-carousel-slide data-carousel-index="{{ loop.index0 }}"{% if not loop.first %} hidden{% endif %}>
             <header><span class="community-info-modal__date"><strong>{{ event.startsAt|date('d') }}</strong><small>{{ event.startsAt|date('M')|upper }}</small></span><div><small>Community event</small><h2>{{ event.title }}</h2></div></header>
             <div class="community-info-modal__facts"><span><i class="fa-regular fa-clock" aria-hidden="true"></i>{{ event.startsAt|date('l, d F Y · H:i') }}</span><span><i class="fa-solid {{ event.location ? 'fa-location-dot' : 'fa-video' }}" aria-hidden="true"></i>{{ event.location ?: 'Online event' }}</span><span><i class="fa-solid fa-users" aria-hidden="true"></i>{{ event.registrations|length }} member{{ event.registrations|length == 1 ? '' : 's' }} registered</span></div>
-            <div class="community-info-modal__content">{{ event.description|e|nl2br }}</div>
+            <div class="community-info-modal__content">{% if event.description|striptags == event.description %}{{ event.description|e|nl2br }}{% else %}{{ event.description|sanitize_html('app.community_content_sanitizer') }}{% endif %}</div>
             <footer class="community-info-modal__reservation">
               {% if is_granted('ROLE_EMPLOYEE') %}
                 {% if event.id in registeredEventIds %}<span class="community-info-modal__confirmed"><i class="fa-solid fa-circle-check" aria-hidden="true"></i>Your place is confirmed</span>{% else %}<form method="post" action="{{ path('community_event_register', {id: event.id}) }}"><input type="hidden" name="_token" value="{{ csrf_token('event_register_' ~ event.id) }}"><button type="submit"><i class="fa-solid fa-calendar-check" aria-hidden="true"></i>Reserve my place</button></form>{% endif %}

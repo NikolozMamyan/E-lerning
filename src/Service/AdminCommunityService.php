@@ -12,6 +12,7 @@ final class AdminCommunityService
 {
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
+        private readonly JobApplicationCvStorage $cvStorage,
     ) {
     }
 
@@ -36,6 +37,39 @@ final class AdminCommunityService
     public function toggleEvent(CommunityEvent $event): void
     {
         $event->setIsPublished(!$event->isPublished());
+        $this->entityManager->flush();
+    }
+
+    public function updateJobOffer(): void
+    {
+        $this->entityManager->flush();
+    }
+
+    public function updateEvent(): void
+    {
+        $this->entityManager->flush();
+    }
+
+    public function deleteJobOffer(JobOffer $jobOffer): void
+    {
+        $cvFilenames = [];
+        foreach ($jobOffer->getApplications() as $application) {
+            if ($application->getCvFilename() !== null) {
+                $cvFilenames[] = $application->getCvFilename();
+            }
+        }
+
+        $this->entityManager->remove($jobOffer);
+        $this->entityManager->flush();
+
+        foreach ($cvFilenames as $filename) {
+            $this->cvStorage->remove($filename);
+        }
+    }
+
+    public function deleteEvent(CommunityEvent $event): void
+    {
+        $this->entityManager->remove($event);
         $this->entityManager->flush();
     }
 }

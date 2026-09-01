@@ -1,0 +1,23 @@
+framework:
+    html_sanitizer:
+        sanitizers:
+            app.community_content_sanitizer:
+                allow_elements:
+                    p: []
+                    br: []
+                    strong: []
+                    em: []
+                    u: []
+                    h2: []
+                    h3: []
+                    ol: []
+                    ul: []
+                    li: []
+                    blockquote: []
+                    a: ['href', 'title', 'target', 'rel']
+                allowed_link_schemes: ['http', 'https', 'mailto']
+                allow_relative_links: true
+                force_attributes:
+                    a:
+                        target: '_blank'
+                        rel: 'noopener noreferrer'

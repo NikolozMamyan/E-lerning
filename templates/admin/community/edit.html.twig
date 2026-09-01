@@ -1,0 +1,37 @@
+{% extends 'base.html.twig' %}
+
+{% set isJob = itemType == 'job' %}
+
+{% block title %}Edit {{ isJob ? 'job offer' : 'event' }} | Admin{% endblock %}
+{% block stylesheets %}{{ parent() }}<link rel="stylesheet" href="{{ asset('styles/adminCommunity.css') }}">{% endblock %}
+
+{% block body %}
+<section class="admin-community admin-community--edit">
+  <header class="admin-community__hero">
+    <div>
+      <span><i class="fa-solid {{ isJob ? 'fa-briefcase' : 'fa-calendar-days' }}" aria-hidden="true"></i>Community publishing</span>
+      <h1>Edit {{ isJob ? 'job offer' : 'event' }}</h1>
+      <p>Update “{{ itemTitle }}”. Changes will be reflected in the community feed and dashboard.</p>
+    </div>
+    <a href="{{ path('admin_community_index') }}#{{ isJob ? 'job-list' : 'event-list' }}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i>Back to jobs &amp; agenda</a>
+  </header>
+
+  <section class="admin-community__panel admin-community__edit-panel">
+    <header>
+      <span class="admin-community__panel-icon admin-community__panel-icon--{{ isJob ? 'job' : 'event' }}"><i class="fa-solid {{ isJob ? 'fa-pen-to-square' : 'fa-calendar-check' }}" aria-hidden="true"></i></span>
+      <div><small>{{ isJob ? 'Opportunity widget' : 'Agenda widget' }}</small><h2>{{ itemTitle }}</h2></div>
+    </header>
+
+    {{ form_start(form, {attr: {class: 'admin-community__form'}}) }}
+      {{ form_row(form.title) }}
+      {{ form_row(form.description) }}
+      {% if isJob %}
+        <div class="admin-community__form-footer">{{ form_row(form.isActive) }}<button type="submit">Save changes <i class="fa-solid fa-check" aria-hidden="true"></i></button></div>
+      {% else %}
+        <div class="admin-community__form-grid">{{ form_row(form.startsAt) }}{{ form_row(form.location) }}</div>
+        <div class="admin-community__form-footer">{{ form_row(form.isPublished) }}<button type="submit">Save changes <i class="fa-solid fa-check" aria-hidden="true"></i></button></div>
+      {% endif %}
+    {{ form_end(form) }}
+  </section>
+</section>
+{% endblock %}

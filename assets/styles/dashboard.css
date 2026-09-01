@@ -1239,6 +1239,36 @@
   flex: 0 0 auto;
 }
 
+.ld-carousel-controls {
+  display: grid;
+  flex: 0 0 auto;
+  gap: 0.22rem;
+  justify-items: end;
+}
+
+.ld-carousel-nav--compact {
+  gap: 0.22rem;
+  padding-right: 0.08rem;
+  opacity: 0.72;
+  transition: opacity 0.2s ease;
+}
+
+.ld-carousel-nav--compact:hover,
+.ld-carousel-nav--compact:focus-within {
+  opacity: 1;
+}
+
+.ld-carousel-nav.ld-carousel-nav--agenda button {
+  border-color: rgba(184, 124, 31, 0.18);
+  color: #9a6110;
+}
+
+.ld-carousel-nav.ld-carousel-nav--agenda button:hover {
+  border-color: #a76712;
+  background: #a76712;
+  color: #fff;
+}
+
 .ld-carousel-nav button,
 .ld-community-modal__navigation button {
   width: 30px;
@@ -1262,22 +1292,42 @@
   transform: translateY(-1px);
 }
 
-.ld-carousel-nav > span {
+.ld-carousel-nav--compact button {
+  width: 23px;
+  height: 23px;
+  border-color: rgba(28, 86, 68, 0.12);
+  background: rgba(255, 255, 255, 0.55);
+  font-size: 0.62rem;
+}
+
+.ld-carousel-counter {
   min-width: 34px;
+  flex: 0 0 auto;
+  padding: 0.3rem 0.45rem;
+  border: 1px solid var(--ld-line);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.72);
   color: var(--ld-muted);
   font-size: 0.68rem;
   text-align: center;
 }
 
-.ld-carousel-nav strong {
+.ld-carousel-counter strong {
   color: var(--ld-ink);
   font-size: 0.8rem;
+}
+
+.ld-carousel-counter--agenda {
+  border-color: rgba(184, 124, 31, 0.13);
+  color: #8b744d;
 }
 
 .ld-carousel-track,
 .ld-carousel-slide {
   position: relative;
   z-index: 1;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .ld-carousel-slide[hidden],
@@ -1294,6 +1344,8 @@
 }
 
 .ld-job-slide__summary {
+  min-width: 0;
+  max-width: 100%;
   width: 100%;
   display: grid;
   gap: 0.72rem;
@@ -1304,6 +1356,7 @@
   font: inherit;
   text-align: left;
   cursor: pointer;
+  overflow: hidden;
 }
 
 .ld-job-slide__eyebrow {
@@ -1322,6 +1375,9 @@
 }
 
 .ld-job-slide__summary > strong {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
   color: var(--ld-ink);
   font-size: clamp(1.1rem, 1.7vw, 1.35rem);
   line-height: 1.22;
@@ -1329,6 +1385,9 @@
 }
 
 .ld-job-slide__summary > span:not(.ld-job-slide__eyebrow) {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
   color: var(--ld-muted);
   font-size: 0.8rem;
   line-height: 1.6;
@@ -1465,6 +1524,8 @@
 }
 
 .ld-event-slide__content {
+  min-width: 0;
+  max-width: 100%;
   display: grid;
   gap: 0.5rem;
 }
@@ -1478,17 +1539,23 @@
 }
 
 .ld-event-slide__content > strong {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
   color: var(--ld-ink);
   font-size: 1.05rem;
   line-height: 1.3;
 }
 
 .ld-event-slide__content > span {
+  min-width: 0;
+  max-width: 100%;
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
   color: var(--ld-muted);
   font-size: 0.72rem;
+  overflow-wrap: anywhere;
 }
 
 .ld-event-slide__content > span i,
@@ -1564,6 +1631,7 @@
 
 .ld-community-modal__slides {
   max-height: calc(min(82vh, 760px) - 65px);
+  overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: thin;
@@ -1571,6 +1639,8 @@
 }
 
 .ld-community-modal__slide {
+  min-width: 0;
+  max-width: 100%;
   padding: clamp(1.35rem, 4vw, 2.25rem);
 }
 
@@ -1596,7 +1666,9 @@
 }
 
 .ld-community-modal__slide h2 {
+  min-width: 0;
   margin: 0;
+  overflow-wrap: anywhere;
   color: var(--ld-ink);
   font-size: clamp(1.35rem, 3vw, 1.8rem);
   line-height: 1.17;
@@ -1626,6 +1698,7 @@
 }
 
 .ld-community-modal__facts span {
+  min-width: 0;
   display: inline-flex;
   align-items: center;
   gap: 0.42rem;
@@ -1634,6 +1707,7 @@
   background: #f3f6f5;
   color: var(--ld-muted);
   font-size: 0.7rem;
+  overflow-wrap: anywhere;
 }
 
 .ld-community-modal__facts i {
@@ -1641,11 +1715,47 @@
 }
 
 .ld-community-modal__content {
+  min-width: 0;
+  max-width: 100%;
   margin-top: 1.4rem;
+  overflow-wrap: anywhere;
   color: #50665f;
   font-size: 0.86rem;
   line-height: 1.72;
   white-space: normal;
+}
+
+.ld-community-modal__content > :first-child {
+  margin-top: 0;
+}
+
+.ld-community-modal__content > :last-child {
+  margin-bottom: 0;
+}
+
+.ld-community-modal__content p,
+.ld-community-modal__content ul,
+.ld-community-modal__content ol,
+.ld-community-modal__content blockquote {
+  margin: 0.75rem 0;
+}
+
+.ld-community-modal__content ul,
+.ld-community-modal__content ol {
+  padding-left: 1.4rem;
+}
+
+.ld-community-modal__content blockquote {
+  padding-left: 0.85rem;
+  border-left: 3px solid rgba(21, 122, 97, 0.24);
+  color: var(--ld-muted);
+}
+
+.ld-community-modal__content a {
+  color: var(--ld-primary);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
 }
 
 .ld-community-modal__slide > footer {
@@ -1894,7 +2004,12 @@
     height: 28px;
   }
 
-  .ld-carousel-nav > span {
+  .ld-carousel-nav--compact button {
+    width: 23px;
+    height: 23px;
+  }
+
+  .ld-carousel-counter {
     min-width: 28px;
   }
 

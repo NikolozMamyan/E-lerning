@@ -18,7 +18,16 @@ final class CommunityEventType extends AbstractType
     {
         $builder
             ->add('title', null, ['label' => 'Event title', 'attr' => ['placeholder' => 'e.g. AML regulatory breakfast']])
-            ->add('description', TextareaType::class, ['attr' => ['rows' => 7, 'placeholder' => 'Programme and practical information…']])
+            ->add('description', TextareaType::class, [
+                'sanitize_html' => true,
+                'sanitizer' => 'app.community_content_sanitizer',
+                'attr' => [
+                    'rows' => 7,
+                    'placeholder' => 'Programme and practical information…',
+                    'data-community-rich-text' => '',
+                    'class' => 'admin-community__rich-source',
+                ],
+            ])
             ->add('startsAt', DateTimeType::class, ['label' => 'Date and time', 'widget' => 'single_text', 'input' => 'datetime_immutable'])
             ->add('location', null, ['required' => false, 'attr' => ['placeholder' => 'Luxembourg or online']])
             ->add('isPublished', CheckboxType::class, ['label' => 'Publish in the agenda', 'required' => false]);

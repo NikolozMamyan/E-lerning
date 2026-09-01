@@ -77,6 +77,39 @@ final class AdminCommunityController extends AbstractController
         return $this->redirect($this->generateUrl('admin_community_index').'#job-list');
     }
 
+    #[Route('/jobs/{id}/edit', name: 'job_edit', requirements: ['id' => '\\d+'], methods: ['GET', 'POST'])]
+    public function editJob(JobOffer $jobOffer, Request $request, AdminCommunityService $communityService): Response
+    {
+        $form = $this->createForm(JobOfferType::class, $jobOffer);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $communityService->updateJobOffer();
+            $this->addFlash('success', 'The job opportunity has been updated.');
+
+            return $this->redirect($this->generateUrl('admin_community_index').'#job-list');
+        }
+
+        return $this->render('admin/community/edit.html.twig', [
+            'form' => $form,
+            'itemType' => 'job',
+            'itemTitle' => $jobOffer->getTitle(),
+        ]);
+    }
+
+    #[Route('/jobs/{id}/delete', name: 'job_delete', requirements: ['id' => '\\d+'], methods: ['POST'])]
+    public function deleteJob(JobOffer $jobOffer, Request $request, AdminCommunityService $communityService): Response
+    {
+        if (!$this->isCsrfTokenValid('delete_job_'.$jobOffer->getId(), (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException();
+        }
+
+        $communityService->deleteJobOffer($jobOffer);
+        $this->addFlash('success', 'The job opportunity and its applications have been deleted.');
+
+        return $this->redirect($this->generateUrl('admin_community_index').'#job-list');
+    }
+
     #[Route('/events/{id}/toggle', name: 'event_toggle', requirements: ['id' => '\\d+'], methods: ['POST'])]
     public function toggleEvent(CommunityEvent $event, Request $request, AdminCommunityService $communityService): Response
     {
@@ -84,6 +117,39 @@ final class AdminCommunityController extends AbstractController
             throw $this->createAccessDeniedException();
         }
         $communityService->toggleEvent($event);
+
+        return $this->redirect($this->generateUrl('admin_community_index').'#event-list');
+    }
+
+    #[Route('/events/{id}/edit', name: 'event_edit', requirements: ['id' => '\\d+'], methods: ['GET', 'POST'])]
+    public function editEvent(CommunityEvent $event, Request $request, AdminCommunityService $communityService): Response
+    {
+        $form = $this->createForm(CommunityEventType::class, $event);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $communityService->updateEvent();
+            $this->addFlash('success', 'The community event has been updated.');
+
+            return $this->redirect($this->generateUrl('admin_community_index').'#event-list');
+        }
+
+        return $this->render('admin/community/edit.html.twig', [
+            'form' => $form,
+            'itemType' => 'event',
+            'itemTitle' => $event->getTitle(),
+        ]);
+    }
+
+    #[Route('/events/{id}/delete', name: 'event_delete', requirements: ['id' => '\\d+'], methods: ['POST'])]
+    public function deleteEvent(CommunityEvent $event, Request $request, AdminCommunityService $communityService): Response
+    {
+        if (!$this->isCsrfTokenValid('delete_event_'.$event->getId(), (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException();
+        }
+
+        $communityService->deleteEvent($event);
+        $this->addFlash('success', 'The community event and its registrations have been deleted.');
 
         return $this->redirect($this->generateUrl('admin_community_index').'#event-list');
     }

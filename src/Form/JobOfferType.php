@@ -17,7 +17,16 @@ final class JobOfferType extends AbstractType
     {
         $builder
             ->add('title', null, ['label' => 'Job title', 'attr' => ['placeholder' => 'e.g. Compliance Officer']])
-            ->add('description', TextareaType::class, ['attr' => ['rows' => 8, 'placeholder' => 'Role, missions, profile and application details…']])
+            ->add('description', TextareaType::class, [
+                'sanitize_html' => true,
+                'sanitizer' => 'app.community_content_sanitizer',
+                'attr' => [
+                    'rows' => 8,
+                    'placeholder' => 'Role, missions, profile and application details…',
+                    'data-community-rich-text' => '',
+                    'class' => 'admin-community__rich-source',
+                ],
+            ])
             ->add('isActive', CheckboxType::class, ['label' => 'Publish as the current opportunity', 'required' => false]);
     }
 
