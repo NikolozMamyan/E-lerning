@@ -25,7 +25,7 @@ public function index(
     CategoryRepository $categoryRepo
 ): Response {
     $user = $this->getUser();
-    $courses = $courseRepo->findAll();
+    $courses = $courseRepo->findBy([], ['id' => 'DESC']);
 
     // ✅ Récupérer les catégories pour le filtre (ordre alphabétique)
     $categories = $categoryRepo->findBy([], ['name' => 'ASC']);
