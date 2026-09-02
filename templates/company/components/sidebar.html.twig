@@ -3,6 +3,7 @@
 {% set coursesActive = currentRoute starts with 'company_course' %}
 {% set employeesActive = currentRoute starts with 'company_colab' or currentRoute == 'company_employee_edit' %}
 {% set trackingActive = currentRoute == 'company_team_tracking' %}
+{% set certificatesActive = currentRoute starts with 'company_certificates_' %}
 {% set transactionsActive = currentRoute == 'app_co_transactions' or currentRoute starts with 'company_payment' %}
 
 <aside class="sidebar sidebar--company" aria-label="Company navigation">
@@ -45,6 +46,12 @@
           <a href="{{ path('company_team_tracking') }}" class="nav-link {{ trackingActive ? 'active' : '' }}" aria-current="{{ trackingActive ? 'page' : 'false' }}">
             <span class="nav-icon"><i class="fa-solid fa-chart-column" aria-hidden="true"></i></span>
             <span class="nav-link__label">Team progress</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="{{ path('company_certificates_index') }}" class="nav-link {{ certificatesActive ? 'active' : '' }}" aria-current="{{ certificatesActive ? 'page' : 'false' }}">
+            <span class="nav-icon"><i class="fa-solid fa-award" aria-hidden="true"></i></span>
+            <span class="nav-link__label">Certificates</span>
           </a>
         </li>
       </ul>

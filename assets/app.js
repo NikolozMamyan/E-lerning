@@ -13,3 +13,4 @@ import './styles/transactions.css';
 import './styles/company/assign.css';
 import './styles/company/tables.css';
 import './styles/company/dashboard.css';
+import './styles/company/certificates.css';

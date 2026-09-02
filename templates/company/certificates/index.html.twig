@@ -1,0 +1,196 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Employee certificates{% endblock %}
+
+{% block body %}
+<div class="company-certificates" data-controller="company-certificates">
+  <header class="company-certificates__header">
+    <div>
+      <span class="company-certificates__eyebrow">
+        <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+        Team compliance
+      </span>
+      <h1>Employee certificates</h1>
+    </div>
+
+    <dl class="company-certificates__stats" aria-label="Certificate summary">
+      <div>
+        <dt>Results</dt>
+        <dd>{{ stats.total }}</dd>
+      </div>
+      <div class="is-passed">
+        <dt>Passed</dt>
+        <dd>{{ stats.passed }}</dd>
+      </div>
+      <div class="is-failed">
+        <dt>Not passed</dt>
+        <dd>{{ stats.failed }}</dd>
+      </div>
+    </dl>
+  </header>
+
+  <section class="company-certificates__filters" aria-labelledby="certificate-filters-title">
+    <div class="company-certificates__section-heading">
+      <span><i class="fa-solid fa-filter" aria-hidden="true"></i></span>
+      <div>
+        <h2 id="certificate-filters-title">Filters</h2>
+        <small>{{ attempts|length }} matching result{{ attempts|length == 1 ? '' : 's' }}</small>
+      </div>
+    </div>
+
+    <form method="get" action="{{ path('company_certificates_index') }}" class="company-certificates__filter-form">
+      <label>
+        <span>Employee email</span>
+        <span class="company-certificates__input-wrap">
+          <i class="fa-regular fa-envelope" aria-hidden="true"></i>
+          <input type="search" name="email" value="{{ filters.email }}" placeholder="name@company.com" autocomplete="off">
+        </span>
+      </label>
+
+      <label>
+        <span>Available course</span>
+        <select name="course">
+          <option value="">All courses</option>
+          {% for course in courses %}
+            <option value="{{ course.id }}" {{ filters.courseId == course.id ? 'selected' : '' }}>{{ course.title }}</option>
+          {% endfor %}
+        </select>
+      </label>
+
+      <label>
+        <span>Result</span>
+        <select name="status">
+          <option value="all" {{ filters.status == 'all' ? 'selected' : '' }}>All results</option>
+          <option value="passed" {{ filters.status == 'passed' ? 'selected' : '' }}>Passed</option>
+          <option value="failed" {{ filters.status == 'failed' ? 'selected' : '' }}>Not passed</option>
+        </select>
+      </label>
+
+      <div class="company-certificates__filter-actions">
+        <button type="submit" class="company-certificates__button company-certificates__button--primary">
+          <i class="fa-solid fa-filter" aria-hidden="true"></i>
+          Apply
+        </button>
+        <a href="{{ path('company_certificates_index') }}" class="company-certificates__button company-certificates__button--secondary">
+          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+          Reset
+        </a>
+      </div>
+    </form>
+  </section>
+
+  <form
+    method="post"
+    action="{{ path('company_certificates_bulk_download') }}"
+    class="company-certificates__results"
+    data-action="submit->company-certificates#submit"
+  >
+    <input type="hidden" name="_token" value="{{ csrf_token('company_certificates_bulk') }}">
+
+    <div class="company-certificates__results-toolbar">
+      <div>
+        <h2>Certification results</h2>
+        <p><strong data-company-certificates-target="selectionCount">0</strong> selected</p>
+      </div>
+      <button
+        type="submit"
+        class="company-certificates__button company-certificates__button--download"
+        data-company-certificates-target="downloadButton"
+        disabled
+      >
+        <i class="fa-solid fa-file-zipper" aria-hidden="true"></i>
+        Download selected
+      </button>
+    </div>
+
+    <div class="company-certificates__table-wrap">
+      <table class="company-certificates__table">
+        <thead>
+          <tr>
+            <th class="company-certificates__check-cell">
+              <input
+                type="checkbox"
+                aria-label="Select all successful certificates"
+                data-company-certificates-target="selectAll"
+                data-action="change->company-certificates#toggleAll"
+              >
+            </th>
+            <th>Employee</th>
+            <th>Course</th>
+            <th>Attempt date</th>
+            <th>Score</th>
+            <th>Result</th>
+            <th class="company-certificates__action-heading">Certificate</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for attempt in attempts %}
+            {% set employee = attempt.user %}
+            <tr>
+              <td class="company-certificates__check-cell">
+                <input
+                  type="checkbox"
+                  name="attempt_ids[]"
+                  value="{{ attempt.id }}"
+                  aria-label="Select certificate for {{ employee.email }} and {{ attempt.course.title }}"
+                  data-company-certificates-target="checkbox"
+                  data-action="change->company-certificates#updateSelection"
+                  {{ not attempt.passed ? 'disabled' : '' }}
+                >
+              </td>
+              <td>
+                <span class="company-certificates__employee">
+                  <span class="company-certificates__avatar" aria-hidden="true">
+                    {% if employee.avatar %}
+                      <img src="{{ asset('uploads/avatars/' ~ employee.avatar) }}" alt="">
+                    {% else %}
+                      {{ employee.username|first|upper }}
+                    {% endif %}
+                  </span>
+                  <span>
+                    <strong>{{ employee.username }}</strong>
+                    <small>{{ employee.email }}</small>
+                  </span>
+                </span>
+              </td>
+              <td><strong class="company-certificates__course">{{ attempt.course.title }}</strong></td>
+              <td><time datetime="{{ attempt.createdAt|date('c') }}">{{ attempt.createdAt|date('d M Y') }}</time></td>
+              <td><strong>{{ attempt.score }}%</strong></td>
+              <td>
+                <span class="company-certificates__status {{ attempt.passed ? 'is-passed' : 'is-failed' }}">
+                  <i class="fa-solid {{ attempt.passed ? 'fa-circle-check' : 'fa-circle-xmark' }}" aria-hidden="true"></i>
+                  {{ attempt.passed ? 'Passed' : 'Not passed' }}
+                </span>
+              </td>
+              <td class="company-certificates__action-cell">
+                {% if attempt.passed %}
+                  <a
+                    href="{{ path('company_certificates_download', {id: attempt.id}) }}"
+                    class="company-certificates__download-link"
+                    title="Download certificate"
+                    aria-label="Download certificate for {{ employee.email }} and {{ attempt.course.title }}"
+                  >
+                    <i class="fa-solid fa-download" aria-hidden="true"></i>
+                  </a>
+                {% else %}
+                  <span class="company-certificates__unavailable" title="Certificate unavailable" aria-label="Certificate unavailable">
+                    <i class="fa-solid fa-lock" aria-hidden="true"></i>
+                  </span>
+                {% endif %}
+              </td>
+            </tr>
+          {% else %}
+            <tr>
+              <td colspan="7" class="company-certificates__empty">
+                <i class="fa-regular fa-folder-open" aria-hidden="true"></i>
+                <strong>No certification results found</strong>
+                <span>Try another email, course or result filter.</span>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </form>
+</div>
+{% endblock %}

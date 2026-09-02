@@ -179,6 +179,83 @@ public function findByUserIds(array $userIds): array
         ->getResult();
 }
 
+/**
+ * Returns one current certification result per employee and course.
+ *
+ * @return QuizAttempt[]
+ */
+public function findLatestForCompany(
+    User $company,
+    ?int $courseId = null,
+    string $employeeEmail = '',
+    ?bool $passed = null,
+): array {
+    $qb = $this->createQueryBuilder('qa')
+        ->distinct()
+        ->addSelect('u', 'c')
+        ->join('qa.user', 'u')
+        ->join('qa.course', 'c')
+        ->join('u.collaborationsAsEmployee', 'collaboration')
+        ->andWhere('collaboration.company = :company')
+        ->andWhere('qa.id IN (
+            SELECT MAX(qa2.id)
+            FROM App\Entity\QuizAttempt qa2
+            JOIN qa2.user u2
+            JOIN qa2.course c2
+            JOIN u2.collaborationsAsEmployee collaboration2
+            WHERE collaboration2.company = :company
+            GROUP BY u2.id, c2.id
+        )')
+        ->setParameter('company', $company)
+        ->orderBy('qa.createdAt', 'DESC')
+        ->addOrderBy('qa.id', 'DESC');
+
+    if ($courseId !== null) {
+        $qb->andWhere('c.id = :courseId')
+            ->setParameter('courseId', $courseId);
+    }
+
+    if ($employeeEmail !== '') {
+        $qb->andWhere('LOWER(u.email) LIKE LOWER(:employeeEmail)')
+            ->setParameter('employeeEmail', '%'.$employeeEmail.'%');
+    }
+
+    if ($passed !== null) {
+        $qb->andWhere('qa.passed = :passed')
+            ->setParameter('passed', $passed);
+    }
+
+    return $qb->getQuery()->getResult();
+}
+
+/**
+ * @param int[] $attemptIds
+ *
+ * @return QuizAttempt[]
+ */
+public function findPassedForCompanyByIds(User $company, array $attemptIds): array
+{
+    if ($attemptIds === []) {
+        return [];
+    }
+
+    return $this->createQueryBuilder('qa')
+        ->distinct()
+        ->addSelect('u', 'c')
+        ->join('qa.user', 'u')
+        ->join('qa.course', 'c')
+        ->join('u.collaborationsAsEmployee', 'collaboration')
+        ->andWhere('collaboration.company = :company')
+        ->andWhere('qa.id IN (:attemptIds)')
+        ->andWhere('qa.passed = true')
+        ->setParameter('company', $company)
+        ->setParameter('attemptIds', $attemptIds)
+        ->orderBy('u.username', 'ASC')
+        ->addOrderBy('c.title', 'ASC')
+        ->getQuery()
+        ->getResult();
+}
+
 public function findLatestForUserAndCourse(User $user, Course $course): ?QuizAttempt
 {
     return $this->createQueryBuilder('qa')
