@@ -349,7 +349,7 @@ $subscription->setIsActive(!$subscription->getIsActive());
     return $this->redirectToRoute('admin_subscription_add');
 }
 
-#[Route('/subscription/create', name: 'subscription_create')]
+#[Route('/subscription/create', name: 'subscription_create', methods: ['GET', 'POST'])]
 public function createSubscription(
     Request $request,
     EntityManagerInterface $em,
@@ -362,16 +362,35 @@ public function createSubscription(
     }
 
     if ($request->isMethod('POST')) {
+        if (!$this->isCsrfTokenValid('create_subscription', (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Invalid CSRF token.');
+        }
 
-        $userId = $request->request->get('user_id');
-        $type   = $request->request->get('type');
-        $start  = $request->request->get('startDate');
-        $end    = $request->request->get('endDate');
+        $userId = $request->request->getInt('user_id');
+        $type   = (string) $request->request->get('type');
+        $start  = (string) $request->request->get('startDate');
+        $end    = (string) $request->request->get('endDate');
 
         $user = $userRepo->find($userId);
 
         if (!$user) {
-            throw $this->createNotFoundException("User introuvable");
+            $this->addFlash('error', 'Sélectionnez un utilisateur valide.');
+
+            return $this->redirectToRoute('admin_subscription_create');
+        }
+
+        if ($type !== 'monthly') {
+            $this->addFlash('error', 'Sélectionnez un type d’abonnement valide.');
+
+            return $this->redirectToRoute('admin_subscription_create');
+        }
+
+        $startDate = \DateTimeImmutable::createFromFormat('!Y-m-d', $start);
+        $endDate = \DateTimeImmutable::createFromFormat('!Y-m-d', $end);
+        if (!$startDate || !$endDate || $startDate->format('Y-m-d') !== $start || $endDate->format('Y-m-d') !== $end || $endDate <= $startDate) {
+            $this->addFlash('error', 'La date de fin doit être postérieure à la date de début.');
+
+            return $this->redirectToRoute('admin_subscription_create');
         }
 
         // 🔥 Vérifier si l'utilisateur a déjà une subscription
@@ -385,18 +404,19 @@ public function createSubscription(
         $subscription = new Subscription();
         $subscription->setUser($user);
         $subscription->setType($type);
-        $subscription->setStartDate(new \DateTime($start));
-        $subscription->setEndDate(new \DateTime($end));
+        $subscription->setStartDate($startDate);
+        $subscription->setEndDate($endDate);
         $subscription->setIsActive(true);
 
         $em->persist($subscription);
         $em->flush();
+        $this->addFlash('success', sprintf('L’abonnement de %s a été attribué.', $user->getUsername()));
 
         return $this->redirectToRoute('admin_subscription_add');
     }
 
     // Liste des users pour formulaire
-    $users = $userRepo->findAll();
+    $users = $userRepo->findBy([], ['username' => 'ASC', 'email' => 'ASC']);
 
     return $this->render('admin/subscription_create.html.twig', [
         'users' => $users,

@@ -1,235 +1,223 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Créer un abonnement{% endblock %}
+{% block title %}Attribuer un abonnement{% endblock %}
+
+{% block stylesheets %}
+  {{ parent() }}
+  <link rel="stylesheet" href="{{ asset('styles/adminSubscriptionCreate.css') }}">
+{% endblock %}
 
 {% block body %}
-<div style="background: var(--bg); min-height: 100vh; padding: 2rem 1rem;">
-    <div style="max-width: 600px; margin: 0 auto;">
-        
-        <!-- Breadcrumb -->
-        <div style="margin-bottom: 1.5rem;">
-            <a href="{{ path('admin_subscription_add') }}" style="
-                color: var(--grey); 
-                text-decoration: none; 
-                display: inline-flex; 
-                align-items: center; 
-                gap: 0.5rem;
-                font-size: 0.9rem;
-                transition: color 0.3s ease;
-            " onmouseover="this.style.color='var(--teal)'" onmouseout="this.style.color='var(--grey)'">
-                <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-                </svg>
-                Retour aux abonnements
-            </a>
+<section class="subscription-assignment" data-subscription-assignment>
+  <header class="subscription-assignment__hero">
+    <a href="{{ path('admin_subscription_add') }}" class="subscription-assignment__back">
+      <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+      Retour aux abonnements
+    </a>
+    <span class="subscription-assignment__eyebrow"><i class="fa-solid fa-crown" aria-hidden="true"></i>Administration</span>
+    <h1>Attribuer un abonnement</h1>
+    <p>Recherchez un utilisateur par son nom ou son adresse e-mail, puis confirmez la période d’accès.</p>
+  </header>
+
+  <form method="post" class="subscription-assignment__form">
+    <input type="hidden" name="_token" value="{{ csrf_token('create_subscription') }}">
+
+    <div class="subscription-assignment__main">
+      <section class="subscription-step">
+        <header class="subscription-step__header">
+          <span>1</span>
+          <div><small>Utilisateur</small><h2>À qui attribuer l’abonnement ?</h2></div>
+        </header>
+
+        <label for="subscription-user" class="subscription-step__label">Utilisateur</label>
+        <select id="subscription-user" name="user_id" required data-user-select>
+          <option value="">Sélectionnez un utilisateur</option>
+          {% for user in users %}
+            {% set roleLabel = 'Utilisateur' %}
+            {% if 'ROLE_ADMIN' in user.roles %}
+              {% set roleLabel = 'Administrateur' %}
+            {% elseif 'ROLE_COMPANY' in user.roles %}
+              {% set roleLabel = 'Entreprise' %}
+            {% elseif 'ROLE_EMPLOYEE' in user.roles %}
+              {% set roleLabel = 'Apprenant' %}
+            {% endif %}
+            <option
+              value="{{ user.id }}"
+              data-user-name="{{ user.username|e('html_attr') }}"
+              data-user-email="{{ user.email|e('html_attr') }}"
+              data-user-role="{{ roleLabel|e('html_attr') }}"
+              data-user-initial="{{ (user.username ?: user.email)|first|upper|e('html_attr') }}"
+            >{{ user.username }} — {{ user.email }}</option>
+          {% endfor %}
+        </select>
+
+        <div class="user-picker" data-user-picker hidden>
+          <div class="user-picker__search">
+            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+            <input type="search" autocomplete="off" placeholder="Rechercher par nom ou e-mail…" aria-label="Rechercher un utilisateur" data-user-search>
+            <button type="button" aria-label="Effacer la recherche" data-user-search-clear hidden><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+          </div>
+          <p class="user-picker__hint">Commencez à écrire ou choisissez parmi les premiers résultats.</p>
+          <div class="user-picker__results" role="listbox" aria-label="Résultats utilisateurs" data-user-results></div>
+          <p class="user-picker__empty" data-user-empty hidden><i class="fa-regular fa-face-frown" aria-hidden="true"></i>Aucun utilisateur trouvé.</p>
         </div>
 
-        <!-- Card principale -->
-        <div style="background: var(--white); padding: 2.5rem; border-radius: var(--radius); box-shadow: var(--shadow);">
-            
-            <!-- Header -->
-            <div style="text-align: center; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 2px solid var(--bg);">
-                <div style="
-                    width: 64px; 
-                    height: 64px; 
-                    background: var(--mint); 
-                    border-radius: 50%; 
-                    display: flex; 
-                    align-items: center; 
-                    justify-content: center;
-                    margin: 0 auto 1rem;
-                ">
-                    <svg style="width: 32px; height: 32px; color: var(--teal);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                    </svg>
-                </div>
-                <h2 style="color: var(--black); font-size: 1.75rem; font-weight: 600; margin: 0 0 0.5rem 0;">
-                    Créer un abonnement
-                </h2>
-                <p style="color: var(--grey); margin: 0; font-size: 0.95rem;">
-                    Remplissez les informations ci-dessous
-                </p>
-            </div>
-
-            <!-- Formulaire -->
-            <form method="POST">
-                
-                <!-- Utilisateur -->
-                <div style="margin-bottom: 1.5rem;">
-                    <label style="
-                        display: block; 
-                        font-weight: 600; 
-                        margin-bottom: 0.5rem; 
-                        color: var(--black);
-                        font-size: 0.95rem;
-                    ">
-                        <svg style="width: 16px; height: 16px; display: inline-block; vertical-align: middle; margin-right: 0.25rem; color: var(--teal);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                        </svg>
-                        Utilisateur
-                    </label>
-                    <select name="user_id" required style="
-                        width: 100%; 
-                        padding: 0.875rem; 
-                        border: 2px solid var(--bg); 
-                        border-radius: var(--radius);
-                        font-size: 1rem;
-                        color: var(--black);
-                        background: var(--white);
-                        transition: all 0.3s ease;
-                        cursor: pointer;
-                    " onfocus="this.style.borderColor='var(--teal)'; this.style.background='var(--mint)'" onblur="this.style.borderColor='var(--bg)'; this.style.background='var(--white)'">
-                        <option value="">Sélectionnez un utilisateur</option>
-                        {% for user in users %}
-                            <option value="{{ user.id }}">
-                                {{ user.username ?? user.email }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                </div>
-
-                <!-- Type d'abonnement -->
-                <div style="margin-bottom: 1.5rem;">
-                    <label style="
-                        display: block; 
-                        font-weight: 600; 
-                        margin-bottom: 0.5rem; 
-                        color: var(--black);
-                        font-size: 0.95rem;
-                    ">
-                        <svg style="width: 16px; height: 16px; display: inline-block; vertical-align: middle; margin-right: 0.25rem; color: var(--teal);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
-                        </svg>
-                        Type d'abonnement
-                    </label>
-                    <select name="type" required style="
-                        width: 100%; 
-                        padding: 0.875rem; 
-                        border: 2px solid var(--bg); 
-                        border-radius: var(--radius);
-                        font-size: 1rem;
-                        color: var(--black);
-                        background: var(--white);
-                        transition: all 0.3s ease;
-                        cursor: pointer;
-                    " onfocus="this.style.borderColor='var(--teal)'; this.style.background='var(--mint)'" onblur="this.style.borderColor='var(--bg)'; this.style.background='var(--white)'">
-                        <option value="monthly">Mensuel</option>
-                        {# <option value="yearly">Annuel</option> #}
-                    </select>
-                </div>
-
-                <!-- Dates -->
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem;">
-                    
-                    <!-- Date de début -->
-                    <div>
-                        <label style="
-                            display: block; 
-                            font-weight: 600; 
-                            margin-bottom: 0.5rem; 
-                            color: var(--black);
-                            font-size: 0.95rem;
-                        ">
-                            <svg style="width: 16px; height: 16px; display: inline-block; vertical-align: middle; margin-right: 0.25rem; color: var(--teal);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                            </svg>
-                            Date de début
-                        </label>
-                        <input type="date" name="startDate" required style="
-                            width: 100%; 
-                            padding: 0.875rem; 
-                            border: 2px solid var(--bg); 
-                            border-radius: var(--radius);
-                            font-size: 1rem;
-                            color: var(--black);
-                            background: var(--white);
-                            transition: all 0.3s ease;
-                        " onfocus="this.style.borderColor='var(--teal)'; this.style.background='var(--mint)'" onblur="this.style.borderColor='var(--bg)'; this.style.background='var(--white)'">
-                    </div>
-
-                    <!-- Date de fin -->
-                    <div>
-                        <label style="
-                            display: block; 
-                            font-weight: 600; 
-                            margin-bottom: 0.5rem; 
-                            color: var(--black);
-                            font-size: 0.95rem;
-                        ">
-                            <svg style="width: 16px; height: 16px; display: inline-block; vertical-align: middle; margin-right: 0.25rem; color: var(--teal);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                            </svg>
-                            Date de fin
-                        </label>
-                        <input type="date" name="endDate" required style="
-                            width: 100%; 
-                            padding: 0.875rem; 
-                            border: 2px solid var(--bg); 
-                            border-radius: var(--radius);
-                            font-size: 1rem;
-                            color: var(--black);
-                            background: var(--white);
-                            transition: all 0.3s ease;
-                        " onfocus="this.style.borderColor='var(--teal)'; this.style.background='var(--mint)'" onblur="this.style.borderColor='var(--bg)'; this.style.background='var(--white)'">
-                    </div>
-                </div>
-
-                <!-- Info box -->
-                <div style="
-                    background: var(--mint); 
-                    padding: 1rem; 
-                    border-radius: var(--radius); 
-                    border-left: 3px solid var(--teal);
-                    margin-bottom: 1.5rem;
-                ">
-                    <p style="color: var(--black); margin: 0; font-size: 0.9rem; line-height: 1.5;">
-                        <strong style="color: var(--teal);">💡 Astuce :</strong> L’abonnement sera automatiquement activé lors de sa création. Vous pourrez le désactiver depuis la liste des abonnements, ou il sera automatiquement désactivé à sa date d’échéance.
-                    </p>
-                </div>
-
-                <!-- Boutons -->
-                <div style="display: flex; gap: 1rem; flex-direction: column;">
-                    <button type="submit" style="
-                        width: 100%; 
-                        padding: 1rem; 
-                        background: var(--green); 
-                        color: var(--white); 
-                        border: none; 
-                        border-radius: var(--radius);
-                        font-size: 1rem;
-                        font-weight: 600;
-                        cursor: pointer;
-                        transition: all 0.3s ease;
-                        box-shadow: var(--shadow);
-                    " onmouseover="this.style.background='var(--teal)'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(26, 109, 85, 0.2)'" onmouseout="this.style.background='var(--green)'; this.style.transform='translateY(0)'; this.style.boxShadow='var(--shadow)'">
-                        Créer l'abonnement
-                    </button>
-                    
-                    <a href="{{ path('admin_subscription_add') }}" style="
-                        display: block;
-                        text-align: center;
-                        padding: 0.875rem; 
-                        background: var(--white); 
-                        color: var(--grey); 
-                        border: 2px solid var(--bg); 
-                        border-radius: var(--radius);
-                        text-decoration: none;
-                        font-weight: 600;
-                        transition: all 0.3s ease;
-                    " onmouseover="this.style.borderColor='var(--teal)'; this.style.color='var(--teal)'" onmouseout="this.style.borderColor='var(--bg)'; this.style.color='var(--grey)'">
-                        Annuler
-                    </a>
-                </div>
-            </form>
+        <div class="selected-user" data-selected-user hidden>
+          <span class="selected-user__avatar" data-selected-initial></span>
+          <div><small>Utilisateur sélectionné</small><strong data-selected-name></strong><span data-selected-email></span></div>
+          <span class="selected-user__role" data-selected-role></span>
+          <button type="button" data-change-user><i class="fa-solid fa-pen" aria-hidden="true"></i>Changer</button>
         </div>
+      </section>
+
+      <section class="subscription-step subscription-step--dates">
+        <header class="subscription-step__header">
+          <span>2</span>
+          <div><small>Période d’accès</small><h2>Définir les dates</h2></div>
+        </header>
+
+        <input type="hidden" name="type" value="monthly">
+        <div class="subscription-plan">
+          <i class="fa-solid fa-calendar-check" aria-hidden="true"></i>
+          <div><strong>Abonnement mensuel</strong><span>Accès activé immédiatement à la création</span></div>
+          <span>Mensuel</span>
+        </div>
+
+        <div class="subscription-dates">
+          <label>
+            <span>Date de début</span>
+            <input type="date" name="startDate" value="{{ 'now'|date('Y-m-d') }}" required data-start-date>
+          </label>
+          <span class="subscription-dates__arrow"><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span>
+          <label>
+            <span>Date de fin</span>
+            <input type="date" name="endDate" value="{{ '+1 month'|date('Y-m-d') }}" required data-end-date>
+          </label>
+        </div>
+      </section>
     </div>
-</div>
 
-<style>
-    @media (max-width: 640px) {
-        [style*="grid-template-columns: 1fr 1fr"] {
-            grid-template-columns: 1fr !important;
-        }
+    <aside class="subscription-summary">
+      <span class="subscription-summary__icon"><i class="fa-solid fa-key" aria-hidden="true"></i></span>
+      <small>Récapitulatif</small>
+      <h2>Prêt à attribuer l’accès</h2>
+      <p data-summary-user>Sélectionnez d’abord un utilisateur.</p>
+      <dl>
+        <div><dt>Formule</dt><dd>Mensuelle</dd></div>
+        <div><dt>Début</dt><dd data-summary-start>—</dd></div>
+        <div><dt>Fin</dt><dd data-summary-end>—</dd></div>
+        <div><dt>Statut</dt><dd><span class="subscription-summary__active">Actif</span></dd></div>
+      </dl>
+      <button type="submit" data-submit-subscription>
+        <i class="fa-solid fa-check" aria-hidden="true"></i>
+        Attribuer l’abonnement
+      </button>
+      <p class="subscription-summary__notice"><i class="fa-solid fa-circle-info" aria-hidden="true"></i>Un abonnement existant pour cet utilisateur sera remplacé.</p>
+    </aside>
+  </form>
+</section>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const root = document.querySelector('[data-subscription-assignment]');
+  if (!root) return;
+
+  const select = root.querySelector('[data-user-select]');
+  const picker = root.querySelector('[data-user-picker]');
+  const search = root.querySelector('[data-user-search]');
+  const clearSearch = root.querySelector('[data-user-search-clear]');
+  const results = root.querySelector('[data-user-results]');
+  const empty = root.querySelector('[data-user-empty]');
+  const selected = root.querySelector('[data-selected-user]');
+  const changeUser = root.querySelector('[data-change-user]');
+  const submit = root.querySelector('[data-submit-subscription]');
+  const startDate = root.querySelector('[data-start-date]');
+  const endDate = root.querySelector('[data-end-date]');
+  const options = Array.from(select?.options || []).filter((option) => option.value);
+
+  if (!select || !picker || !search || !results || !selected || !submit) return;
+
+  select.hidden = true;
+  picker.hidden = false;
+
+  const normalize = (value) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+  const formatDate = (value) => value ? new Intl.DateTimeFormat('fr-FR').format(new Date(`${value}T12:00:00`)) : '—';
+
+  const updateSummary = () => {
+    const option = options.find((item) => item.value === select.value);
+    root.querySelector('[data-summary-user]').textContent = option ? `${option.dataset.userName} · ${option.dataset.userEmail}` : 'Sélectionnez d’abord un utilisateur.';
+    root.querySelector('[data-summary-start]').textContent = formatDate(startDate?.value);
+    root.querySelector('[data-summary-end]').textContent = formatDate(endDate?.value);
+    submit.disabled = !option || !startDate?.value || !endDate?.value || endDate.value <= startDate.value;
+  };
+
+  const chooseUser = (option) => {
+    select.value = option.value;
+    selected.querySelector('[data-selected-initial]').textContent = option.dataset.userInitial;
+    selected.querySelector('[data-selected-name]').textContent = option.dataset.userName;
+    selected.querySelector('[data-selected-email]').textContent = option.dataset.userEmail;
+    selected.querySelector('[data-selected-role]').textContent = option.dataset.userRole;
+    selected.hidden = false;
+    picker.hidden = true;
+    updateSummary();
+  };
+
+  const renderResults = () => {
+    const query = normalize(search.value);
+    const matches = options.filter((option) => normalize(`${option.dataset.userName} ${option.dataset.userEmail}`).includes(query)).slice(0, 8);
+    results.replaceChildren();
+    empty.hidden = matches.length > 0;
+    clearSearch.hidden = search.value.length === 0;
+
+    matches.forEach((option) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'user-picker__option';
+      button.setAttribute('role', 'option');
+      button.innerHTML = '<span class="user-picker__avatar"></span><span class="user-picker__identity"><strong></strong><small></small></span><span class="user-picker__role"></span><i class="fa-solid fa-chevron-right" aria-hidden="true"></i>';
+      button.querySelector('.user-picker__avatar').textContent = option.dataset.userInitial;
+      button.querySelector('strong').textContent = option.dataset.userName;
+      button.querySelector('small').textContent = option.dataset.userEmail;
+      button.querySelector('.user-picker__role').textContent = option.dataset.userRole;
+      button.addEventListener('click', () => chooseUser(option));
+      results.appendChild(button);
+    });
+  };
+
+  search.addEventListener('input', renderResults);
+  search.addEventListener('keydown', (event) => {
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      results.querySelector('button')?.focus();
     }
-</style>
+  });
+  clearSearch?.addEventListener('click', () => {
+    search.value = '';
+    search.focus();
+    renderResults();
+  });
+  changeUser?.addEventListener('click', () => {
+    select.value = '';
+    selected.hidden = true;
+    picker.hidden = false;
+    search.value = '';
+    renderResults();
+    search.focus();
+    updateSummary();
+  });
+
+  startDate?.addEventListener('change', () => {
+    if (startDate.value) {
+      const nextMonth = new Date(`${startDate.value}T12:00:00`);
+      nextMonth.setMonth(nextMonth.getMonth() + 1);
+      endDate.value = nextMonth.toISOString().slice(0, 10);
+    }
+    updateSummary();
+  });
+  endDate?.addEventListener('change', updateSummary);
+
+  renderResults();
+  updateSummary();
+});
+</script>
 {% endblock %}
