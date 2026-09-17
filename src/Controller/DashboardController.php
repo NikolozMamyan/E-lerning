@@ -32,7 +32,7 @@ public function index(
 
     // Tous les cours
     $courses = $courseRepo->findAll();
-    $latestCourses = $courseRepo->findBy([], ['updatedAt' => 'DESC', 'id' => 'DESC'], 5);
+    $latestCourses = $courseRepo->findBy([], ['createdAt' => 'DESC', 'id' => 'DESC'], 5);
 
     // Progression par cours
     $progressData = [];

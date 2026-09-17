@@ -186,10 +186,10 @@
                 <i class="fa-solid {{ hasAccess ? 'fa-circle-check' : 'fa-lock' }}" aria-hidden="true"></i>
                 {{ hasAccess ? 'Available now' : 'Access required' }}
               </span>
-              {% if course.updatedAt %}
+              {% if course.createdAt %}
                 <span class="updated-at">
                   <i class="fa-regular fa-calendar" aria-hidden="true"></i>
-                  {{ course.updatedAt|date('d M Y') }}
+                  {{ course.createdAt|date('d M Y') }}
                 </span>
               {% endif %}
             </div>

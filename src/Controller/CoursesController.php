@@ -25,7 +25,7 @@ public function index(
     CategoryRepository $categoryRepo
 ): Response {
     $user = $this->getUser();
-    $courses = $courseRepo->findBy([], ['id' => 'DESC']);
+    $courses = $courseRepo->findBy([], ['createdAt' => 'DESC', 'id' => 'DESC']);
 
     // ✅ Récupérer les catégories pour le filtre (ordre alphabétique)
     $categories = $categoryRepo->findBy([], ['name' => 'ASC']);
@@ -55,7 +55,7 @@ public function index(
 
     return $this->render('courses/index.html.twig', [
         'courses' => $courses,
-        'categories' => $categories, // ✅ AJOUT
+        'categories' => $categories,
         'progress' => $progress,
         'access' => $access
     ]);
