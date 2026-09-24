@@ -34,6 +34,7 @@ class ApiTokenAuthenticator extends AbstractAuthenticator
                 '/api/login',
                 '/api/logout',
                 '/api/stripe/webhook',
+                '/api/public/community-feed',
                 '/reset-password',
                 '/reset-password/check-email',
                 '/google',

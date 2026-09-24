@@ -34,6 +34,7 @@ security:
         - { path: ^/api/login, roles: PUBLIC_ACCESS }
         - { path: ^/api/logout, roles: PUBLIC_ACCESS }
         - { path: ^/api/stripe/webhook$, roles: PUBLIC_ACCESS }
+        - { path: ^/api/public/community-feed$, roles: PUBLIC_ACCESS, methods: [GET] }
 
         # Public catalogue and public community actions (controllers require a member for mutations)
         - { path: ^/catalog(?:/|$), roles: PUBLIC_ACCESS }
