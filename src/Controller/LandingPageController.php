@@ -31,7 +31,7 @@ final class LandingPageController extends AbstractController
 
         return $this->render('landing_page/index.html.twig', [
             'courses' => $courses,
-            'trendingArticles' => $articleRepository->findTrending(3),
+            'trendingArticles' => $articleRepository->findBy([], ['createdAt' => 'DESC', 'id' => 'DESC'], 3),
         ]);
     }
 }
