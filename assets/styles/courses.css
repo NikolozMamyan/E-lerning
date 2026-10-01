@@ -1411,6 +1411,20 @@ justify-content: center;
   transform: translateY(-3px);
 }
 
+.course-catalog .course-card.is-locked {
+  border-color: #d8dddb;
+  background: #eef0ef;
+  box-shadow: none;
+  filter: grayscale(1);
+  opacity: 0.72;
+}
+
+.course-catalog .course-card.is-locked:hover {
+  border-color: #c8cecc;
+  box-shadow: 0 14px 32px rgba(31, 38, 36, 0.1);
+  opacity: 0.82;
+}
+
 .course-catalog .course-thumbnail {
   position: relative;
   width: 100%;

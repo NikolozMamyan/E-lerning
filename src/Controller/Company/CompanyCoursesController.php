@@ -25,7 +25,7 @@ class CompanyCoursesController extends AbstractController
         EnrollmentRepository $enrollmentRepo
     ): Response {
         $user = $this->getUser();
-        $courses = $courseRepo->findAll();
+        $courses = $courseRepo->findBy([], ['createdAt' => 'DESC', 'id' => 'DESC']);
 
         // Préparer tableau des accès
         $access = [];
