@@ -19,7 +19,7 @@
         Final knowledge check
       </span>
       <h1>{{ course.title }}</h1>
-      <p>Take your time, select one answer for each question and review your choices before submitting.</p>
+      <p>Take your time, select all correct answers for each question and review your choices before submitting.</p>
       <div class="quiz-experience__meta">
         <span><i class="fa-regular fa-circle-question" aria-hidden="true"></i>{{ questionCount }} question{{ questionCount == 1 ? '' : 's' }}</span>
         <span><i class="fa-solid fa-bullseye" aria-hidden="true"></i>80% required to pass</span>
@@ -55,10 +55,11 @@
       <div class="quiz-player__layout">
         <section class="quiz-player__stage" aria-label="Quiz questions">
           {% for question in course.quizQuestions %}
+            {% set multipleAnswers = question.answers|filter(answer => answer.correct)|length > 1 %}
             <article class="quiz-player__question" data-question-slide="{{ loop.index0 }}" {{ loop.first ? '' : 'hidden' }}>
               <div class="quiz-player__question-heading">
                 <span>Question {{ '%02d'|format(loop.index) }}</span>
-                <small>Select one answer</small>
+                <small>{{ multipleAnswers ? 'Select all correct answers' : 'Select one answer' }}</small>
               </div>
 
               <h2>{{ question.getQuestionForLocale(activeQuizLocale) }}</h2>
@@ -67,9 +68,9 @@
                 {% for answer in question.answers %}
                   <label class="quiz-player__answer" for="answer_{{ question.id }}_{{ answer.id }}">
                     <input
-                      type="radio"
+                      type="{{ multipleAnswers ? 'checkbox' : 'radio' }}"
                       id="answer_{{ question.id }}_{{ answer.id }}"
-                      name="answers[{{ question.id }}]"
+                      name="answers[{{ question.id }}][]"
                       value="{{ answer.id }}"
                     >
                     <span class="quiz-player__answer-key">{{ optionLabels[loop.index0]|default(loop.index) }}</span>
@@ -134,7 +135,7 @@
             <span><i class="fa-regular fa-lightbulb" aria-hidden="true"></i></span>
             <div>
               <strong>Before you submit</strong>
-              <p>You can revisit any question. All {{ questionCount }} answers are required before final submission.</p>
+              <p>You can revisit any question. All {{ questionCount }} questions must be answered before final submission. For multiple-choice questions, select all correct answers and no incorrect answers.</p>
             </div>
           </div>
 
@@ -173,7 +174,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const progress = player.querySelector('[data-question-progress]');
   let currentIndex = 0;
 
-  const isAnswered = (slide) => Boolean(slide.querySelector('input[type="radio"]:checked'));
+  const isAnswered = (slide) => Boolean(slide.querySelector('input:checked'));
 
   const showQuestion = (index) => {
     currentIndex = Math.max(0, Math.min(index, slides.length - 1));
@@ -212,11 +213,12 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   player.addEventListener('change', (event) => {
-    if (!event.target.matches('input[type="radio"]')) return;
+    if (!event.target.matches('input[type="radio"], input[type="checkbox"]')) return;
 
     const slide = event.target.closest('[data-question-slide]');
-    slide.querySelectorAll('.quiz-player__answer').forEach((answer) => answer.classList.remove('is-selected'));
-    event.target.closest('.quiz-player__answer').classList.add('is-selected');
+    slide.querySelectorAll('.quiz-player__answer').forEach((answer) => {
+      answer.classList.toggle('is-selected', answer.querySelector('input').checked);
+    });
     showQuestion(currentIndex);
   });
 
