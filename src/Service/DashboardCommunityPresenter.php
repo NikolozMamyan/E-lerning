@@ -33,7 +33,7 @@ final readonly class DashboardCommunityPresenter
             $jobs[] = [
                 'id' => $job->getId(),
                 'title' => $job->getTitle(),
-                'description' => $this->contentSanitizer->sanitize((string) $job->getDescription()),
+                'description' => $this->content((string) $job->getDescription()),
                 'hasApplied' => in_array($job->getId(), $appliedIds, true),
             ];
         }
@@ -42,13 +42,21 @@ final readonly class DashboardCommunityPresenter
             $events[] = [
                 'id' => $event->getId(),
                 'title' => $event->getTitle(),
-                'description' => $this->contentSanitizer->sanitize((string) $event->getDescription()),
+                'description' => $this->content((string) $event->getDescription()),
                 'startsAt' => $event->getStartsAt()?->format(DATE_ATOM),
                 'location' => $event->getLocation(),
                 'isRegistered' => in_array($event->getId(), $registeredIds, true),
+                'registrationsCount' => $event->getRegistrations()->count(),
             ];
         }
 
         return ['jobOffers' => $jobs, 'upcomingEvents' => $events];
+    }
+
+    private function content(string $description): string
+    {
+        return strip_tags($description) === $description
+            ? nl2br(htmlspecialchars($description, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'))
+            : $this->contentSanitizer->sanitize($description);
     }
 }
