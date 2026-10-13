@@ -139,6 +139,9 @@ if (!$hasAccess) {
     $currentVideo = null;
     if ($videoId) {
         $currentVideo = $videoRepo->find($videoId);
+        if ($currentVideo && $currentVideo->getCourse()?->getId() !== $course->getId()) {
+            throw $this->createNotFoundException('Lesson not found in this course');
+        }
     }
     if (!$currentVideo && count($videos) > 0) {
         $currentVideo = $videos[0];
