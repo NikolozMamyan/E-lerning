@@ -31,10 +31,14 @@ class CertificateApiController extends AbstractController
             return [
                 'attemptId' => $attempt->getId(),
                 'passed' => (bool) $attempt->isPassed(),
+                'score' => $attempt->getScore(),
                 'createdAt' => $attempt->getCreatedAt()?->format(\DateTimeInterface::ATOM),
                 'course' => [
                     'id' => $course?->getId(),
                     'title' => $course?->getTitle(),
+                    'image' => $course?->getThumb(),
+                    'description' => $course?->getDescription(),
+                    'category' => $course?->getCategory()?->getName(),
                 ],
             ];
         }, $attempts);

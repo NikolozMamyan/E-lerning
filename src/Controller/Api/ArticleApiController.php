@@ -9,6 +9,7 @@ use App\Repository\ArticleRepository;
 use App\Repository\CommentRepository;
 use App\Repository\NotificationRepository;
 use App\Service\LinkPreviewService;
+use App\Service\LearnerArticlePresenter;
 use App\Service\MailerService;
 use App\Service\NotificationService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -22,6 +23,13 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[Route('/api/articles')]
 class ArticleApiController extends AbstractController
 {
+    public function __construct(private readonly LearnerArticlePresenter $presenter) {}
+
+    #[Route('/{id<\d+>}', name: 'api_articles_show', methods: ['GET'])]
+    public function show(Article $article): JsonResponse
+    {
+        return $this->json($this->presenter->present($article, $this->getUser(), true));
+    }
     // ------------------------------------------------------------
     // GET /api/articles?limit=5&offset=0
     // ------------------------------------------------------------
@@ -32,11 +40,13 @@ public function list(Request $request, ArticleRepository $repo): JsonResponse
     $offset = max(0, (int) $request->query->get('offset', 0));
 
     // items paginés
-    $articles = $repo->findBy([], ['createdAt' => 'DESC'], $limit, $offset);
+    $filter = strtolower((string) $request->query->get('filter', 'latest'));
+    $filter = in_array($filter, ['latest', 'popular', 'mine'], true) ? $filter : 'latest';
+    $articles = $repo->findFeed($filter, $this->getUser(), $limit, $offset);
     $items = array_map(fn(Article $a) => $this->serializeArticle($a), $articles);
 
     // ✅ total global
-    $total = $repo->count([]);
+    $total = $repo->count($filter === 'mine' ? ['author' => $this->getUser()] : []);
 
     return $this->json([
         'limit' => $limit,
@@ -518,55 +528,14 @@ public function list(Request $request, ArticleRepository $repo): JsonResponse
     // Helpers
     // =========================
 
-private function serializeArticle(Article $a): array
-{
-    $user = $this->getUser();
-
-    // Option : trier les comments en mémoire (si pas déjà triés en DB)
-    $comments = $a->getComments()->toArray();
-
-    usort($comments, function($c1, $c2) {
-        return ($c2->getCreatedAt() <=> $c1->getCreatedAt());
-    });
-
-    // On limite à 3 (ou ce que tu veux)
-    $comments = array_slice($comments, 0, 3);
-
-    return [
-        'id' => $a->getId(),
-        'title' => $a->getTitre(),
-        'description' => $a->getDescription(),
-        'image' => $a->getImage(),
-        'video' => $a->getVideo(),
-        'createdAt' => $a->getCreatedAt()?->format(DATE_ATOM),
-        'author' => [
-            'id' => $a->getAuthor()?->getId(),
-            'username' => $a->getAuthor()?->getUserIdentifier(),
-        ],
-        'likesCount' => $a->getLikesCount(),
-        'likedByMe' => $user ? $a->isLikedByUser($user) : false,
-
-        // ✅ Ajouts
-        'commentsCount' => $a->getComments()->count(),
-        'comments' => array_map(fn(Comment $c) => $this->serializeComment($c), $comments),
-    ];
-}
-    private function serializeComment(Comment $c): array
+    private function serializeArticle(Article $article): array
     {
-        $u = $c->getAuthor();
+        return $this->presenter->present($article, $this->getUser());
+    }
 
-        return [
-            'id' => $c->getId(),
-            'content' => $c->getContent(),
-            'createdAt' => $c->getCreatedAt()?->format(DATE_ATOM),
-            'likesCount' => $c->getLikesCount(),
-            'author' => [
-                'id' => $u?->getId(),
-                'display' => $u ? ('User-' . $c->getCreatedAt()->format('Ymd') . '-' . $u->getId()) : null,
-                'avatar' => $u ? strtoupper($u->getUserIdentifier()[0]) : null,
-            ],
-            'articleId' => $c->getArticle()?->getId(),
-        ];
+    private function serializeComment(Comment $comment): array
+    {
+        return $this->presenter->comment($comment, $this->getUser());
     }
 
     private function deleteArticleImageIfExists(Article $article): void

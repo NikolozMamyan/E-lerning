@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use Stripe\Stripe;
+use App\Service\LearnerCheckoutService;
 use App\Entity\QuizAttempt;
 use App\Repository\CourseRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -15,7 +16,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 class StripeController extends AbstractController
 {
     #[Route('api/pay/course/{id}', name: 'app_course_checkout', methods: ['POST'])]
-    public function checkoutCourse(int $id, CourseRepository $courseRepo): Response
+    public function checkoutCourse(int $id, CourseRepository $courseRepo, LearnerCheckoutService $checkout): Response
     {
         $user = $this->getUser();
         if (!$user) {
@@ -27,38 +28,7 @@ class StripeController extends AbstractController
             throw $this->createNotFoundException();
         }
 
-            $euroPrice = null;
-    foreach ($course->getCoursePrices() as $price) {
-        if ($price->getCurrency() === 'EUR') {
-            $euroPrice = $price->getPrice(); // déjà en centimes (Stripe-ready)
-            break;
-        }
-    }
-
-        \Stripe\Stripe::setApiKey($_SERVER['STRIPE_SECRET_KEY'] ?? $_ENV['STRIPE_SECRET_KEY']);
-
-        $session = \Stripe\Checkout\Session::create([
-            'mode' => 'payment',
-            'payment_method_types' => ['card'],
-            'line_items' => [[
-                'price_data' => [
-                    'currency' => 'eur',
-                    'unit_amount' => $euroPrice,
-                    'product_data' => ['name' => $course->getTitle()],
-                ],
-                'quantity' => 1,
-            ]],
-            'customer_email' => $user->getEmail(),
-            'metadata' => [
-                'user_id' => (string) $user->getId(),
-                'course_id' => (string) $course->getId(),
-            ],
-            'success_url' => $this->generateUrl('app_payment_success', [], UrlGeneratorInterface::ABSOLUTE_URL)
-                . '?session_id={CHECKOUT_SESSION_ID}',
-            'cancel_url'  => $this->generateUrl('app_payment_cancel', ['c' => $course->getId()], UrlGeneratorInterface::ABSOLUTE_URL),
-        ]);
-
-        return $this->redirect($session->url, 303);
+        return $this->redirect($checkout->course($user, $course), 303);
     }
 
       #[Route('app/pay/success', name: 'app_payment_success')]

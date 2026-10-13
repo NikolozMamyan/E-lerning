@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Service\MailerService;
+use App\Service\LearnerCheckoutService;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -29,38 +30,14 @@ final class SubscriptionController extends AbstractController
     }
 
     #[Route('/app/pay/subscription', name: 'app_subscription_checkout')]
-    public function checkoutSubscription(): Response
+    public function checkoutSubscription(LearnerCheckoutService $checkout): Response
     {
         $user = $this->getUser();
         if (!$user) {
             return $this->redirectToRoute('show_login');
         }
 
-        \Stripe\Stripe::setApiKey($_SERVER['STRIPE_SECRET_KEY'] ?? $_ENV['STRIPE_SECRET_KEY']);
-
-        // ⚙️ ID du plan Stripe (récurrent)
-        $priceId = 'price_1TGZufGYlvTXCIGy5ILG6jIj'; // prod price
-        #$priceId = 'price_1SFsWLGYlvTXCIGyJNib1Bi6'; // test price
-        
-
-        $session = \Stripe\Checkout\Session::create([
-            'mode' => 'subscription',
-            'payment_method_types' => ['card'],
-            'line_items' => [[
-                'price' => $priceId,
-                'quantity' => 1,
-            ]],
-            'customer_email' => $user->getEmail(),
-            'metadata' => [
-                'user_id' => (string) $user->getId(),
-            ],
-            // ✅ Redirige l’utilisateur vers une vraie page de succès
-            'success_url' => $this->generateUrl('app_subscription_success', [], UrlGeneratorInterface::ABSOLUTE_URL)
-                . '?session_id={CHECKOUT_SESSION_ID}',
-            'cancel_url'  => $this->generateUrl('app_payment_cancel', [], UrlGeneratorInterface::ABSOLUTE_URL),
-        ]);
-
-        return $this->redirect($session->url, 303);
+        return $this->redirect($checkout->subscription($user), 303);
     }
 
     #[Route('/app/pay/subscription/success', name: 'app_subscription_success')]

@@ -8,6 +8,7 @@ use App\Repository\CourseRepository;
 use App\Repository\CategoryRepository;
 use App\Repository\ProgressRepository;
 use App\Repository\EnrollmentRepository;
+use App\Repository\QuizAttemptRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -25,7 +26,7 @@ class CoursesApiController extends AbstractController
         CategoryRepository $categoryRepo
     ): JsonResponse {
         $user = $this->getUser();
-        $courses = $courseRepo->findAll();
+        $courses = $courseRepo->findBy([], ['createdAt' => 'DESC', 'id' => 'DESC']);
         $categories = $categoryRepo->findBy([], ['name' => 'ASC']);
 
         // Vérifier l'abonnement
@@ -85,9 +86,12 @@ $formattedDuration = sprintf('%02d:%02d', $minutes, $seconds);
                 'description' => $course->getDescription(),
                 'planFormations' =>'/uploads/course_plans/' . $course->getPlanPdf(),
                 'image' => $course->getThumb(),
+                'createdAt' => $course->getCreatedAt()?->format(DATE_ATOM),
+                'firstVideoDuration' => $videos->first() ? $videos->first()->getDuration() : 0,
                 'category' => $course->getCategory() ? [
                     'id' => $course->getCategory()->getId(),
                     'name' => $course->getCategory()->getName(),
+                    'slug' => $course->getCategory()->getSlug(),
                 ] : null,
                 'videosCount' => count($videos),
                 'courseDuration' => $formattedDuration,
@@ -104,6 +108,7 @@ $formattedDuration = sprintf('%02d:%02d', $minutes, $seconds);
             $categoriesData[] = [
                 'id' => $category->getId(),
                 'name' => $category->getName(),
+                'slug' => $category->getSlug(),
             ];
         }
 
@@ -122,7 +127,8 @@ $formattedDuration = sprintf('%02d:%02d', $minutes, $seconds);
         VideoRepository $videoRepo,
         ProgressRepository $progressRepo,
         EnrollmentRepository $enrollmentRepo,
-        EntityManagerInterface $em
+        EntityManagerInterface $em,
+        QuizAttemptRepository $attempts
     ): JsonResponse {
         $course = $courseRepo->find($id);
         
@@ -162,7 +168,10 @@ $formattedDuration = sprintf('%02d:%02d', $minutes, $seconds);
                     'planFormations' =>'/uploads/course_plans/' . $course->getPlanPdf(),
                     'image' => $course->getThumb(),
                     'price' => $euroPrice,
+                    'category' => $course->getCategory() ? ['id' => $course->getCategory()->getId(), 'name' => $course->getCategory()->getName(), 'slug' => $course->getCategory()->getSlug()] : null,
+                    'updatedAt' => $course->getUpdatedAt()?->format(DATE_ATOM),
                 ],
+                'videos' => array_map(static fn ($video): array => ['id' => $video->getId(), 'title' => $video->getTitle(), 'duration' => $video->getDuration()], $course->getVideos()->toArray()),
             ]);
         }
 
@@ -242,12 +251,15 @@ $formattedDuration = sprintf('%02d:%02d', $minutes, $seconds);
                 'title' => $course->getTitle(),
                 'description' => $course->getDescription(),
                 'image' => $course->getThumb(),
+                'planFormations' => $course->getPlanPdf() ? '/uploads/course_plans/'.$course->getPlanPdf() : null,
+                'updatedAt' => $course->getUpdatedAt()?->format(DATE_ATOM),
                 'category' => $course->getCategory() ? [
                     'id' => $course->getCategory()->getId(),
                     'name' => $course->getCategory()->getName(),
                 ] : null,
             ],
             'videos' => $videosData,
+            'latestQuizAttempt' => ($attempt = $attempts->findLatestForUserAndCourse($user, $course)) ? \App\Service\MobileQuizService::attempt($attempt) : null,
             'hasFrench' => $hasFrench,
             'hasItalian' => $hasItalian,
             'progressPercent' => $progressPercent,
