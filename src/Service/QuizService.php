@@ -51,12 +51,27 @@ class QuizService
         $correctCount = 0;
 
         foreach ($questions as $question) {
-            $givenAnswerId = $userAnswers[$question->getId()] ?? null;
+            $givenAnswerIds = (array) ($userAnswers[$question->getId()] ?? []);
+            $validAnswerIds = array_filter($givenAnswerIds, static fn ($id) => is_int($id) || (is_string($id) && ctype_digit($id)));
+
+            if (count($validAnswerIds) !== count($givenAnswerIds)) {
+                continue;
+            }
+
+            $givenAnswerIds = array_unique(array_map('intval', $givenAnswerIds));
+            $correctAnswerIds = [];
 
             foreach ($question->getAnswers() as $answer) {
-                if ($answer->isCorrect() && $givenAnswerId == $answer->getId()) {
-                    $correctCount++;
+                if ($answer->isCorrect()) {
+                    $correctAnswerIds[] = $answer->getId();
                 }
+            }
+
+            sort($givenAnswerIds);
+            sort($correctAnswerIds);
+
+            if ($correctAnswerIds !== [] && $givenAnswerIds === $correctAnswerIds) {
+                $correctCount++;
             }
         }
 
