@@ -7,6 +7,8 @@ use App\Repository\CourseRepository;
 use App\Repository\EnrollmentRepository;
 use App\Repository\ProgressRepository;
 use App\Repository\QuizAttemptRepository;
+use App\Service\DashboardCommunityPresenter;
+use App\Service\LearningProgressService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -21,7 +23,9 @@ final class DashboardApiController extends AbstractController
         QuizAttemptRepository $quizAttemptRepo,
         EnrollmentRepository $enrollmentRepo,
         ArticleRepository $articleRepo,
-        EntityManagerInterface $em
+        EntityManagerInterface $em,
+        DashboardCommunityPresenter $communityPresenter,
+        LearningProgressService $learningProgress
     ): JsonResponse {
         $user = $this->getUser();
 
@@ -31,7 +35,7 @@ final class DashboardApiController extends AbstractController
 
         // Tous les cours
         $courses = $courseRepo->findAll();
-        $latestCourses = $courseRepo->findBy([], ['updatedAt' => 'DESC'], 3);
+        $latestCourses = $courseRepo->findBy([], ['createdAt' => 'DESC', 'id' => 'DESC'], 5);
 
         /**
          * Progression par cours (version optimisée: 1 seule requête pour récupérer tous les progress)
@@ -152,6 +156,12 @@ final class DashboardApiController extends AbstractController
         foreach ($attempts as $a) {
             $userAttempts[] = [
                 'id' => $a->getId(),
+                'passed' => $a->isPassed(),
+                'course' => $a->getCourse() ? [
+                    'id' => $a->getCourse()->getId(),
+                    'title' => $a->getCourse()->getTitle(),
+                ] : null,
+                'enrollmentId' => $a->getEnrollment()?->getId(),
                 // adapte selon ton entité QuizAttempt
                 'score' => method_exists($a, 'getScore') ? $a->getScore() : null,
                 'createdAt' => method_exists($a, 'getCreatedAt') && $a->getCreatedAt()
@@ -183,7 +193,7 @@ final class DashboardApiController extends AbstractController
         /**
          * Articles récents
          */
-        $latestArticlesEntities = $articleRepo->findBy([], ['createdAt' => 'DESC'], 6);
+        $latestArticlesEntities = $articleRepo->findBy([], ['createdAt' => 'DESC'], 5);
         $latestArticles = [];
         foreach ($latestArticlesEntities as $article) {
             $latestArticles[] = [
@@ -205,6 +215,7 @@ final class DashboardApiController extends AbstractController
         foreach ($courses as $course) {
             $coursesOut[] = [
                 'id' => $course->getId(),
+                'createdAt' => $course->getCreatedAt()?->format(DATE_ATOM),
                 'title' => method_exists($course, 'getTitle') ? $course->getTitle() : null,
                 'updatedAt' => method_exists($course, 'getUpdatedAt') && $course->getUpdatedAt()
                     ? $course->getUpdatedAt()->format(DATE_ATOM)
@@ -231,6 +242,15 @@ final class DashboardApiController extends AbstractController
             'userAttempts' => $userAttempts,
             'enrollments' => $enrollments,
             'latestArticles' => $latestArticles,
+            'community' => $communityPresenter->present($user),
+            'learningProgress' => array_map(static fn (array $item): array => [
+                'courseId' => $item['course']->getId(),
+                'enrollmentId' => $item['enrollment']?->getId(),
+                'startedAt' => $item['enrollment']?->getCreatedAt()?->format(DATE_ATOM),
+                'progressPercent' => $item['progressPercent'],
+                'quizScore' => $item['quizScore'],
+                'certified' => $item['certified'],
+            ], $learningProgress->forUser($user)),
         ]);
     }
 }

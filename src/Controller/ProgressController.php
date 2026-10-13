@@ -10,6 +10,7 @@ use App\Repository\EnrollmentRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\QuizAttemptRepository;
 use App\Repository\SubscriptionRepository;
+use App\Service\LearningProgressService;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -85,108 +86,17 @@ if ($completed && !$progress->isCompleted()) {
         ]);
     }
 #[Route('/app/progress', name: 'app_progress', methods: ['GET'])]
-public function progress(
-    Request $request,
-    EnrollmentRepository $enrollmentRepo,
-    ProgressRepository $progressRepo,
-    QuizAttemptRepository $quizAttemptRepo,
-    EntityManagerInterface $em
-): Response {
+public function progress(LearningProgressService $learningProgress): Response
+{
     $user = $this->getUser();
-
     if (!$user) {
         return new JsonResponse(['error' => 'Not logged in'], 401);
     }
 
-    $hasSubscription = $user->hasActiveSubscription();
-
-    // 🔹 Récupération des cours accessibles
-    if ($hasSubscription) {
-        // Si abonnement → accès à tous les cours
-        $courses = $em->getRepository(Course::class)->findAll();
-        $enrollments = []; // pas nécessaire dans ce cas
-    } else {
-        // Sinon → seulement les cours achetés
-        $enrollments = $enrollmentRepo->findBy(['user' => $user]);
-        $courses = array_map(fn($en) => $en->getCourse(), $enrollments);
-    }
-
-    $data = [];
-
-    foreach ($courses as $course) {
-        $courseVideos = $course->getVideos();
-        $totalVideos = count($courseVideos);
-
-        // Tous les progress de l'utilisateur
-        $progressList = $progressRepo->findBy(['user' => $user]);
-
-        $percent = 0;
-
-        if ($totalVideos > 1) {
-            $completedVideos = array_filter($progressList, function ($p) use ($course) {
-                return $p->isCompleted() && $p->getVideo()->getCourse() === $course;
-            });
-
-            $percent = ($totalVideos > 0)
-                ? (count($completedVideos) / $totalVideos * 100)
-                : 0;
-        } elseif ($totalVideos === 1) {
-            $video = $courseVideos[0];
-            $progress = $progressRepo->findOneBy([
-                'user' => $user,
-                'video' => $video,
-            ]);
-
-            if ($progress) {
-                $watched = $progress->getWatchedSeconds();
-                $duration = $video->getDuration();
-
-                if ($duration > 0) {
-                    $percent = min(($watched / $duration) * 100, 100);
-                }
-            }
-        }
-
-        // 🔹 Récupération du quiz attempt
-        if ($hasSubscription) {
-            // Les abonnés n'ont pas d'enrollment, donc on cherche par user+course
-            $attempt = $quizAttemptRepo->findOneBy(
-                ['user' => $user, 'course' => $course],
-                ['createdAt' => 'DESC']
-            );
-            $enrollment = null;
-        } else {
-            $enroll = array_values(array_filter($enrollments, fn($e) => $e->getCourse() === $course))[0] ?? null;
-            $enrollment = $enroll;
-            $attempt = $quizAttemptRepo->findOneBy(
-                ['user' => $user, 'enrollment' => $enroll],
-                ['createdAt' => 'DESC']
-            );
-        }
-
-        $quizScore = $attempt ? $attempt->getScore() : null;
-        $quizPassed = $attempt ? $attempt->isPassed() : false;
-
-        // Certification si progression 100% et quiz réussi
-        $certified = $quizPassed;
-          if ($percent >= 92 && $percent < 100) {
-            $percent = 100;
-        }
-        $data[] = [
-            'course' => $course,
-            'enrollment' => $enrollment,
-            'progressPercent' => round($percent, 2),
-            'quizScore' => $quizScore,
-            'certified' => $certified,
-        ];
-    }
-
     return $this->render('progress/index.html.twig', [
-        'coursesData' => $data,
+        'coursesData' => $learningProgress->forUser($user),
     ]);
 }
-
-
 
 #[Route('/app/transactions', name: 'app_transactions')]
 public function transactions(

@@ -37,6 +37,9 @@ class NotificationApiController extends AbstractController
                 'title' => method_exists($n, 'getTitle') ? $n->getTitle() : null,
                 'message' => method_exists($n, 'getMessage') ? $n->getMessage() : (method_exists($n, 'getContent') ? $n->getContent() : null),
                 'isRead' => (bool) $n->getIsRead(),
+                'actionUrl' => $n->getActionUrl(),
+                'type' => $n->getType(),
+                'icon' => $n->getIcon(),
                 'createdAt' => method_exists($n, 'getCreatedAt') && $n->getCreatedAt()
                     ? $n->getCreatedAt()->format(\DateTimeInterface::ATOM)
                     : null,
@@ -44,7 +47,7 @@ class NotificationApiController extends AbstractController
             ];
         }, $notifications);
 
-        return $this->json($data);
+        return $this->json($data, 200, ['X-Unread-Count' => (string) $notificationService->getUnreadCount($user)]);
     }
 
     #[Route('/notifications/{id}/read', name: 'notification_mark_read', methods: ['POST'])]
