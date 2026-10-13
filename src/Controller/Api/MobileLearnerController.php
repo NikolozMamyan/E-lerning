@@ -9,6 +9,7 @@ use App\Entity\User;
 use App\Service\AvatarStorage;
 use App\Service\LearnerBillingService;
 use App\Service\LearnerCheckoutService;
+use App\Service\LearnerContactService;
 use App\Service\MobileProfileEditor;
 use App\Service\MobileProfileService;
 use App\Service\MobileQuizService;
@@ -23,6 +24,14 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/api/mobile', name: 'api_mobile_')]
 final class MobileLearnerController extends AbstractController
 {
+    #[Route('/contact', name: 'contact', methods: ['POST'])]
+    public function contact(Request $request, LearnerContactService $contact): JsonResponse
+    {
+        try { $contact->send($request->toArray()); }
+        catch (\InvalidArgumentException $exception) { return $this->json(['message' => $exception->getMessage()], 422); }
+        return $this->json(['success' => true]);
+    }
+
     #[Route('/settings', name: 'settings', methods: ['GET'])]
     public function settings(MobileProfileService $profiles): JsonResponse
     {
