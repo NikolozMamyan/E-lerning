@@ -10,7 +10,7 @@ use App\Repository\CommentRepository;
 use App\Repository\NotificationRepository;
 use App\Service\LinkPreviewService;
 use App\Service\LearnerArticlePresenter;
-use App\Service\MailerService;
+use App\Service\ArticlePublicationNotifier;
 use App\Service\NotificationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -68,8 +68,7 @@ public function list(Request $request, ArticleRepository $repo): JsonResponse
     public function create(
         Request $request,
         EntityManagerInterface $em,
-        NotificationService $notificationService,
-        MailerService $mailer
+        ArticlePublicationNotifier $publicationNotifier
     ): JsonResponse {
         $title = trim((string) $request->request->get('title', ''));
         $description = trim((string) $request->request->get('description', ''));
@@ -131,28 +130,7 @@ public function list(Request $request, ArticleRepository $repo): JsonResponse
         $em->persist($article);
         $em->flush();
 
-        // notif user
-        $notificationService->createEntityNotification(
-            user: $this->getUser(),
-            title: "Your article has been published!",
-            relatedEntity: $article,
-            message: "Your article {$article->getTitre()} is now visible in the feed.",
-            type: "success",
-            actionUrl: $this->generateUrl('app_public_article', ['id' => $article->getId(), 'slug' => $article->getSlug()]),
-            icon: "fa-solid fa-newspaper"
-        );
-
-        // mail admin
-        $mailer->send(
-            to: "pruffin@les-consultants.lu",
-            subject: "New article published on your platform",
-            template: "emails/new_article.html.twig",
-            context: [
-                "author" => $this->getUser(),
-                "article" => $article,
-                "description" => $article->getDescription(),
-            ]
-        );
+        $publicationNotifier->notify($article);
 
         return $this->json([
             'success' => true,
