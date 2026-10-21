@@ -11,7 +11,11 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 final readonly class LearnerCheckoutService
 {
-    public function __construct(#[Autowire(env: 'STRIPE_SECRET_KEY')] private string $stripeKey, private UrlGeneratorInterface $urls) {}
+    public function __construct(
+        #[Autowire(env: 'STRIPE_SECRET_KEY')] private string $stripeKey,
+        private UrlGeneratorInterface $urls,
+        #[Autowire(env: 'default::STRIPE_SUBSCRIPTION_PRICE_ID')] private ?string $subscriptionPriceId = null,
+    ) {}
 
     public function course(User $user, Course $course): string
     {
@@ -34,7 +38,7 @@ final readonly class LearnerCheckoutService
         if ($user->hasActiveSubscription()) throw new \InvalidArgumentException('Your subscription is already active.');
         \Stripe\Stripe::setApiKey($this->stripeKey);
         $session = \Stripe\Checkout\Session::create([
-            'mode' => 'subscription', 'payment_method_types' => ['card'], 'line_items' => [['price' => 'price_1TGZufGYlvTXCIGy5ILG6jIj', 'quantity' => 1]],
+            'mode' => 'subscription', 'payment_method_types' => ['card'], 'line_items' => [['price' => $this->subscriptionPriceId ?: 'price_1TGZufGYlvTXCIGy5ILG6jIj', 'quantity' => 1]],
             'customer_email' => $user->getEmail(), 'metadata' => ['user_id' => (string) $user->getId()],
             'success_url' => $this->urls->generate('app_subscription_success', [], UrlGeneratorInterface::ABSOLUTE_URL).'?session_id={CHECKOUT_SESSION_ID}',
             'cancel_url' => $this->urls->generate('app_payment_cancel', [], UrlGeneratorInterface::ABSOLUTE_URL),
