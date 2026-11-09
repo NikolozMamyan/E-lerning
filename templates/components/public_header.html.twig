@@ -1,0 +1,46 @@
+{% set publicRoute = app.request.attributes.get('_route')|default('') %}
+{% set learningRoute = is_granted('ROLE_ADMIN') ? 'admin_course_index' : (is_granted('ROLE_COMPANY') ? 'company_dashboard' : 'app_dashboard') %}
+{% set publicLinks = [
+  {label: 'Courses', href: path('app_public_catalog'), active: publicRoute in ['app_public_catalog', 'app_public_course_show', 'app_catalog_payment_success']},
+  {label: 'Solutions', href: path('app_landing_page') ~ '#solutions', active: false},
+  {label: 'Community', href: path('article_feed'), active: publicRoute in ['article_feed', 'app_public_article', 'app_public_profile']},
+  {label: 'How it works', href: path('app_landing_page') ~ '#process', active: false},
+  {label: 'FAQ', href: path('app_landing_page') ~ '#faq', active: false}
+] %}
+<header class="landing-header">
+  <div class="landing-header__inner">
+    <a href="{{ path('app_landing_page') }}" class="landing-brand" aria-label="Les Consultants E-learning home">
+      <img src="{{ asset('images/logo.png') }}" alt="Les Consultants E-learning">
+      <span><strong>Les Consultants</strong><small>E-learning Luxembourg</small></span>
+    </a>
+    <nav class="landing-nav" aria-label="Primary navigation">
+      {% for link in publicLinks %}
+        <a href="{{ link.href }}"{% if link.active %} aria-current="page"{% endif %}>{{ link.label }}</a>
+      {% endfor %}
+    </nav>
+    <div class="landing-header__actions">
+      <a href="https://form.jotform.com/253131874206453" target="_blank" rel="noopener noreferrer" class="landing-header__quiz">Knowledge quiz <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a>
+      {% if app.user %}
+        <a href="{{ path(learningRoute) }}" class="landing-button landing-button--primary"><span class="public-account-label--full">My learning space</span><span class="public-account-label--compact">My space</span></a>
+      {% else %}
+        <a href="{{ path('show_login') }}" class="landing-button landing-button--ghost"{% if publicRoute == 'show_login' %} aria-current="page"{% endif %}>Sign in</a>
+        <a href="{{ path('show_register') }}" class="landing-button landing-button--primary"{% if publicRoute == 'show_register' %} aria-current="page"{% endif %}>Register</a>
+      {% endif %}
+    </div>
+    <details class="landing-mobile-menu" data-landing-target="menu">
+      <summary aria-label="Navigation menu"><i class="fa-solid fa-bars" aria-hidden="true"></i><span>Menu</span></summary>
+      <nav aria-label="Mobile navigation" data-action="click->landing#navigate">
+        {% for link in publicLinks %}
+          <a href="{{ link.href }}"{% if link.active %} aria-current="page"{% endif %}>{{ link.label }}</a>
+        {% endfor %}
+        <a href="https://form.jotform.com/253131874206453" target="_blank" rel="noopener noreferrer">Knowledge quiz <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a>
+        {% if app.user %}
+          <a href="{{ path(learningRoute) }}">My learning space</a>
+        {% else %}
+          <a href="{{ path('show_login') }}">Sign in</a>
+          <a href="{{ path('show_register') }}">Register</a>
+        {% endif %}
+      </nav>
+    </details>
+  </div>
+</header>

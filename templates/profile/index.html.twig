@@ -60,23 +60,6 @@
 {% set profileRouteParams = isOwnProfile ? {} : {id: profileUser.id} %}
 
 <div class="profile-page" data-profile-page>
-  {% if not app.user %}
-    <header class="public-profile-nav">
-      <a href="{{ path('app_landing_page') }}" class="public-profile-nav__brand" aria-label="Les Consultants home">
-        <img src="{{ asset('images/logo.png') }}" alt="Les Consultants">
-        <span><strong>Learning Community</strong><small>by Les Consultants</small></span>
-      </a>
-      <div class="public-profile-nav__context">
-        <span><i class="fa-solid fa-earth-europe" aria-hidden="true"></i>Public member profile</span>
-        <p>Discover the people learning and sharing with our community.</p>
-      </div>
-      <nav class="public-profile-nav__actions" aria-label="Guest account actions">
-        <a href="{{ path('article_feed') }}" class="public-profile-nav__feed"><i class="fa-regular fa-newspaper" aria-hidden="true"></i>Feed</a>
-        <a href="{{ path('show_login') }}" class="public-profile-nav__login">Sign in</a>
-        <a href="{{ path('show_register') }}" class="public-profile-nav__register"><i class="fa-solid fa-star" aria-hidden="true"></i><span>Join for free</span><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
-      </nav>
-    </header>
-  {% endif %}
 
   <section class="profile-identity-card">
     <div class="profile-cover {{ profileUser.coverImage ? 'profile-cover--custom' : '' }}"{% if profileUser.coverImage %} style="--profile-cover-image: url('{{ asset('uploads/covers/' ~ profileUser.coverImage) }}');"{% endif %}>

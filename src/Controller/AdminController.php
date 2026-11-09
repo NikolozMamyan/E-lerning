@@ -20,6 +20,7 @@ use App\Form\CategoryType;
 use App\Entity\QuizQuestion;
 use App\Entity\Subscription;
 use App\Repository\UserRepository;
+use App\Repository\EnrollmentRepository;
 use App\Repository\CourseRepository;
 use App\Repository\ArticleRepository;
 use App\Service\MailerService;
@@ -158,17 +159,18 @@ public function new(Request $request, EntityManagerInterface $em): Response
 
 
     #[Route('/enrollments', name: 'enrollments', methods: ['GET'])]
-public function listEnrollments(EntityManagerInterface $em): Response
+public function listEnrollments(EnrollmentRepository $enrollmentRepository): Response
 {
     $admin = $this->getUser();
     if (!in_array('ROLE_ADMIN', $admin->getRoles())) {
         return $this->redirectToRoute('show_login');
     }
 
-    $enrollments = $em->getRepository(Enrollment::class)->findBy([], ['id' => 'DESC']);
+    $enrollments = $enrollmentRepository->findBy([], ['id' => 'DESC']);
 
     return $this->render('admin/enrollments.html.twig', [
         'enrollments' => $enrollments,
+        'stats' => $enrollmentRepository->getStats(),
     ]);
 }
 

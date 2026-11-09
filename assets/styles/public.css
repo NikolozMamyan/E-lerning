@@ -1,0 +1,251 @@
+.public-site {
+  --landing-primary: #157a61;
+  --landing-primary-dark: #0f5e4a;
+  --landing-accent: #13877a;
+  --landing-ink: #142620;
+  --landing-muted: #53665f;
+  --landing-soft: #e6f3ef;
+  --landing-line: rgba(21, 122, 97, 0.13);
+  --public-header-height: 88px;
+  min-height: 100vh;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  overflow: clip;
+  background: radial-gradient(circle at 80% 5%, rgba(39, 162, 132, 0.09), transparent 30rem), #f4f8f6;
+  color: var(--landing-ink);
+  font-family: Inter, system-ui, sans-serif;
+}
+
+.public-site a {
+  text-decoration: none;
+}
+
+.public-site :where(a, button, summary, input):focus-visible {
+  outline: 3px solid var(--landing-accent);
+  outline-offset: 3px;
+}
+
+.public-content,
+.public-site .wrapper-layout--guest {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+}
+
+.public-site .wrapper-layout--guest .main-content {
+  padding: 0;
+}
+
+.public-site .landing-nav a[aria-current="page"],
+.public-site .landing-mobile-menu a[aria-current="page"] {
+  background: var(--landing-soft);
+  color: var(--landing-primary-dark);
+}
+
+.public-site .landing-header__actions .landing-button--primary {
+  display: inline-flex;
+  background: var(--landing-primary);
+  color: #fff;
+}
+
+.public-site .landing-header__actions .landing-button--primary:hover {
+  background: var(--landing-primary-dark);
+}
+
+.public-account-label--compact {
+  display: none;
+}
+
+.public-footer nav {
+  flex-wrap: wrap;
+}
+
+.public-footer .landing-footer__bottom nav a {
+  font-size: 0.76rem;
+}
+
+.public-site :is(.course-purchase, .community-feed, .profile-page, .contact-container) {
+  width: min(1320px, calc(100% - 4rem));
+  margin: 2rem auto 3rem;
+}
+
+.public-site :is(.course-purchase__hero, .course-purchase__preview, .course-purchase__curriculum, .course-purchase__requirements, .course-purchase__checkout-card) {
+  border-radius: 16px;
+  border-color: var(--landing-line);
+}
+
+.public-site .course-purchase {
+  --purchase-muted: #53665f;
+}
+
+.public-site .course-purchase__status {
+  background: var(--landing-soft);
+  color: var(--landing-primary-dark);
+}
+
+.public-site .course-purchase :is(small, .course-purchase__meta, .course-purchase__eyebrow, .course-purchase__back, .course-purchase__security, .course-purchase__links, .course-purchase__summary) {
+  font-size: 0.8rem;
+}
+
+.public-site .course-purchase :is(.course-purchase__description > p, .course-purchase__hero p, .course-purchase__buy) {
+  font-size: 0.95rem;
+}
+
+.public-site .course-purchase :is(.course-purchase__checkout-heading > div > span, .course-purchase__section-heading > div > span, .course-purchase__price > span, .course-purchase__cover-copy > span) {
+  font-size: 0.76rem;
+}
+
+.public-site .course-purchase :is(.course-purchase__checkout-heading > div > span, .course-purchase__section-heading > div > span) {
+  color: var(--landing-muted);
+}
+
+.public-site :is(.course-purchase__checkout, .community-feed__filters, .community-feed__rail, .article-public__cta, .profile-sidebar) {
+  top: calc(var(--public-header-height) + 1rem);
+}
+
+.public-site .course-purchase__cover {
+  background: linear-gradient(140deg, #157a61, #0f5e4a);
+}
+
+.public-site img[hidden] {
+  display: none;
+}
+
+.public-site :is(.reset-container, .reset-info) {
+  width: min(480px, calc(100% - 2rem));
+  margin: 4rem auto;
+  padding: 2rem;
+  border: 1px solid var(--landing-line);
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 20px 52px rgba(24, 64, 52, 0.08);
+}
+
+.public-site :is(.reset-container, .reset-info) h1 {
+  margin: 1rem 0;
+  font-size: 1.8rem;
+  line-height: 1.2;
+  letter-spacing: -0.035em;
+}
+
+.public-site :is(.reset-container, .reset-info) :is(p, small) {
+  color: var(--landing-muted);
+  font-size: 0.9rem;
+}
+
+.public-site .reset-container form > div {
+  margin-block: 1rem;
+}
+
+.public-site .reset-container label {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.public-site .reset-container input {
+  width: 100%;
+  min-height: 46px;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--landing-line);
+  border-radius: 8px;
+  font: inherit;
+}
+
+.public-site .reset-container .btn {
+  width: 100%;
+  min-height: 46px;
+  padding: 0.7rem;
+  border: 0;
+  border-radius: 8px;
+  background: var(--landing-primary);
+  color: #fff;
+  font: 600 0.9rem Inter, sans-serif;
+  cursor: pointer;
+}
+
+.public-site .reset-container .alert-danger {
+  padding: 0.75rem;
+  border-radius: 8px;
+  background: #fce8e6;
+  color: #902e28;
+}
+
+.public-site--auth .public-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.public-site--auth .public-footer {
+  padding-block: 0.65rem;
+}
+
+.public-site--auth .landing-footer__main {
+  display: none;
+}
+
+.public-site--auth .landing-footer__bottom {
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+@media (max-width: 1240px) {
+  .public-site {
+    --public-header-height: 136px;
+  }
+}
+
+@media (max-width: 720px) {
+  .public-site {
+    --public-header-height: 76px;
+  }
+
+  .public-site .landing-header__actions .landing-button--ghost {
+    display: none;
+  }
+
+  .public-account-label--full {
+    display: none;
+  }
+
+  .public-account-label--compact {
+    display: inline;
+  }
+
+  .public-site :is(.course-purchase, .community-feed, .profile-page, .contact-container) {
+    width: calc(100% - 2rem);
+    margin-top: 1.25rem;
+  }
+
+  .public-site--auth .landing-footer__bottom {
+    justify-content: center;
+    gap: 0.25rem;
+    text-align: center;
+  }
+
+  .public-site--auth .landing-footer__bottom > span {
+    font-size: 0.7rem;
+  }
+}
+
+@media (max-width: 440px) {
+  .public-site .landing-mobile-menu summary span {
+    display: none;
+  }
+
+  .public-site--auth .landing-footer__bottom > span {
+    display: none;
+  }
+}
+
+@media (max-width: 360px) {
+  .public-site .landing-header__inner {
+    width: calc(100% - 1rem);
+    gap: 0.35rem;
+  }
+}

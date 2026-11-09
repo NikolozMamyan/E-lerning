@@ -56,8 +56,8 @@
 
       <div class="course-purchase__eyebrow">
         <span class="course-purchase__status">
-          <i class="fa-solid fa-lock" aria-hidden="true"></i>
-          Access required
+          <i class="fa-solid {{ app.user ? 'fa-lock' : 'fa-book-open' }}" aria-hidden="true"></i>
+          {{ app.user ? 'Access required' : 'Online course' }}
         </span>
         {% if course.category %}
           <span>{{ course.category.name }}</span>
@@ -88,10 +88,9 @@
     <div class="course-purchase__content">
       <section class="course-purchase__preview">
         <div class="course-purchase__cover">
+          <div class="course-purchase__cover-placeholder"><i class="fa-solid fa-book-open" aria-hidden="true"></i></div>
           {% if course.thumb %}
-            <img src="{{ asset('uploads/courses/' ~ course.thumb) }}" alt="" loading="eager">
-          {% else %}
-            <div class="course-purchase__cover-placeholder"><i class="fa-solid fa-book-open" aria-hidden="true"></i></div>
+            <img src="{{ asset('uploads/courses/' ~ course.thumb) }}" alt="" loading="eager"{% if not app.user %} data-landing-target="image" data-action="error->landing#hideImage"{% endif %}>
           {% endif %}
           <div class="course-purchase__cover-shade"></div>
           <span class="course-purchase__cover-lock"><i class="fa-solid fa-lock" aria-hidden="true"></i></span>
@@ -109,7 +108,7 @@
               <h2>Course overview</h2>
             </div>
           </div>
-          <p>{{ course.description }}</p>
+          <p>{{ course.description|striptags }}</p>
 
           <div class="course-purchase__benefits">
             <div><i class="fa-solid fa-bolt" aria-hidden="true"></i><span><strong>Immediate access</strong><small>Start right after payment</small></span></div>

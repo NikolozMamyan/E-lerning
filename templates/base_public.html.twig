@@ -1,0 +1,18 @@
+{% extends 'base_auth.html.twig' %}
+
+{% block stylesheets %}
+  {{ parent() }}
+  <link rel="stylesheet" href="{{ asset('styles/landing.css') }}">
+  <link rel="stylesheet" href="{{ asset('styles/public.css') }}">
+{% endblock %}
+
+{% block body %}
+<div class="public-site {% block public_class %}{% endblock %}" data-controller="landing" data-action="click@window->landing#closeOutside keydown.esc@window->landing#closeMenu">
+  <a href="#main-content" class="landing-skip-link">Skip to content</a>
+  {% include 'components/public_header.html.twig' %}
+  <main id="main-content" class="public-content" tabindex="-1">
+    {% block public_body %}{% endblock %}
+  </main>
+  {% include 'components/public_footer.html.twig' %}
+</div>
+{% endblock %}

@@ -1,0 +1,4 @@
+[   17228ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:8000/uploads/courses/miniature-en-elearning-4-68d590aae26d8940063590.png:0
+[   17885ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:8000/uploads/courses/miniature-en-elearning-3-68cd6963834a1552927436.png:0
+[   18695ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:8000/uploads/courses/miniature-en-gdpr-68cd643e362a9616074742.png:0
+[   19507ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:8000/uploads/courses/miniature-en-elearning-6-68cd613beed0b487610757.png:0

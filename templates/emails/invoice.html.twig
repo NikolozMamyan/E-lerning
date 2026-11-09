@@ -24,9 +24,7 @@
     <hr style="margin: 30px 0; border: none; border-top: 1px solid #ddd;">
     <p style="font-size: 12px; color: #777;">
         <strong>Facture n° :</strong> {{ invoice_number }}<br>
-        <strong>Date :</strong> {{ date|date('d/m/Y') }}<br>
-        <strong>Montant TTC :</strong> 
-        {{ (amount + (tva ? (amount * tva / 100) : 0))|number_format(2, ',', ' ') }} €
+        <strong>Date :</strong> {{ date|date('d/m/Y') }}
     </p>
 </body>
 </html>

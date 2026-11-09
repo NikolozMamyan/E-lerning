@@ -40,6 +40,11 @@
   {% endblock %}
 </head>
 <body>
+{% if not app.user %}
+<div class="public-site" data-controller="landing" data-action="click@window->landing#closeOutside keydown.esc@window->landing#closeMenu">
+  <a href="#main-content" class="landing-skip-link">Skip to content</a>
+  {% include 'components/public_header.html.twig' %}
+{% endif %}
 <div class="wrapper-layout {{ not app.user ? 'wrapper-layout--guest' : '' }}">
 {% for type, messages in app.flashes %}
     {% for message in messages %}
@@ -66,13 +71,17 @@
     <div class="overlay" id="overlay"></div>
 {% endif %}
 
-    <main class="main-content">
+    <main class="main-content"{% if not app.user %} id="main-content" tabindex="-1"{% endif %}>
     {% if app.user %}
   {% include 'components/topbar.html.twig' %}
       {% endif %}
     {% block body %}{% endblock %}
    </main>
 </div>
+{% if not app.user %}
+  {% include 'components/public_footer.html.twig' %}
+</div>
+{% endif %}
 
 </body>
 </html>

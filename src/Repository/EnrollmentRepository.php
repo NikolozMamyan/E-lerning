@@ -18,6 +18,25 @@ class EnrollmentRepository extends ServiceEntityRepository
         parent::__construct($registry, Enrollment::class);
     }
 
+    /**
+     * @return array{total: int, users: int, courses: int}
+     */
+    public function getStats(): array
+    {
+        $stats = $this->createQueryBuilder('e')
+            ->select('COUNT(e.id) AS total')
+            ->addSelect('COUNT(DISTINCT IDENTITY(e.user)) AS users')
+            ->addSelect('COUNT(DISTINCT IDENTITY(e.course)) AS courses')
+            ->getQuery()
+            ->getSingleResult();
+
+        return [
+            'total' => (int) $stats['total'],
+            'users' => (int) $stats['users'],
+            'courses' => (int) $stats['courses'],
+        ];
+    }
+
     //    /**
     //     * @return Enrollment[] Returns an array of Enrollment objects
     //     */

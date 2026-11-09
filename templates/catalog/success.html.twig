@@ -1,4 +1,4 @@
-{% extends 'base_auth.html.twig' %}
+{% extends 'base_public.html.twig' %}
 
 {% block title %}Payment confirmation | Les Consultants E-learning{% endblock %}
 {% block meta_robots %}noindex, nofollow{% endblock %}
@@ -9,9 +9,8 @@
   <link rel="stylesheet" href="{{ asset('styles/catalog.css') }}">
 {% endblock %}
 
-{% block body %}
-<main class="catalog-success">
-  <a href="{{ path('app_landing_page') }}" class="catalog-success__brand"><img src="{{ asset('images/logo.png') }}" alt="Les Consultants"><span>Les Consultants<small>E-learning Luxembourg</small></span></a>
+{% block public_body %}
+<div class="catalog-success">
   <section class="catalog-success__card">
     <span class="catalog-success__icon"><i class="fa-solid {{ payment.paid ? 'fa-check' : 'fa-clock' }}" aria-hidden="true"></i></span>
     <span class="catalog-eyebrow">{{ payment.paid ? 'Payment confirmed' : 'Confirmation in progress' }}</span>
@@ -30,5 +29,5 @@
     </div>
     <div class="catalog-success__actions"><a href="{{ path('show_login') }}" class="catalog-success__primary">Sign in to my account <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a><a href="{{ path('app_public_catalog') }}">Back to catalogue</a></div>
   </section>
-</main>
+</div>
 {% endblock %}

@@ -1,0 +1,18 @@
+<footer class="landing-footer public-footer">
+  <div class="landing-footer__main">
+    <a href="{{ path('app_landing_page') }}" class="landing-brand">
+      <img src="{{ asset('images/logo.png') }}" alt="Les Consultants E-learning">
+      <span><strong>Les Consultants</strong><small>E-learning Luxembourg</small></span>
+    </a>
+    <p>Professional digital learning for regulated teams in Luxembourg and beyond.</p>
+    <nav aria-label="Footer navigation">
+      <a href="{{ path('app_public_catalog') }}">Courses</a>
+      <a href="{{ path('article_feed') }}">Community</a>
+      <a href="{{ path('app_contact') }}">Contact</a>
+    </nav>
+  </div>
+  <div class="landing-footer__bottom">
+    <span>&copy; {{ 'now'|date('Y') }} Les Consultants. All rights reserved.</span>
+    <nav aria-label="Legal information"><a href="/legales/TermsConditions.html">Terms</a><a href="/legales/Privacy.html">Privacy</a><a href="/legales/cookie.html">Cookies</a></nav>
+  </div>
+</footer>

@@ -36,23 +36,6 @@
 {% endblock %}
 {% block body %}
 <section class="community-feed" data-feed-filter="{{ activeFilter }}" data-authenticated="{{ app.user ? 'true' : 'false' }}">
-  {% if not app.user %}
-    <header class="community-feed__guest-nav">
-      <a href="{{ path('app_landing_page') }}" class="guest-nav__brand" aria-label="Les Consultants home">
-        <img src="{{ asset('images/logo.png') }}" alt="Les Consultants">
-        <span><strong>Learning Community</strong><small>by Les Consultants</small></span>
-      </a>
-      <div class="guest-nav__message">
-        <span><i class="fa-solid fa-globe" aria-hidden="true"></i>Public preview</span>
-        <p>Discover what our learners are sharing.</p>
-      </div>
-      <nav class="guest-nav__actions" aria-label="Guest account actions">
-        <a href="{{ path('app_public_catalog') }}" class="guest-nav__login">Catalogue</a>
-        <a href="{{ path('show_login') }}" class="guest-nav__login">Sign in</a>
-        <a href="{{ path('show_register') }}" class="guest-nav__register"><i class="fa-solid fa-star" aria-hidden="true"></i><span>Create free account</span><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
-      </nav>
-    </header>
-  {% endif %}
 
   <header class="community-feed__hero">
     <div class="community-feed__hero-copy">

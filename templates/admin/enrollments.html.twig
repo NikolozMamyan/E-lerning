@@ -223,15 +223,15 @@
 
         <div class="stats-grid">
             <div class="stat-card">
-                <div class="stat-value">{{ enrollments|length }}</div>
+                <div class="stat-value">{{ stats.total }}</div>
                 <div class="stat-label">Inscriptions totales</div>
             </div>
             <div class="stat-card" style="border-left-color: var(--green);">
-                <div class="stat-value">{{ enrollments|map(e => e.user.id)|length }}</div>
+                <div class="stat-value">{{ stats.users }}</div>
                 <div class="stat-label">Utilisateurs inscrits</div>
             </div>
             <div class="stat-card" style="border-left-color: var(--grey);">
-                <div class="stat-value">{{ enrollments|map(e => e.course.id)|length }}</div>
+                <div class="stat-value">{{ stats.courses }}</div>
                 <div class="stat-label">Cours actifs</div>
             </div>
         </div>

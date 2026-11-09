@@ -15,8 +15,7 @@
       <p style="margin:0 0 20px; line-height:1.6;">Hello {{ company.username }}, the selected employees now have access to <strong>{{ course.title }}</strong>.</p>
 
       <div style="margin-bottom:22px; padding:18px; border:1px solid #e2ece8; border-radius:6px; background:#f8fbfa;">
-        <div style="display:flex; justify-content:space-between; gap:16px; margin-bottom:10px;"><span style="color:#64776f;">Seats purchased</span><strong>{{ quantity }}</strong></div>
-        <div style="display:flex; justify-content:space-between; gap:16px;"><span style="color:#64776f;">Total paid</span><strong>{{ amount is not null ? amount|number_format(2, '.', ',') ~ ' ' ~ currency : 'Confirmed by Stripe' }}</strong></div>
+        <div style="display:flex; justify-content:space-between; gap:16px;"><span style="color:#64776f;">Seats purchased</span><strong>{{ quantity }}</strong></div>
       </div>
 
       <p style="margin:0 0 10px; font-size:13px; font-weight:700;">Assigned employees</p>

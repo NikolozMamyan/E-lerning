@@ -1,4 +1,4 @@
-{% extends 'base_auth.html.twig' %}
+{% extends 'base_public.html.twig' %}
 
 {% block title %}Sign in to your E-learning Platform | Les Consultants Luxembourg{% endblock %}
 {% block meta_description %}Sign in to Les Consultants E-learning to continue professional courses in compliance, AML/CFT, risk, GDPR and cybersecurity.{% endblock %}
@@ -11,17 +11,14 @@
   <link rel="stylesheet" href="{{ asset('styles/auth.css') }}">
 {% endblock %}
 
-{% block body %}
+{% block public_class %}public-site--auth{% endblock %}
+
+{% block public_body %}
 <div class="auth-shell auth-shell--login" data-controller="auth" data-auth-mode="login">
   <section class="auth-visual" style="--auth-illustration: url('{{ asset('images/login.svg') }}')" aria-label="Learning platform preview">
-    <a href="{{ path('app_landing_page') }}" class="auth-brand" aria-label="Les Consultants home">
-      <img src="{{ asset('images/logo.png') }}" alt="Les Consultants">
-      <span>Digital learning platform</span>
-    </a>
-
     <div class="auth-visual__copy">
       <span class="auth-visual__eyebrow"><i class="fa-solid fa-chart-line" aria-hidden="true"></i>Continue your journey</span>
-      <h1>Learn with clarity.<br>Progress with confidence.</h1>
+      <h2>Learn with clarity.<br>Progress with confidence.</h2>
       <p>Return to your courses, follow every milestone and keep your professional achievements in one place.</p>
     </div>
 
@@ -62,17 +59,12 @@
     </div>
   </section>
 
-  <main class="auth-main">
+  <div class="auth-main">
     <div class="auth-main__inner">
-      <nav class="auth-switch" aria-label="Authentication pages">
-        <span class="auth-switch__active"><i class="fa-solid fa-arrow-right-to-bracket" aria-hidden="true"></i>Sign in</span>
-        <a href="{{ path('show_register') }}" data-action="click->auth#switchPage" data-auth-direction="forward">Create account</a>
-      </nav>
 
       <section class="auth-card">
         <div class="auth-card__heading">
-          <span>Welcome back</span>
-          <h2>Sign in to your workspace</h2>
+          <h1>Sign in to your account</h1>
           <p>Access your courses, progress and certificates.</p>
         </div>
 
@@ -122,11 +114,7 @@
         <p class="auth-card__switch-copy">New to the platform? <a href="{{ path('show_register') }}" data-action="click->auth#switchPage" data-auth-direction="forward">Create your account <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a></p>
       </section>
 
-      <footer class="auth-footer">
-        <span>© {{ 'now'|date('Y') }} Les Consultants</span>
-        <nav><a href="/legales/TermsConditions.html">Terms</a><a href="/legales/Privacy.html">Privacy</a></nav>
-      </footer>
     </div>
-  </main>
+  </div>
 </div>
 {% endblock %}

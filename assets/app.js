@@ -6,6 +6,7 @@ import './styles/dashboard.css';
 import './styles/courses.css';
 import './styles/courseDetail.css';
 import './styles/landing.css';
+import './styles/public.css';
 import './styles/progressTracking.css';
 import './styles/quiz.css';
 import './styles/subscription.css';
