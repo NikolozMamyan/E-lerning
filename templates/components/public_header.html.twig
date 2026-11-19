@@ -19,7 +19,6 @@
       {% endfor %}
     </nav>
     <div class="landing-header__actions">
-      <a href="https://form.jotform.com/253131874206453" target="_blank" rel="noopener noreferrer" class="landing-header__quiz">Knowledge quiz <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a>
       {% if app.user %}
         <a href="{{ path(learningRoute) }}" class="landing-button landing-button--primary"><span class="public-account-label--full">My learning space</span><span class="public-account-label--compact">My space</span></a>
       {% else %}
@@ -33,7 +32,6 @@
         {% for link in publicLinks %}
           <a href="{{ link.href }}"{% if link.active %} aria-current="page"{% endif %}>{{ link.label }}</a>
         {% endfor %}
-        <a href="https://form.jotform.com/253131874206453" target="_blank" rel="noopener noreferrer">Knowledge quiz <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a>
         {% if app.user %}
           <a href="{{ path(learningRoute) }}">My learning space</a>
         {% else %}
