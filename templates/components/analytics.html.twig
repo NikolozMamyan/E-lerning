@@ -8,19 +8,22 @@
        data-analytics-lead-id-value="{{ analyticsLeadId|default('') }}"
        data-action="click@document->analytics#trackClick submit@document->analytics#trackCheckout turbo:before-cache@document->analytics#beforeCache">
     <section class="cookie-consent" data-analytics-target="panel" aria-labelledby="cookie-consent-title" role="region" hidden>
-      <h2 id="cookie-consent-title">{{ french ? 'Vos choix de confidentialité' : 'Your privacy choices' }}</h2>
-      <p>{{ french ? 'LES CONSULTANTS utilise Google Analytics pour mesurer les visites et Google Ads pour mesurer les conversions publicitaires, uniquement avec votre accord. Refuser ne limite pas votre accès au site.' : 'LES CONSULTANTS uses Google Analytics to measure visits and Google Ads to measure advertising conversions, only with your permission. Refusing does not limit your access to the site.' }}</p>
-      <a href="/legales/cookie.html">{{ french ? 'Politique relative aux cookies' : 'Cookies policy' }}</a>
-      <div class="cookie-consent__choices">
-        <label><input type="checkbox" data-analytics-target="statistics"> {{ french ? 'Statistiques de fréquentation (Google Analytics)' : 'Audience measurement (Google Analytics)' }}</label>
-        <label><input type="checkbox" data-analytics-target="advertising"> {{ french ? 'Mesure publicitaire (Google Ads)' : 'Advertising measurement (Google Ads)' }}</label>
-      </div>
+      <div class="cookie-consent__heading"><span aria-hidden="true"><i class="fa-solid fa-cookie-bite"></i></span><h2 id="cookie-consent-title">{{ french ? 'Vos choix de cookies' : 'Your cookie choices' }}</h2></div>
+      <p>{{ french ? 'Google mesure les visites et les conversions publicitaires, uniquement avec votre accord. Le refus ne limite pas l’accès.' : 'Google measures visits and ad conversions with your permission. Refusing does not limit access.' }}</p>
       <div class="cookie-consent__actions">
         <button type="button" data-action="analytics#reject">{{ french ? 'Tout refuser' : 'Reject all' }}</button>
         <button type="button" data-action="analytics#accept">{{ french ? 'Tout accepter' : 'Accept all' }}</button>
-        <button type="button" data-action="analytics#save">{{ french ? 'Enregistrer mes choix' : 'Save my choices' }}</button>
       </div>
+      <details class="cookie-consent__customize">
+        <summary>{{ french ? 'Personnaliser mes choix' : 'Customize my choices' }}</summary>
+        <div class="cookie-consent__choices">
+          <label><input type="checkbox" data-analytics-target="statistics"> {{ french ? 'Statistiques (Google Analytics)' : 'Statistics (Google Analytics)' }}</label>
+          <label><input type="checkbox" data-analytics-target="advertising"> {{ french ? 'Mesure publicitaire (Google Ads)' : 'Advertising measurement (Google Ads)' }}</label>
+        </div>
+        <button class="cookie-consent__save" type="button" data-action="analytics#save">{{ french ? 'Enregistrer mes choix' : 'Save my choices' }}</button>
+      </details>
+      <a class="cookie-consent__policy" href="/legales/cookie.html">{{ french ? 'En savoir plus' : 'Learn more' }}</a>
     </section>
-    <button class="cookie-preferences" type="button" data-analytics-target="preferences" data-action="analytics#open" hidden>{{ french ? 'Choix des cookies' : 'Cookie settings' }}</button>
+    <button class="cookie-preferences" type="button" data-analytics-target="preferences" data-action="analytics#open" hidden><i class="fa-solid fa-cookie-bite" aria-hidden="true"></i> Cookies</button>
   </div>
 {% endif %}

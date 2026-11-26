@@ -26,6 +26,7 @@
 
 ###> symfony/webpack-encore-bundle ###
 /node_modules/
+/.playwright-mcp/
 
 npm-debug.log
 yarn-error.log

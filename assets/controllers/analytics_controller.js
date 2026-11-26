@@ -115,6 +115,7 @@ export default class extends Controller {
     const current = new URL(location.href);
     const commercialPath = /^\/(?:courses\/\d+-[a-z0-9-]+|catalog(?:\/payment\/success)?|contact|login|register)?\/?$/;
     const safe = new URL(commercialPath.test(current.pathname) ? current.pathname : `/_pages/${this.pageValue}`, current.origin);
+    if (current.searchParams.get('collection') === 'aml-2026') safe.searchParams.set('collection', 'aml-2026');
     for (const key of ['utm_source', 'utm_medium', 'utm_campaign', 'utm_id', 'utm_content', 'utm_term', 'gclid', 'gbraid', 'wbraid']) {
       const value = current.searchParams.get(key);
       if (value && /^[a-zA-Z0-9_.~ -]{1,256}$/.test(value)) safe.searchParams.set(key, value);

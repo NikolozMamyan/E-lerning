@@ -1,9 +1,9 @@
 {% extends 'base_public.html.twig' %}
 
-{% block title %}Online Compliance Training Catalogue Luxembourg | Les Consultants{% endblock %}
-{% block meta_description %}Buy professional AML/CFT, compliance, risk, GDPR and cybersecurity e-learning courses online in Luxembourg. Secure guest checkout and instant learner account activation.{% endblock %}
+{% block title %}{{ aml2026 ? 'AML 2026 Online Training Luxembourg | Les Consultants' : 'Online Compliance Training Catalogue Luxembourg | Les Consultants' }}{% endblock %}
+{% block meta_description %}{{ aml2026 ? 'Explore five AML/CFT courses for Luxembourg professionals: fundamentals, boards of directors, transfer agents and funds, cryptoassets and fintech.' : 'Buy professional AML/CFT, compliance, risk, GDPR and cybersecurity e-learning courses online in Luxembourg. Secure guest checkout and instant learner account activation.' }}{% endblock %}
 {% block meta_robots %}index, follow, max-image-preview:large, max-snippet:-1{% endblock %}
-{% block canonical_url %}{{ url('app_public_catalog') }}{% endblock %}
+{% block canonical_url %}{{ url('app_public_catalog', aml2026 ? {collection: 'aml-2026'} : {}) }}{% endblock %}
 {% block body_class %}catalog-document{% endblock %}
 
 {% block stylesheets %}
@@ -33,8 +33,8 @@
   {% set catalogSchema = {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
-    'name': 'Professional e-learning course catalogue',
-    'url': url('app_public_catalog'),
+    'name': aml2026 ? 'AML 2026 professional training collection' : 'Professional e-learning course catalogue',
+    'url': url('app_public_catalog', aml2026 ? {collection: 'aml-2026'} : {}),
     'mainEntity': {'@type': 'ItemList', 'itemListElement': catalogItems}
   } %}
   <script type="application/ld+json">{{ catalogSchema|json_encode(constant('JSON_HEX_TAG'))|raw }}</script>
@@ -45,9 +45,10 @@
 
     <section class="catalog-hero">
       <div class="catalog-hero__copy">
-        <span class="catalog-eyebrow"><i class="fa-solid fa-sparkles" aria-hidden="true"></i>Public course catalogue</span>
-        <h1>Find your next course.</h1>
-        <p>Explore practical training in compliance, risk, GDPR and cybersecurity. Read the course details, choose your training and learn at your own pace.</p>
+        <span class="catalog-eyebrow"><i class="fa-solid fa-sparkles" aria-hidden="true"></i>{{ aml2026 ? 'AML 2026 · Luxembourg' : 'Public course catalogue' }}</span>
+        <h1>{{ aml2026 ? 'Five AML courses. Your next step.' : 'Find your next course.' }}</h1>
+        <p>{{ aml2026 ? 'Build your AML/CFT knowledge with focused online training: fundamentals, boards of directors, transfer agents and funds, cryptoassets, and fintech. Choose your course and learn at your own pace.' : 'Explore practical training in compliance, risk, GDPR and cybersecurity. Read the course details, choose your training and learn at your own pace.' }}</p>
+        {% if aml2026 %}<a href="{{ path('app_public_catalog') }}" class="landing-text-link">Explore the full catalogue <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>{% endif %}
         <div class="catalog-hero__proof">
           <span><i class="fa-solid fa-lock" aria-hidden="true"></i><strong>Secure payment</strong><small>Protected online payment</small></span>
           <span><i class="fa-solid fa-user-check" aria-hidden="true"></i><strong>Easy access</strong><small>Activation link by email</small></span>

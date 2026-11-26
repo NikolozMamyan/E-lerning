@@ -16,10 +16,13 @@ use Symfony\Component\Routing\Attribute\Route;
 final class PublicCatalogController extends AbstractController
 {
     #[Route('/catalog', name: 'app_public_catalog', methods: ['GET'])]
-    public function index(CourseRepository $courseRepository): Response
+    public function index(CourseRepository $courseRepository, Request $request): Response
     {
+        $aml2026 = $request->query->getString('collection') === 'aml-2026';
+
         return $this->render('catalog/index.html.twig', [
-            'courses' => $courseRepository->findBy([], ['title' => 'ASC']),
+            'courses' => $courseRepository->findBy($aml2026 ? ['id' => [34, 37, 33, 47, 38]] : [], ['title' => 'ASC']),
+            'aml2026' => $aml2026,
         ]);
     }
 
