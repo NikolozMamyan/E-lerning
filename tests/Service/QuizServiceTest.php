@@ -103,6 +103,92 @@ class QuizServiceTest extends TestCase
         ];
     }
 
+    public function testLastIncorrectQuestionsReturnsLastFiveInQuizOrder(): void
+    {
+        $questions = [];
+        $incorrectAnswers = [];
+        $userAnswers = [];
+
+        for ($number = 1; $number <= 9; $number++) {
+            $correctAnswer = $this->createConfiguredMock(QuizAnswer::class, [
+                'getId' => $number * 10,
+                'isCorrect' => true,
+            ]);
+            $incorrectAnswers[$number] = $this->createConfiguredMock(QuizAnswer::class, [
+                'getId' => $number * 10 + 1,
+                'isCorrect' => false,
+            ]);
+            $questions[] = $this->createConfiguredMock(QuizQuestion::class, [
+                'getId' => $number * 100,
+                'getAnswers' => new ArrayCollection([$correctAnswer, $incorrectAnswers[$number]]),
+            ]);
+            $userAnswers[$number * 100] = [(string) (in_array($number, [2, 8], true) ? $number * 10 : $number * 10 + 1)];
+        }
+
+        krsort($userAnswers);
+        $course = $this->createConfiguredMock(Course::class, [
+            'getQuizQuestions' => new ArrayCollection($questions),
+        ]);
+        $service = new QuizService(
+            $this->createMock(EntityManagerInterface::class),
+            $this->createMock(QuizAttemptRepository::class),
+            $this->createMock(NotificationService::class),
+        );
+
+        $incorrectQuestions = $service->getLastIncorrectQuestions($course, $userAnswers);
+
+        self::assertSame([4, 5, 6, 7, 9], array_column($incorrectQuestions, 'number'));
+        foreach ($incorrectQuestions as $item) {
+            self::assertSame($questions[$item['number'] - 1], $item['question']);
+            self::assertSame([$incorrectAnswers[$item['number']]], $item['selectedAnswers']);
+        }
+    }
+
+    /**
+     * @dataProvider incorrectSelectionProvider
+     */
+    public function testLastIncorrectQuestionsKeepsOnlySelectedAnswersFromTheQuestion(array $selection, array $expectedAnswerIds): void
+    {
+        $question = $this->createConfiguredMock(QuizQuestion::class, [
+            'getId' => 1,
+            'getAnswers' => new ArrayCollection([
+                $this->createConfiguredMock(QuizAnswer::class, ['getId' => 11, 'isCorrect' => true]),
+                $this->createConfiguredMock(QuizAnswer::class, ['getId' => 12, 'isCorrect' => true]),
+                $this->createConfiguredMock(QuizAnswer::class, ['getId' => 13, 'isCorrect' => false]),
+            ]),
+        ]);
+        $course = $this->createConfiguredMock(Course::class, [
+            'getQuizQuestions' => new ArrayCollection([$question]),
+        ]);
+        $service = new QuizService(
+            $this->createMock(EntityManagerInterface::class),
+            $this->createMock(QuizAttemptRepository::class),
+            $this->createMock(NotificationService::class),
+        );
+
+        $incorrectQuestions = $service->getLastIncorrectQuestions($course, [1 => $selection]);
+
+        self::assertCount(1, $incorrectQuestions);
+        self::assertSame($question, $incorrectQuestions[0]['question']);
+        self::assertSame($expectedAnswerIds, array_map(
+            static fn (QuizAnswer $answer) => $answer->getId(),
+            $incorrectQuestions[0]['selectedAnswers'],
+        ));
+    }
+
+    public static function incorrectSelectionProvider(): array
+    {
+        return [
+            'incomplete selection' => [['11'], [11]],
+            'correct and incorrect choices' => [['11', '12', '13'], [11, 12, 13]],
+            'incorrect choice' => [['13'], [13]],
+            'no selection' => [[], []],
+            'duplicate selection' => [['13', '13'], [13]],
+            'foreign or unknown answer' => [['13', '21', '999'], [13]],
+            'invalid IDs' => [['13', false, ['12'], '11invalid'], [13]],
+        ];
+    }
+
     public function testCanAttemptReturnsFalseWhenUserAlreadyPassedQuiz(): void
     {
         $entityManager = $this->createMock(EntityManagerInterface::class);

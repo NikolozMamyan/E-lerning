@@ -80,6 +80,31 @@
     </div>
   </section>
 
+  {% if not attempt.passed and incorrectQuestions is not empty %}
+    <section class="quiz-outcome__review" aria-labelledby="quiz-review-title">
+      <h2 id="quiz-review-title">Review your missed questions</h2>
+      <p>Your last {{ incorrectQuestions|length }} missed question{{ incorrectQuestions|length == 1 ? '' : 's' }}, in quiz order. Your selection was incorrect or incomplete.</p>
+
+      {% for item in incorrectQuestions %}
+        <article class="quiz-outcome__review-question">
+          <span class="quiz-outcome__eyebrow">Question {{ '%02d'|format(item.number) }}</span>
+          <h3>{{ item.question.getQuestionForLocale(app.request.locale) }}</h3>
+          <strong>Your answer{{ item.selectedAnswers|length > 1 ? 's' : '' }}</strong>
+          <ul class="quiz-outcome__review-answers">
+            {% for answer in item.selectedAnswers %}
+              <li class="quiz-outcome__review-answer quiz-outcome__review-answer--{{ answer.correct ? 'correct' : 'incorrect' }}">
+                <span>{{ answer.getTextForLocale(app.request.locale) }}</span>
+                <small><i class="fa-solid {{ answer.correct ? 'fa-check' : 'fa-xmark' }}" aria-hidden="true"></i> {{ answer.correct ? 'Correct choice' : 'Incorrect choice' }}</small>
+              </li>
+            {% else %}
+              <li class="quiz-outcome__review-answer">No answer selected.</li>
+            {% endfor %}
+          </ul>
+        </article>
+      {% endfor %}
+    </section>
+  {% endif %}
+
   <div class="quiz-outcome__footer-note">
     <i class="fa-solid fa-lock" aria-hidden="true"></i>
     <span>Your result has been securely recorded in your learning history.</span>

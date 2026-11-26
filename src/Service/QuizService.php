@@ -4,7 +4,9 @@ namespace App\Service;
 
 use App\Entity\Course;
 use App\Entity\Enrollment;
+use App\Entity\QuizAnswer;
 use App\Entity\QuizAttempt;
+use App\Entity\QuizQuestion;
 use App\Entity\User;
 use App\Repository\QuizAttemptRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -51,26 +53,7 @@ class QuizService
         $correctCount = 0;
 
         foreach ($questions as $question) {
-            $givenAnswerIds = (array) ($userAnswers[$question->getId()] ?? []);
-            $validAnswerIds = array_filter($givenAnswerIds, static fn ($id) => is_int($id) || (is_string($id) && ctype_digit($id)));
-
-            if (count($validAnswerIds) !== count($givenAnswerIds)) {
-                continue;
-            }
-
-            $givenAnswerIds = array_unique(array_map('intval', $givenAnswerIds));
-            $correctAnswerIds = [];
-
-            foreach ($question->getAnswers() as $answer) {
-                if ($answer->isCorrect()) {
-                    $correctAnswerIds[] = $answer->getId();
-                }
-            }
-
-            sort($givenAnswerIds);
-            sort($correctAnswerIds);
-
-            if ($correctAnswerIds !== [] && $givenAnswerIds === $correctAnswerIds) {
+            if ($this->evaluateQuestion($question, (array) ($userAnswers[$question->getId()] ?? []))['correct']) {
                 $correctCount++;
             }
         }
@@ -93,6 +76,60 @@ class QuizService
         $this->em->flush();
 
         return $attempt;
+    }
+
+    /**
+     * @param array<int|string, mixed> $userAnswers
+     * @return list<array{number: int, question: QuizQuestion, selectedAnswers: list<QuizAnswer>}>
+     */
+    public function getLastIncorrectQuestions(Course $course, array $userAnswers): array
+    {
+        $incorrectQuestions = [];
+        $number = 0;
+
+        foreach ($course->getQuizQuestions() as $question) {
+            $number++;
+            $result = $this->evaluateQuestion($question, (array) ($userAnswers[$question->getId()] ?? []));
+
+            if (!$result['correct']) {
+                $incorrectQuestions[] = [
+                    'number' => $number,
+                    'question' => $question,
+                    'selectedAnswers' => $result['selectedAnswers'],
+                ];
+            }
+        }
+
+        return array_slice($incorrectQuestions, -5);
+    }
+
+    /**
+     * @return array{correct: bool, selectedAnswers: list<QuizAnswer>}
+     */
+    private function evaluateQuestion(QuizQuestion $question, array $givenAnswerIds): array
+    {
+        $validAnswerIds = array_filter($givenAnswerIds, static fn ($id) => is_int($id) || (is_string($id) && ctype_digit($id)));
+        $validSelection = count($validAnswerIds) === count($givenAnswerIds);
+        $givenAnswerIds = array_unique(array_map('intval', $validAnswerIds));
+        $correctAnswerIds = [];
+        $selectedAnswers = [];
+
+        foreach ($question->getAnswers() as $answer) {
+            if ($answer->isCorrect()) {
+                $correctAnswerIds[] = $answer->getId();
+            }
+            if (in_array($answer->getId(), $givenAnswerIds, true)) {
+                $selectedAnswers[] = $answer;
+            }
+        }
+
+        sort($givenAnswerIds);
+        sort($correctAnswerIds);
+
+        return [
+            'correct' => $validSelection && $correctAnswerIds !== [] && $givenAnswerIds === $correctAnswerIds,
+            'selectedAnswers' => $selectedAnswers,
+        ];
     }
 
     public function canAttempt(User $user, Course $course): bool

@@ -106,6 +106,7 @@ class QuizController extends AbstractController
         return $this->render('quiz/result.html.twig', [
             'course' => $course,
             'attempt' => $attempt,
+            'incorrectQuestions' => $attempt->isPassed() ? [] : $quizService->getLastIncorrectQuestions($course, $answers),
         ]);
     }
 }
