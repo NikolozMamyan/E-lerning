@@ -1,0 +1,58 @@
+- generic [ref=e4]:
+  - banner [ref=e7]:
+    - generic [ref=e8]:
+      - generic [ref=e9]: Analytics
+      - button "Passer à un autre produit" [ref=e33] [cursor=pointer]
+      - button "Menu d'aide" [ref=e38] [cursor=pointer]:
+        - img [aria-hidden] [ref=e39]: help
+      - button "Ouvrir le panneau du sélecteur de compte utilisateur." [ref=e43] [cursor=pointer]
+  - generic [ref=e46]:
+    - main [ref=e2830]:
+      - link "Retour à la page précédente" [ref=e2832] [cursor=pointer]:
+        - img [aria-hidden] [ref=e2833]: arrow_back
+        - generic [ref=e2834]: Retour
+      - generic [ref=e2839]:
+        - tablist [ref=e2840]:
+          - tab "Editable Création d'une propriété" [ref=e5703] [cursor=pointer]:
+            - generic [ref=e2843]:
+              - generic [ref=e5704]: Editable
+              - img [aria-hidden] [ref=e5705]: create
+            - generic [ref=e2845]: Création d'une propriété
+          - tab "Infos complémentaires" [selected] [ref=e2848] [cursor=pointer]:
+            - generic [aria-hidden] [ref=e2851]: "2"
+          - tab "Objectifs commerciaux" [disabled] [ref=e2855] [cursor=pointer]:
+            - generic [aria-hidden] [ref=e2858]: "3"
+          - tab "Collecte des données" [disabled] [ref=e2862] [cursor=pointer]:
+            - generic [aria-hidden] [ref=e2865]: "4"
+        - tabpanel "Infos complémentaires" [ref=e5706]:
+          - heading "Décrivez votre activité" [level=1] [ref=e5707]
+          - generic [ref=e5708]: Aidez-nous à mieux comprendre votre activité en répondant aux questions suivantes.
+          - generic [ref=e5710]:
+            - generic [ref=e5712]:
+              - heading "Informations sur l'établissement" [level=2] [ref=e5716]
+              - separator [ref=e5717]
+              - generic [ref=e5718]:
+                - generic [ref=e5719]: Catégorie sectorielle (obligatoire)
+                - generic "Catégorie sectorielle (obligatoire)" [ref=e5721]:
+                  - button "Emploi et enseignement" [active] [ref=e5907] [cursor=pointer]:
+                    - generic [ref=e5724]:
+                      - generic [ref=e5725]: Emploi et enseignement
+                      - img [aria-hidden] [ref=e5726]: arrow_drop_down
+                - generic [ref=e5729]: Taille de l'entreprise (obligatoire)
+                - radiogroup "Taille de l'entreprise (obligatoire)" [ref=e5731]:
+                  - generic [ref=e5733] [cursor=pointer]:
+                    - radio "Petite – de 1 à 10 employés" [ref=e5736]
+                    - generic [ref=e5739]: Petite – de 1 à 10 employés
+                  - generic [ref=e5741] [cursor=pointer]:
+                    - radio "Moyenne – de 11 à 100 employés" [ref=e5744]
+                    - generic [ref=e5747]: Moyenne – de 11 à 100 employés
+                  - generic [ref=e5749] [cursor=pointer]:
+                    - radio "Grande – de 101 à 500 employés" [ref=e5752]
+                    - generic [ref=e5755]: Grande – de 101 à 500 employés
+                  - generic [ref=e5757] [cursor=pointer]:
+                    - radio "Très grande – plus de 501 employés" [ref=e5760]
+                    - generic [ref=e5763]: Très grande – plus de 501 employés
+            - button "Précédente" [ref=e5764] [cursor=pointer]
+            - button "Suivant" [disabled]
+    - generic:
+      - button "Ouvrir le menu contextuel"

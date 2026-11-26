@@ -65,7 +65,7 @@
           <li><span><i class="fa-solid fa-check" aria-hidden="true"></i></span><div><strong>Multilingual learning</strong><small>Use the available course languages</small></div></li>
         </ul>
 
-        <form action="{{ path('app_subscription_checkout') }}" method="post" data-subscription-form>
+        <form action="{{ path('app_subscription_checkout') }}" method="post" data-subscription-form data-analytics-checkout="subscription">
           <button type="submit" class="subscription-plan__cta" data-subscription-button>
             <span data-subscription-label>Start my subscription</span>
             <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>

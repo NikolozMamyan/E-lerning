@@ -237,8 +237,9 @@ body {
 <div class="contact-container">
   <!-- Formulaire de contact -->
   <div class="contact-form">
-    <h2>Get in Touch</h2>
+    <h2>{{ demo ? 'Request a free demo' : 'Get in Touch' }}</h2>
     <form method="post">
+      <input type="hidden" name="_token" value="{{ csrf_token('contact') }}">
       <div class="form-row">
         <div class="form-field">
           <label class="form-label">First Name</label>
@@ -263,7 +264,7 @@ body {
       
       <div class="form-field message-field">
         <label class="form-label">Message</label>
-        <textarea name="message" class="form-input message-input" placeholder="Enter Your email..." required></textarea>
+        <textarea name="message" class="form-input message-input" placeholder="Tell us about your training needs..." required>{{ demo ? 'I would like a free demo of Les Consultants E-learning for my team.' : '' }}</textarea>
       </div>
       
       <button type="submit" class="submit-btn">Send Message</button>

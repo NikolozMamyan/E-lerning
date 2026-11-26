@@ -1,0 +1,171 @@
+- generic [ref=e1]:
+  - generic [ref=e4]:
+    - banner [ref=e7]:
+      - generic [ref=e8]:
+        - generic [ref=e9]: Analytics
+        - button "Passer à un autre produit" [ref=e33] [cursor=pointer]
+        - button "Menu d'aide" [ref=e38] [cursor=pointer]:
+          - img [aria-hidden] [ref=e39]: help
+        - button "Ouvrir le panneau du sélecteur de compte utilisateur." [ref=e43] [cursor=pointer]
+    - generic [ref=e46]:
+      - main [ref=e2830]:
+        - link "Retour à la page précédente" [ref=e2832] [cursor=pointer]:
+          - img [aria-hidden] [ref=e2833]: arrow_back
+          - generic [ref=e2834]: Retour
+        - generic [ref=e2839]:
+          - tablist [ref=e2840]:
+            - tab "Création d'une propriété" [selected] [ref=e2841] [cursor=pointer]:
+              - generic [aria-hidden] [ref=e2844]: "1"
+            - tab "Infos complémentaires" [disabled] [ref=e2848] [cursor=pointer]:
+              - generic [aria-hidden] [ref=e2851]: "2"
+            - tab "Objectifs commerciaux" [disabled] [ref=e2855] [cursor=pointer]:
+              - generic [aria-hidden] [ref=e2858]: "3"
+            - tab "Collecte des données" [disabled] [ref=e2862] [cursor=pointer]:
+              - generic [aria-hidden] [ref=e2865]: "4"
+          - tabpanel "Création d'une propriété" [ref=e2869]:
+            - heading "Créer une propriété" [level=1] [ref=e2870]
+            - generic [ref=e2871]: Créez une propriété Google Analytics 4 pour mesurer vos données Web et d'application. Chaque propriété inclut toutes vos données de mesure pour l'ensemble des sites et applications que vous sélectionnez.
+            - generic [ref=e2874]:
+              - generic [ref=e2876]:
+                - heading "Informations sur l'établissement" [level=2] [ref=e2878]
+                - separator [ref=e2879]
+                - generic [ref=e2880]:
+                  - generic [ref=e2881]: Nom de la propriété (obligatoire)
+                  - textbox "Nom de la propriété (obligatoire)" [ref=e2886]: elearning-lesconsultants.com
+                  - generic [ref=e2888]:
+                    - text: Fuseau horaire des rapports
+                    - button "Texte d'aide sur le fuseau horaire des rapports" [ref=e2890]:
+                      - img [aria-hidden] [ref=e2891] [cursor=pointer]: help_outline
+                  - generic "Fuseau horaire des rapports Texte d'aide sur le fuseau horaire des rapports" [ref=e2893]:
+                    - generic [ref=e2894]:
+                      - button "Luxembourg" [ref=e5170] [cursor=pointer]:
+                        - generic [ref=e2899]:
+                          - generic [ref=e2900]: Luxembourg
+                          - img [aria-hidden] [ref=e2905]: arrow_drop_down
+                      - 'button "(GMT+01:00) heure : Luxembourg" [ref=e5171] [cursor=pointer]':
+                        - generic [ref=e2911]:
+                          - generic [ref=e2912]: "(GMT+01:00) heure : Luxembourg"
+                          - img [aria-hidden] [ref=e2913]: arrow_drop_down
+                  - generic [ref=e2916]: Devise
+                  - generic "Devise" [ref=e2917]:
+                    - button "dollar des États-Unis ($)" [expanded] [ref=e2919] [cursor=pointer]:
+                      - generic [ref=e2921]:
+                        - generic [ref=e2922]: dollar des États-Unis ($)
+                        - img [aria-hidden] [ref=e2923]: arrow_drop_down
+                  - generic [ref=e2926]: Vous pourrez modifier ultérieurement les détails de cette propriété dans la section "Administration"
+              - paragraph [ref=e2927]: Vous pouvez créer 1 999 autres propriétés dans ce compte.
+              - button "Suivant" [ref=e2928] [cursor=pointer]
+      - generic:
+        - button "Ouvrir le menu contextuel"
+  - menu [ref=e5174]:
+    - generic [ref=e5176]:
+      - generic [ref=e5179]:
+        - img [aria-hidden] [ref=e5181]: search
+        - searchbox "Saisissez du texte pour filtrer les résultats" [active] [ref=e5183]
+      - listbox "dollar des États-Unis ($)" [ref=e5185]:
+        - option "dirham des Émirats arabes unis (dh)" [ref=e5187] [cursor=pointer]
+        - option "florin antillais (NAf.)" [ref=e5192] [cursor=pointer]
+        - option "peso argentin ($)" [ref=e5197] [cursor=pointer]
+        - option "dollar australien ($)" [ref=e5202] [cursor=pointer]
+        - option "manat azéri (₼)" [ref=e5207] [cursor=pointer]
+        - option "mark convertible bosniaque (KM)" [ref=e5212] [cursor=pointer]
+        - option "dollar barbadien ($)" [ref=e5217] [cursor=pointer]
+        - option "taka bangladeshi (৳)" [ref=e5222] [cursor=pointer]
+        - option "lev bulgare (lev)" [ref=e5227] [cursor=pointer]
+        - option "dinar bahreïni (din)" [ref=e5232] [cursor=pointer]
+        - option "dollar brunéien ($)" [ref=e5237] [cursor=pointer]
+        - option "boliviano bolivien (Bs)" [ref=e5242] [cursor=pointer]
+        - option "réal brésilien (R$)" [ref=e5247] [cursor=pointer]
+        - option "pula botswanais (P)" [ref=e5252] [cursor=pointer]
+        - option "rouble biélorusse (р.)" [ref=e5257] [cursor=pointer]
+        - option "dollar canadien ($)" [ref=e5262] [cursor=pointer]
+        - option "franc suisse (CHF)" [ref=e5267] [cursor=pointer]
+        - option "peso chilien ($)" [ref=e5272] [cursor=pointer]
+        - option "yuan renminbi chinois (¥)" [ref=e5277] [cursor=pointer]
+        - option "peso colombien ($)" [ref=e5282] [cursor=pointer]
+        - option "colón costaricain (₡)" [ref=e5287] [cursor=pointer]
+        - option "couronne tchèque (Kč)" [ref=e5292] [cursor=pointer]
+        - option "couronne danoise (kr.)" [ref=e5297] [cursor=pointer]
+        - option "peso dominicain (RD$)" [ref=e5302] [cursor=pointer]
+        - option "dinar algérien (din)" [ref=e5307] [cursor=pointer]
+        - option "livre égyptienne (£)" [ref=e5312] [cursor=pointer]
+        - option "euro (€)" [ref=e5317] [cursor=pointer]
+        - option "dollar fidjien ($)" [ref=e5322] [cursor=pointer]
+        - option "livre sterling (£)" [ref=e5327] [cursor=pointer]
+        - option "lari géorgien (GEL)" [ref=e5332] [cursor=pointer]
+        - option "cédi ghanéen (GHS)" [ref=e5337] [cursor=pointer]
+        - option "quetzal guatémaltèque (Q)" [ref=e5342] [cursor=pointer]
+        - option "dollar de Hong Kong ($)" [ref=e5347] [cursor=pointer]
+        - option "lempira hondurien (L)" [ref=e5352] [cursor=pointer]
+        - option "kuna croate (kn)" [ref=e5357] [cursor=pointer]
+        - option "forint hongrois (Ft)" [ref=e5362] [cursor=pointer]
+        - option "roupie indonésienne (Rp)" [ref=e5367] [cursor=pointer]
+        - option "nouveau shekel israélien (₪)" [ref=e5372] [cursor=pointer]
+        - option "roupie indienne (₹)" [ref=e5377] [cursor=pointer]
+        - option "couronne islandaise (kr)" [ref=e5382] [cursor=pointer]
+        - option "dollar jamaïcain ($)" [ref=e5387] [cursor=pointer]
+        - option "dinar jordanien (din)" [ref=e5392] [cursor=pointer]
+        - option "yen japonais (¥)" [ref=e5397] [cursor=pointer]
+        - option "shilling kényan (Ksh)" [ref=e5402] [cursor=pointer]
+        - option "won sud-coréen (₩)" [ref=e5407] [cursor=pointer]
+        - option "dinar koweïtien (din)" [ref=e5412] [cursor=pointer]
+        - option "dollar des îles Caïmans ($)" [ref=e5417] [cursor=pointer]
+        - option "tenge kazakh (₸)" [ref=e5422] [cursor=pointer]
+        - option "livre libanaise (L£)" [ref=e5427] [cursor=pointer]
+        - option "roupie srilankaise (Rs)" [ref=e5432] [cursor=pointer]
+        - option "litas lituanien (Lt)" [ref=e5437] [cursor=pointer]
+        - option "lats letton (LVL)" [ref=e5442] [cursor=pointer]
+        - option "dirham marocain (dh)" [ref=e5447] [cursor=pointer]
+        - option "leu moldave (MDL)" [ref=e5452] [cursor=pointer]
+        - option "denar macédonien (din)" [ref=e5457] [cursor=pointer]
+        - option "kyat myanmarais (K)" [ref=e5462] [cursor=pointer]
+        - option "ouguiya mauritanien (1973–2017) (MRO)" [ref=e5467] [cursor=pointer]
+        - option "roupie mauricienne (MURs)" [ref=e5472] [cursor=pointer]
+        - option "rufiyaa maldivienne (Rf)" [ref=e5477] [cursor=pointer]
+        - option "peso mexicain ($)" [ref=e5482] [cursor=pointer]
+        - option "ringgit malais (RM)" [ref=e5487] [cursor=pointer]
+        - option "dollar namibien ($)" [ref=e5492] [cursor=pointer]
+        - option "naira nigérian (₦)" [ref=e5497] [cursor=pointer]
+        - option "córdoba oro nicaraguayen (C$)" [ref=e5502] [cursor=pointer]
+        - option "couronne norvégienne (kr)" [ref=e5507] [cursor=pointer]
+        - option "roupie népalaise (Rs)" [ref=e5512] [cursor=pointer]
+        - option "dollar néo-zélandais ($)" [ref=e5517] [cursor=pointer]
+        - option "riyal omanais (Rial)" [ref=e5522] [cursor=pointer]
+        - option "balboa panaméen (B/.)" [ref=e5527] [cursor=pointer]
+        - option "sol péruvien (S/.)" [ref=e5532] [cursor=pointer]
+        - option "kina papouan-néo-guinéen (PGK)" [ref=e5537] [cursor=pointer]
+        - option "peso philippin (₱)" [ref=e5542] [cursor=pointer]
+        - option "roupie pakistanaise (Rs)" [ref=e5547] [cursor=pointer]
+        - option "zloty polonais (zł)" [ref=e5552] [cursor=pointer]
+        - option "guaraní paraguayen (Gs.)" [ref=e5557] [cursor=pointer]
+        - option "riyal qatari (Rial)" [ref=e5562] [cursor=pointer]
+        - option "leu roumain (RON)" [ref=e5567] [cursor=pointer]
+        - option "dinar serbe (din)" [ref=e5572] [cursor=pointer]
+        - option "rouble russe (₽)" [ref=e5577] [cursor=pointer]
+        - option "riyal saoudien (SAR)" [ref=e5582] [cursor=pointer]
+        - option "roupie des Seychelles (SCR)" [ref=e5587] [cursor=pointer]
+        - option "couronne suédoise (kr)" [ref=e5592] [cursor=pointer]
+        - option "dollar de Singapour ($)" [ref=e5597] [cursor=pointer]
+        - option "leone sierra-léonais (1964—2022) (SLL)" [ref=e5602] [cursor=pointer]
+        - option "dollar surinamais ($)" [ref=e5607] [cursor=pointer]
+        - option "baht thaïlandais (฿)" [ref=e5612] [cursor=pointer]
+        - option "dinar tunisien (din)" [ref=e5617] [cursor=pointer]
+        - option "livre turque (₺)" [ref=e5622] [cursor=pointer]
+        - option "dollar de Trinité-et-Tobago ($)" [ref=e5627] [cursor=pointer]
+        - option "nouveau dollar taïwanais ($)" [ref=e5632] [cursor=pointer]
+        - option "shilling tanzanien (TSh)" [ref=e5637] [cursor=pointer]
+        - option "hryvnia ukrainienne (грн.)" [ref=e5642] [cursor=pointer]
+        - option "shilling ougandais (UGX)" [ref=e5647] [cursor=pointer]
+        - option "dollar des États-Unis ($)" [selected] [ref=e5652] [cursor=pointer]:
+          - generic [ref=e5653]:
+            - img [aria-hidden] [ref=e5654]: check
+            - generic [ref=e5655]: dollar des États-Unis ($)
+        - option "peso uruguayen ($)" [ref=e5658] [cursor=pointer]
+        - option "sum ouzbek (soʼm)" [ref=e5663] [cursor=pointer]
+        - option "bolivar vénézuélien (2008–2018) (Bs)" [ref=e5668] [cursor=pointer]
+        - option "dông vietnamien (₫)" [ref=e5673] [cursor=pointer]
+        - option "franc CFA (BEAC) (FCFA)" [ref=e5678] [cursor=pointer]
+        - option "franc CFA (BCEAO) (CFA)" [ref=e5683] [cursor=pointer]
+        - option "riyal yéménite (Rial)" [ref=e5688] [cursor=pointer]
+        - option "rand sud-africain (R)" [ref=e5693] [cursor=pointer]
+        - option "kwacha zambien (ZMW)" [ref=e5698] [cursor=pointer]

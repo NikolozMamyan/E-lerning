@@ -13,6 +13,6 @@
   </div>
   <div class="landing-footer__bottom">
     <span>&copy; {{ 'now'|date('Y') }} Les Consultants. All rights reserved.</span>
-    <nav aria-label="Legal information"><a href="/legales/TermsConditions.html">Terms</a><a href="/legales/Privacy.html">Privacy</a><a href="/legales/cookie.html">Cookies</a></nav>
+    <nav aria-label="Legal information"><a href="/legales/TermsConditions.html">Terms</a><a href="/legales/Privacy.html">Privacy</a><a href="/legales/cookie.html">Cookies</a>{% if analytics.enabled and (analytics.measurement_id or analytics.ads_id) %}<a href="#cookie-preferences" data-analytics-preferences>Cookie settings</a>{% endif %}</nav>
   </div>
 </footer>

@@ -1,0 +1,216 @@
+- generic [ref=e4]:
+  - banner [ref=e7]:
+    - generic [ref=e8]:
+      - generic [ref=e9]: Analytics
+      - button "Ouvrir le sélecteur universel" [ref=e15] [cursor=pointer]:
+        - generic [ref=e16]:
+          - generic [ref=e17]:
+            - generic [ref=e18]: Tous les comptes
+            - img [aria-hidden] [ref=e19]: chevron_right
+            - generic [ref=e20]: les consultants
+          - generic [ref=e21]:
+            - generic [ref=e22]: https://les-consultants.com
+            - img [aria-hidden] [ref=e24]: arrow_drop_down
+      - search [ref=e28]:
+        - img [aria-hidden] [ref=e29]: search
+        - textbox "Rechercher" [ref=e31]:
+          - /placeholder: Essayez de rechercher "ajouter un flux Web"
+      - button "Passer à un autre produit" [ref=e33] [cursor=pointer]
+      - button "Menu d'aide" [ref=e38] [cursor=pointer]:
+        - img [aria-hidden] [ref=e39]: help
+      - button "Ouvrir le panneau du sélecteur de compte utilisateur." [ref=e43] [cursor=pointer]
+  - generic [ref=e46]:
+    - generic [ref=e50]:
+      - navigation "Pages principales" [ref=e51]:
+        - link "Accueil" [ref=e1437] [cursor=pointer]
+        - link "Rapports" [ref=e1445] [cursor=pointer]:
+          - img [aria-hidden] [ref=e1446]: insert_chart_filled
+        - link "Explorer" [ref=e1449] [cursor=pointer]:
+          - img [aria-hidden] [ref=e1450]: data_exploration
+        - link "Publicité" [ref=e1453] [cursor=pointer]:
+          - img [aria-hidden] [ref=e1454]: ads_click
+      - navigation "Pages de paramètres" [ref=e72]:
+        - link "Tâches" [ref=e1457] [cursor=pointer]:
+          - img [aria-hidden] [ref=e1458]: task_alt
+        - link "Administration" [ref=e1461] [cursor=pointer]:
+          - img [aria-hidden] [ref=e1462]: settings_filled
+    - generic [ref=e1465]:
+      - main [ref=e1466]:
+        - generic [ref=e1467]:
+          - generic [ref=e1470]:
+            - generic [ref=e1473]:
+              - heading "Accueil" [active] [level=1] [ref=e1478]
+              - generic [ref=e1483]:
+                - generic "Afficher les annotations" [ref=e1484]:
+                  - button "Afficher les annotations" [ref=e1485] [cursor=pointer]
+                - generic "Métriques" [ref=e1492]:
+                  - button "Métriques" [ref=e1493] [cursor=pointer]
+            - generic [ref=e1506]:
+              - heading "Aucune donnée reçue de votre site Web pour l'instant." [level=2] [ref=e1507]
+              - paragraph [ref=e1508]: Pour commencer à collecter des données, assurez-vous que le site Web est tagué à l'aide de l'ID de mesure :G-1SLPKQLPR0
+              - button "Obtenir des instructions concernant l'ajout de tags" [ref=e1509] [cursor=pointer]
+            - generic [ref=e1515]:
+              - generic [ref=e1520]:
+                - generic [ref=e1521]:
+                  - generic [ref=e1529]:
+                    - generic [ref=e1530]:
+                      - generic [ref=e1531]:
+                        - generic [ref=e1532]:
+                          - tablist [ref=e1534]:
+                            - generic [ref=e1535]:
+                              - tab [selected] [ref=e1536] [cursor=pointer]:
+                                - generic "Utilisateurs actifs 0" [ref=e1542]:
+                                  - button "Utilisateurs actifs" [ref=e1544]:
+                                    - img [aria-hidden] [ref=e1546]: arrow_drop_down
+                                  - generic [ref=e1547]:
+                                    - generic [ref=e1548]: "0"
+                                    - generic [ref=e1550]: "-"
+                              - tab [ref=e1551] [cursor=pointer]:
+                                - generic "Nombre d'événements 0" [ref=e1557]:
+                                  - button "Nombre d'événements" [ref=e1559]:
+                                    - img [aria-hidden] [ref=e1561]: arrow_drop_down
+                                  - generic [ref=e1562]:
+                                    - generic [ref=e1563]: "0"
+                                    - generic [ref=e1565]: "-"
+                              - tab [ref=e1566] [cursor=pointer]:
+                                - generic "Événements clés 0" [ref=e1572]:
+                                  - button "Événements clés" [ref=e1574]:
+                                    - img [aria-hidden] [ref=e1576]: arrow_drop_down
+                                  - generic [ref=e1577]:
+                                    - generic [ref=e1578]: "0"
+                                    - generic [ref=e1580]: "-"
+                              - tab [ref=e1581] [cursor=pointer]:
+                                - generic "Vues 0" [ref=e1587]:
+                                  - button "Vues" [ref=e1589]:
+                                    - img [aria-hidden] [ref=e1591]: arrow_drop_down
+                                  - generic [ref=e1592]:
+                                    - generic [ref=e1593]: "0"
+                                    - generic [ref=e1595]: "-"
+                          - generic [ref=e1596] [cursor=pointer]
+                        - generic:
+                          - tabpanel "Utilisateurs actifs 0"
+                      - generic [ref=e1598]:
+                        - button "Données d'analyse comparative activées" [ref=e1600] [cursor=pointer]
+                        - button "Ce(tte) fiche utilise principalement des données complètes. Cliquez pour afficher plus d'informations." [ref=e1608] [cursor=pointer]:
+                          - img [aria-hidden] [ref=e1609]: warning_amber
+                    - img [ref=e1615]:
+                      - generic [ref=e1616]: 26nov.
+                      - list [ref=e1627]:
+                        - listitem [ref=e1628]:
+                          - generic [aria-hidden] [ref=e1629]: Aujourd'hui
+                          - button "Mettre en évidence la ligne Aujourd'hui" [pressed] [ref=e1630] [cursor=pointer]
+                        - listitem [ref=e1631]:
+                          - generic [aria-hidden] [ref=e1632]: Période précédente
+                          - button "Mettre en évidence la ligne Période précédente" [pressed] [ref=e1633] [cursor=pointer]
+                  - generic [ref=e1634]:
+                    - combobox "Ouvrir le sélecteur de plage de dates" [ref=e1638] [cursor=pointer]:
+                      - generic [ref=e1639]: Aujourd'hui
+                      - img [aria-hidden] [ref=e1643]: arrow_drop_down
+                    - button "Afficher l'instantané des rapports" [ref=e1647] [cursor=pointer]:
+                      - img [aria-hidden] [ref=e1650]: arrow_forward
+                - generic [ref=e1653]:
+                  - generic [ref=e1656]:
+                    - generic:
+                      - generic [ref=e1661]:
+                        - generic [ref=e1662]:
+                          - button "Utilisateurs actifs au cours des 30 dernières minutes" [ref=e1664]
+                          - generic [ref=e1665]: "0"
+                        - button "Ce(tte) fiche utilise 100 % des données disponibles. Cliquez pour afficher plus d'informations." [ref=e1668] [cursor=pointer]:
+                          - img [aria-hidden] [ref=e1669]: check_circle
+                      - generic [ref=e1674]: Utilisateurs actifs par minute
+                      - img [ref=e1686]:
+                        - listbox [ref=e1688]:
+                          - group "Utilisateurs actifs 0 Utilisateurs actifs" [ref=e1689]
+                          - group "Utilisateurs actifs 0 Utilisateurs actifs" [ref=e1691]
+                          - group "Utilisateurs actifs 0 Utilisateurs actifs" [ref=e1693]
+                          - group "Utilisateurs actifs 0 Utilisateurs actifs" [ref=e1695]
+                          - group "Utilisateurs actifs 0 Utilisateurs actifs" [ref=e1697]
+                          - group "Utilisateurs actifs 0 Utilisateurs actifs" [ref=e1699]
+                          - group "Utilisateurs actifs 0 Utilisateurs actifs" [ref=e1701]
+                          - group "Utilisateurs actifs 0 Utilisateurs actifs" [ref=e1703]
+                          - group "Utilisateurs actifs 0 Utilisateurs actifs" [ref=e1705]
+                          - group "Utilisateurs actifs 0 Utilisateurs actifs" [ref=e1707]
+                          - group "Utilisateurs actifs 0 Utilisateurs actifs" [ref=e1709]
+                          - group "Utilisateurs actifs 0 Utilisateurs actifs" [ref=e1711]
+                          - group "Utilisateurs actifs 0 Utilisateurs actifs" [ref=e1713]
+                          - group "Utilisateurs actifs 0 Utilisateurs actifs" [ref=e1715]
+                          - group "Utilisateurs actifs 0 Utilisateurs actifs" [ref=e1717]
+                          - group "Utilisateurs actifs 0 Utilisateurs actifs" [ref=e1719]
+                          - group "Utilisateurs actifs 0 Utilisateurs actifs" [ref=e1721]
+                          - group "Utilisateurs actifs 0 Utilisateurs actifs" [ref=e1723]
+                          - group "Utilisateurs actifs 0 Utilisateurs actifs" [ref=e1725]
+                          - group "Utilisateurs actifs 0 Utilisateurs actifs" [ref=e1727]
+                          - group "Utilisateurs actifs 0 Utilisateurs actifs" [ref=e1729]
+                          - group "Utilisateurs actifs 0 Utilisateurs actifs" [ref=e1731]
+                          - group "Utilisateurs actifs 0 Utilisateurs actifs" [ref=e1733]
+                          - group "Utilisateurs actifs 0 Utilisateurs actifs" [ref=e1735]
+                          - group "Utilisateurs actifs 0 Utilisateurs actifs" [ref=e1737]
+                          - group "Utilisateurs actifs 0 Utilisateurs actifs" [ref=e1739]
+                          - group "Utilisateurs actifs 0 Utilisateurs actifs" [ref=e1741]
+                          - group "Utilisateurs actifs 0 Utilisateurs actifs" [ref=e1743]
+                          - group "Utilisateurs actifs 0 Utilisateurs actifs" [ref=e1745]
+                          - group "Utilisateurs actifs 0 Utilisateurs actifs" [ref=e1747]
+                      - generic [ref=e1761]:
+                        - table [ref=e1762]:
+                          - row [ref=e1763]:
+                            - columnheader "Pays" [ref=e1764]:
+                              - button "Pays" [ref=e1768] [cursor=pointer]:
+                                - generic [ref=e1770]:
+                                  - generic [ref=e1771]: Pays
+                                  - img [aria-hidden] [ref=e1772]: arrow_drop_down
+                            - columnheader "Utilisateurs actifs" [ref=e1775]:
+                              - button "Utilisateurs actifs" [ref=e1779] [cursor=pointer]:
+                                - generic [ref=e1781]:
+                                  - generic [ref=e1782]: Utilisateurs actifs
+                                  - img [aria-hidden] [ref=e1783]: arrow_drop_down
+                        - generic [ref=e1786]: Aucune donnée disponible
+                        - table [aria-hidden]:
+                          - row
+                  - button "Afficher \"Temps réel\"" [ref=e1789] [cursor=pointer]:
+                    - img [aria-hidden] [ref=e1792]: arrow_forward
+              - generic [ref=e1797]:
+                - heading "Premiers pas avec Google Analytics 4" [level=2] [ref=e1800]
+                - generic [ref=e1803]:
+                  - generic [ref=e1806]:
+                    - generic [ref=e1807]:
+                      - heading "Continuer à configurer votre propriété" [level=3] [ref=e1819]
+                      - generic [ref=e1821]: Une propriété contient toutes les données de mesure pour votre site Web, pour votre application mobile ou pour les deux. Configurez votre propriété afin de pouvoir collecter des données, mesurer l'activité, etc.
+                    - link "Accéder à Tasks" [ref=e1836] [cursor=pointer]:
+                      - /url: "#/a236251076p325538276/task-assistant"
+                  - generic [ref=e1845]:
+                    - generic [ref=e1846]:
+                      - heading "Tester le compte de démonstration Analytics" [level=3] [ref=e1858]
+                      - generic [ref=e1863]:
+                        - generic [ref=e1864]: Familiarisez-vous avec les fonctionnalités de Google Analytics 4 en effectuant des analyses et des tests à l'aide de données d'entreprise réelles.
+                        - generic [ref=e1869]: Le compte de démonstration vous permet d'explorer GA4 en utilisant des données de démonstration, sans affecter vos propres données. Vous pouvez le supprimer à tout moment.
+                    - link "Accéder au compte" [ref=e1880] [cursor=pointer]:
+                      - /url: https://support.google.com/analytics/answer/6367342#access
+                      - generic [ref=e1882]:
+                        - generic [ref=e1883]: Accéder au compte
+                        - img [aria-hidden] [ref=e1885]: open_in_new
+                  - generic [ref=e1890]:
+                    - generic [ref=e1891]:
+                      - heading "En savoir plus sur Analytics" [level=3] [ref=e1903]
+                      - generic [ref=e1905]: Apprenez à exploiter tout le potentiel de Google Analytics grâce à ce cours gratuit.
+                    - link "Suivre la formation sur Skillshop" [ref=e1920] [cursor=pointer]:
+                      - /url: https://goo.gle/ga-courses
+                      - generic [ref=e1922]:
+                        - generic [ref=e1923]: Suivre la formation sur Skillshop
+                        - img [aria-hidden] [ref=e1925]: open_in_new
+          - generic [ref=e1929]:
+            - text: ©2026 Google |
+            - link "Accueil Analytics" [ref=e1930] [cursor=pointer]:
+              - /url: https://www.google.com/analytics/?hl=fr
+            - text: "|"
+            - link "Conditions d'utilisation" [ref=e1931] [cursor=pointer]:
+              - /url: https://www.google.com/analytics/tos.html?hl=fr
+            - text: "|"
+            - link "Règles de confidentialité" [ref=e1932] [cursor=pointer]:
+              - /url: https://www.google.com/policies/privacy/?hl=fr
+            - text: "|"
+            - button "Envoyer des commentaires" [ref=e1933] [cursor=pointer]:
+              - img [aria-hidden] [ref=e1934]: feedback
+      - generic:
+        - complementary
+    - generic:
+      - button "Ouvrir le menu contextuel"

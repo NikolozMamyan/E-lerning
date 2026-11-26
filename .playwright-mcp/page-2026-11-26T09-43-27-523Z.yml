@@ -1,0 +1,58 @@
+- generic [ref=e4]:
+  - banner [ref=e7]:
+    - generic [ref=e8]:
+      - generic [ref=e9]: Analytics
+      - button "Passer à un autre produit" [ref=e33] [cursor=pointer]
+      - button "Menu d'aide" [ref=e38] [cursor=pointer]:
+        - img [aria-hidden] [ref=e39]: help
+      - button "Ouvrir le panneau du sélecteur de compte utilisateur." [ref=e43] [cursor=pointer]
+  - generic [ref=e46]:
+    - main [ref=e2830]:
+      - link "Retour à la page précédente" [ref=e2832] [cursor=pointer]:
+        - img [aria-hidden] [ref=e2833]: arrow_back
+        - generic [ref=e2834]: Retour
+      - generic [ref=e2839]:
+        - tablist [ref=e2840]:
+          - tab "Création d'une propriété" [selected] [ref=e2841] [cursor=pointer]:
+            - generic [aria-hidden] [ref=e2844]: "1"
+          - tab "Infos complémentaires" [disabled] [ref=e2848] [cursor=pointer]:
+            - generic [aria-hidden] [ref=e2851]: "2"
+          - tab "Objectifs commerciaux" [disabled] [ref=e2855] [cursor=pointer]:
+            - generic [aria-hidden] [ref=e2858]: "3"
+          - tab "Collecte des données" [disabled] [ref=e2862] [cursor=pointer]:
+            - generic [aria-hidden] [ref=e2865]: "4"
+        - tabpanel "Création d'une propriété" [ref=e2869]:
+          - heading "Créer une propriété" [level=1] [ref=e2870]
+          - generic [ref=e2871]: Créez une propriété Google Analytics 4 pour mesurer vos données Web et d'application. Chaque propriété inclut toutes vos données de mesure pour l'ensemble des sites et applications que vous sélectionnez.
+          - generic [ref=e2874]:
+            - generic [ref=e2876]:
+              - heading "Informations sur l'établissement" [level=2] [ref=e2878]
+              - separator [ref=e2879]
+              - generic [ref=e2880]:
+                - generic [ref=e2881]: Nom de la propriété (obligatoire)
+                - textbox "Nom de la propriété (obligatoire)" [ref=e2886]: elearning-lesconsultants.com
+                - generic [ref=e2888]:
+                  - text: Fuseau horaire des rapports
+                  - button "Texte d'aide sur le fuseau horaire des rapports" [ref=e2890]:
+                    - img [aria-hidden] [ref=e2891] [cursor=pointer]: help_outline
+                - generic "Fuseau horaire des rapports Texte d'aide sur le fuseau horaire des rapports" [ref=e2893]:
+                  - generic [ref=e2894]:
+                    - button "Luxembourg" [active] [ref=e5170] [cursor=pointer]:
+                      - generic [ref=e2899]:
+                        - generic [ref=e2900]: Luxembourg
+                        - img [aria-hidden] [ref=e2905]: arrow_drop_down
+                    - 'button "(GMT+01:00) heure : Luxembourg" [ref=e5171] [cursor=pointer]':
+                      - generic [ref=e2911]:
+                        - generic [ref=e2912]: "(GMT+01:00) heure : Luxembourg"
+                        - img [aria-hidden] [ref=e2913]: arrow_drop_down
+                - generic [ref=e2916]: Devise
+                - generic "Devise" [ref=e2917]:
+                  - button "dollar des États-Unis ($)" [ref=e2919] [cursor=pointer]:
+                    - generic [ref=e2921]:
+                      - generic [ref=e2922]: dollar des États-Unis ($)
+                      - img [aria-hidden] [ref=e2923]: arrow_drop_down
+                - generic [ref=e2926]: Vous pourrez modifier ultérieurement les détails de cette propriété dans la section "Administration"
+            - paragraph [ref=e2927]: Vous pouvez créer 1 999 autres propriétés dans ce compte.
+            - button "Suivant" [ref=e2928] [cursor=pointer]
+    - generic:
+      - button "Ouvrir le menu contextuel"

@@ -1,5 +1,13 @@
 twig:
     file_name_pattern: '*.twig'
+    globals:
+        analytics:
+            enabled: '%env(bool:ANALYTICS_ENABLED)%'
+            host: '%env(ANALYTICS_HOST)%'
+            measurement_id: '%env(GOOGLE_ANALYTICS_ID)%'
+            ads_id: '%env(GOOGLE_ADS_ID)%'
+            lead_label: '%env(GOOGLE_ADS_LEAD_LABEL)%'
+            purchase_label: '%env(GOOGLE_ADS_PURCHASE_LABEL)%'
 
 when@test:
     twig:

@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use Stripe\Stripe;
 use App\Service\LearnerCheckoutService;
+use App\Service\PurchaseTrackingService;
 use App\Entity\QuizAttempt;
 use App\Repository\CourseRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -35,7 +36,8 @@ class StripeController extends AbstractController
     public function success(
         Request $request, 
         CourseRepository $courseRepo, 
-        EntityManagerInterface $em
+        EntityManagerInterface $em,
+        PurchaseTrackingService $purchaseTracking,
     ): Response {
         $sessionId = $request->query->get('session_id');
 
@@ -45,6 +47,7 @@ class StripeController extends AbstractController
             'currency'       => 'EUR',
             'course_id'      => null,
             'course_title'   => null,
+            'analyticsPurchase' => null,
         ];
 
         if ($sessionId) {
@@ -90,6 +93,9 @@ class StripeController extends AbstractController
                 'currency'       => $currency,
                 'course_id'      => $courseId,
                 'course_title'   => $courseTitle,
+                'analyticsPurchase' => (string) $userId === (string) $this->getUser()?->getId()
+                    ? $purchaseTracking->fromCheckout($session)
+                    : null,
             ];
         }
 

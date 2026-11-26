@@ -4,6 +4,9 @@ namespace App\Controller;
 
 use App\Service\MailerService;
 use App\Service\LearnerCheckoutService;
+use App\Entity\User;
+use App\Service\PurchaseTrackingService;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -41,10 +44,15 @@ final class SubscriptionController extends AbstractController
     }
 
     #[Route('/app/pay/subscription/success', name: 'app_subscription_success')]
-    public function subscriptionSuccess(): Response
+    public function subscriptionSuccess(Request $request, PurchaseTrackingService $purchaseTracking): Response
     {
+        $user = $this->getUser();
+
         return $this->render('subscription/success.html.twig', [
             'message' => '✅ Votre abonnement a bien été activé. Vous avez désormais accès à tous les cours !',
+            'analyticsPurchase' => $user instanceof User
+                ? $purchaseTracking->subscription($request->query->getString('session_id'), $user)
+                : null,
         ]);
     }
 }

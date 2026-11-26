@@ -1,0 +1,163 @@
+- generic [ref=e1]:
+  - generic [ref=e4]:
+    - banner [ref=e7]:
+      - generic [ref=e8]:
+        - generic [ref=e9]: Analytics
+        - button "Ouvrir le sélecteur universel" [ref=e15] [cursor=pointer]:
+          - generic [ref=e16]:
+            - generic [ref=e17]:
+              - generic [ref=e18]: Tous les comptes
+              - img [aria-hidden] [ref=e19]: chevron_right
+              - generic [ref=e20]: les consultants
+            - generic [ref=e21]:
+              - generic [ref=e22]: https://les-consultants.com
+              - img [aria-hidden] [ref=e24]: arrow_drop_down
+        - search [ref=e28]:
+          - img [aria-hidden] [ref=e29]: search
+          - textbox "Rechercher" [ref=e31]:
+            - /placeholder: Essayez de rechercher "ajouter un flux Web"
+        - button "Passer à un autre produit" [ref=e33] [cursor=pointer]
+        - button "Menu d'aide" [ref=e38] [cursor=pointer]:
+          - img [aria-hidden] [ref=e39]: help
+        - button "Ouvrir le panneau du sélecteur de compte utilisateur." [ref=e43] [cursor=pointer]
+    - generic [ref=e46]:
+      - generic [ref=e49]:
+        - generic [ref=e50]:
+          - navigation "Pages principales" [ref=e51]:
+            - link "Accueil" [ref=e1940] [cursor=pointer]
+            - link "Rapports" [ref=e1948] [cursor=pointer]:
+              - img [aria-hidden] [ref=e1949]: insert_chart_filled
+            - link "Explorer" [ref=e1953] [cursor=pointer]:
+              - img [aria-hidden] [ref=e1954]: data_exploration
+            - link "Publicité" [ref=e1958] [cursor=pointer]:
+              - img [aria-hidden] [ref=e1959]: ads_click
+          - navigation "Pages de paramètres" [ref=e72]:
+            - link "Tâches" [ref=e2681] [cursor=pointer]:
+              - img [aria-hidden] [ref=e1964]: task_alt
+            - link "Administration" [ref=e1970] [cursor=pointer]:
+              - img [aria-hidden] [ref=e1971]: settings_filled
+        - navigation "Navigation secondaire" [ref=e1974]:
+          - navigation "Pages secondaires" [ref=e1975]:
+            - button [expanded] [ref=e1980] [cursor=pointer]:
+              - img [aria-hidden] [ref=e1981]: add
+              - generic [ref=e1983]:
+                - text: Créer
+                - img [aria-hidden] [ref=e1984]: arrow_drop_down
+          - tree [ref=e1987]:
+            - treeitem [level=1] [ref=e1988]:
+              - button "Administration" [ref=e1990] [cursor=pointer]
+            - treeitem [level=1] [ref=e1996]:
+              - button "Mes préférences" [ref=e1998] [cursor=pointer]
+            - treeitem [level=1] [ref=e2004]:
+              - button "Gestionnaire de données Bêta" [ref=e2006] [cursor=pointer]:
+                - generic [ref=e2008]:
+                  - generic [ref=e2009]: Gestionnaire de données
+                  - generic [ref=e2010]: Bêta
+            - treeitem [expanded] [level=1] [ref=e2013]:
+              - generic [ref=e2014]:
+                - separator [ref=e2015]
+                - button "Paramètres du compte" [ref=e2016] [cursor=pointer]:
+                  - generic [ref=e2019]:
+                    - generic [ref=e2020]: Paramètres du compte
+                    - img [aria-hidden] [ref=e2021]: keyboard_arrow_up
+            - treeitem [level=2] [ref=e2024]:
+              - button "Compte" [ref=e2026] [cursor=pointer]:
+                - generic [ref=e2028]:
+                  - img [aria-hidden] [ref=e2029]: arrow_right
+                  - generic [ref=e2030]: Compte
+            - treeitem [expanded] [level=1] [ref=e2033]:
+              - generic [ref=e2034]:
+                - separator [ref=e2035]
+                - button "Paramètres de la propriété" [ref=e2036] [cursor=pointer]:
+                  - generic [ref=e2039]:
+                    - generic [ref=e2040]: Paramètres de la propriété
+                    - img [aria-hidden] [ref=e2041]: keyboard_arrow_up
+            - treeitem [level=2] [ref=e2044]:
+              - button "Propriété" [ref=e2046] [cursor=pointer]:
+                - generic [ref=e2048]:
+                  - img [aria-hidden] [ref=e2049]: arrow_right
+                  - generic [ref=e2050]: Propriété
+            - treeitem [expanded] [level=2] [ref=e2053]:
+              - button "Collecte et modification des données" [ref=e2055] [cursor=pointer]:
+                - generic [ref=e2057]:
+                  - img [aria-hidden] [ref=e2058]: arrow_drop_down
+                  - generic [ref=e2059]: Collecte et modification des données
+            - treeitem [level=3] [ref=e2683]:
+              - button "Flux de données" [ref=e2685] [cursor=pointer]
+            - treeitem [level=3] [ref=e2691]:
+              - button "Collecte des données" [ref=e2693] [cursor=pointer]
+            - treeitem [level=3] [ref=e2699]:
+              - button "Importation de données" [ref=e2701] [cursor=pointer]
+            - treeitem [level=3] [ref=e2707]:
+              - button "Conservation des données" [ref=e2709] [cursor=pointer]
+            - treeitem [level=3] [ref=e2715]:
+              - button "Filtres de données" [ref=e2717] [cursor=pointer]
+            - treeitem [level=3] [ref=e2723]:
+              - button "Demandes de suppression de données" [ref=e2725] [cursor=pointer]
+            - treeitem [level=3] [ref=e2731]:
+              - button "Paramètres de consentement" [ref=e2733] [cursor=pointer]
+            - treeitem [level=2] [ref=e2062]:
+              - button "Affichage des données" [ref=e2064] [cursor=pointer]:
+                - generic [ref=e2066]:
+                  - img [aria-hidden] [ref=e2067]: arrow_right
+                  - generic [ref=e2068]: Affichage des données
+            - treeitem [level=2] [ref=e2071]:
+              - button "Associations de produits" [ref=e2073] [cursor=pointer]:
+                - generic [ref=e2075]:
+                  - img [aria-hidden] [ref=e2076]: arrow_right
+                  - generic [ref=e2077]: Associations de produits
+          - separator [ref=e2080]
+        - button "Activer/Désactiver la navigation" [expanded] [ref=e2082] [cursor=pointer]:
+          - img [aria-hidden] [ref=e2083]: keyboard_arrow_left
+      - generic [ref=e2086]:
+        - main [ref=e2087]:
+          - generic [ref=e2740]:
+            - heading "Flux de données" [level=1] [ref=e2743]
+            - generic [ref=e2747]:
+              - generic [ref=e2748]:
+                - generic [ref=e2749]:
+                  - generic [ref=e2753]:
+                    - img [aria-hidden] [ref=e2755]: search
+                    - searchbox "Saisissez du texte pour filtrer les résultats" [ref=e2757]
+                  - button "Ajouter un flux" [ref=e2763] [cursor=pointer]:
+                    - img [aria-hidden] [ref=e2764]: arrow_drop_down
+                - generic [ref=e2768]:
+                  - tablist [ref=e2771]:
+                    - generic [ref=e2772]:
+                      - tab "Tous" [selected] [ref=e2773] [cursor=pointer]
+                      - tab "iOS" [ref=e2777] [cursor=pointer]
+                      - tab "Android" [ref=e2781] [cursor=pointer]
+                      - tab "Web" [ref=e2785] [cursor=pointer]
+                  - generic:
+                    - tabpanel "Tous"
+              - table [ref=e2790]:
+                - row [ref=e2791] [cursor=pointer]:
+                  - cell [ref=e2792]
+                  - cell "Les consultants https://les-consultants.com" [ref=e2807]:
+                    - generic [ref=e2808]:
+                      - generic [ref=e2809]: Les consultants
+                      - generic [ref=e2810]: https://les-consultants.com
+                  - cell "3875451264" [ref=e2811]
+                  - cell "Aucune donnée reçue au cours des dernières 48 heures." [ref=e2813]
+                  - cell [ref=e2815]:
+                    - button "Sélectionner un flux" [ref=e2816]:
+                      - img [aria-hidden] [ref=e2817]: keyboard_arrow_right
+        - contentinfo [ref=e2672]:
+          - text: ©2026 Google |
+          - link "Accueil Analytics" [ref=e2673] [cursor=pointer]:
+            - /url: https://www.google.com/analytics/?hl=fr
+          - text: "|"
+          - link "Conditions d'utilisation" [ref=e2674] [cursor=pointer]:
+            - /url: https://www.google.com/analytics/tos.html?hl=fr
+          - text: "|"
+          - link "Règles de confidentialité" [ref=e2675] [cursor=pointer]:
+            - /url: https://www.google.com/policies/privacy/?hl=fr
+          - text: "|"
+          - button "Envoyer des commentaires" [ref=e2676] [cursor=pointer]:
+            - img [aria-hidden] [ref=e2677]: feedback
+      - generic:
+        - button "Ouvrir le menu contextuel"
+  - menu [ref=e2822]:
+    - generic [ref=e2823]:
+      - menuitem "Compte" [active] [ref=e2824] [cursor=pointer]
+      - menuitem "Propriété" [ref=e2826] [cursor=pointer]

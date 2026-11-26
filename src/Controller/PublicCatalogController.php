@@ -58,6 +58,9 @@ final class PublicCatalogController extends AbstractController
             }
         }
 
-        return $this->render('catalog/success.html.twig', ['payment' => $summary]);
+        return $this->render('catalog/success.html.twig', [
+            'payment' => $summary,
+            'analyticsPurchase' => $summary['analyticsPurchase'] ?? null,
+        ]);
     }
 }

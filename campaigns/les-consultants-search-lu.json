@@ -1,0 +1,122 @@
+{
+  "name": "Les Consultants | Search | Luxembourg | FR-EN",
+  "status": "DRAFT",
+  "website": "https://elearning-lesconsultants.com/",
+  "google_ads_customer_id": "775-851-8813",
+  "analytics": {
+    "account_id": "236251076",
+    "property_id": "565950483",
+    "stream_id": "16420622897",
+    "measurement_id": "G-0DHNRHRS54",
+    "url": "https://analytics.google.com/analytics/web/#/a236251076p565950483/reports/intelligenthome",
+    "timezone": "Europe/Luxembourg",
+    "currency": "EUR"
+  },
+  "objective": "B2B demo and training enquiries",
+  "channel": "SEARCH",
+  "average_daily_budget_eur": 15,
+  "budget_scope": "One shared campaign budget for all ad groups and both languages",
+  "monthly_budget_reference_eur": 456,
+  "location": {
+    "country": "Luxembourg",
+    "country_code": "LU",
+    "positive_targeting": "PRESENCE",
+    "expansion": "Evaluate cross-border France and Belgium separately after reviewing qualified leads. No Europe-wide targeting at launch."
+  },
+  "languages": ["fr", "en"],
+  "networks": {"google_search": true, "search_partners": false, "display": false},
+  "bidding": {"strategy": "MAXIMIZE_CLICKS", "max_cpc_eur": null},
+  "primary_conversion": "generate_lead",
+  "secondary_events": ["demo_click", "contact_click", "begin_checkout"],
+  "purchase_conversion": "Keep purchases observable; use campaign-specific lead goals for this B2B campaign",
+  "final_url_suffix": "utm_source=google&utm_medium=cpc&utm_campaign=lc_search_lu&utm_content={adgroupid}&utm_term={keyword}",
+  "ad_groups": [
+    {
+      "name": "Conformite FR",
+      "language": "fr",
+      "keywords": [
+        {"text": "formation compliance luxembourg", "match": "EXACT"},
+        {"text": "formation conformité luxembourg", "match": "PHRASE"},
+        {"text": "formation aml luxembourg", "match": "EXACT"},
+        {"text": "formation kyc luxembourg", "match": "PHRASE"},
+        {"text": "formation conformité entreprise", "match": "PHRASE"},
+        {"text": "e learning compliance luxembourg", "match": "PHRASE"}
+      ],
+      "responsive_search_ad": {
+        "final_url": "https://elearning-lesconsultants.com/",
+        "path_1": "formations",
+        "path_2": "conformite",
+        "headlines": [
+          "Conformité au Luxembourg",
+          "Formez vos équipes en ligne",
+          "Formations AML et KYC",
+          "Suivi de formation centralisé",
+          "Demandez une démo gratuite",
+          "Apprenez à votre rythme",
+          "Vidéos, quiz et certificats",
+          "Les Consultants E-learning"
+        ],
+        "descriptions": [
+          "Formez vos équipes en conformité, AML/KYC, RGPD et cybersécurité. Demandez une démo.",
+          "Attribuez les cours et suivez les progressions depuis votre espace entreprise.",
+          "Des formations à votre rythme, avec quiz et certificats après réussite.",
+          "Découvrez une plateforme pensée pour les équipes professionnelles au Luxembourg."
+        ]
+      }
+    },
+    {
+      "name": "Compliance EN",
+      "language": "en",
+      "keywords": [
+        {"text": "compliance training luxembourg", "match": "EXACT"},
+        {"text": "aml training luxembourg", "match": "EXACT"},
+        {"text": "kyc training luxembourg", "match": "PHRASE"},
+        {"text": "online compliance training luxembourg", "match": "PHRASE"},
+        {"text": "team compliance training", "match": "PHRASE"},
+        {"text": "corporate compliance training luxembourg", "match": "PHRASE"}
+      ],
+      "responsive_search_ad": {
+        "final_url": "https://elearning-lesconsultants.com/",
+        "path_1": "team-training",
+        "path_2": "compliance",
+        "headlines": [
+          "Compliance Training Luxembourg",
+          "Train Your Team Online",
+          "AML & KYC Online Training",
+          "Track Team Learning Progress",
+          "Request a Free Demo",
+          "Learn at Your Own Pace",
+          "Videos, Quizzes & Certificates",
+          "Les Consultants E-learning"
+        ],
+        "descriptions": [
+          "Online compliance, AML/KYC, GDPR and cybersecurity training for teams in Luxembourg.",
+          "Assign courses, follow team progress and download certificates after successful quizzes.",
+          "Explore a flexible learning platform for your organisation. Request a free demo.",
+          "Give your team online training they can follow at their own pace."
+        ]
+      }
+    }
+  ],
+  "negative_keywords": ["emploi", "recrutement", "job", "jobs", "salary", "salaire", "stage", "internship", "alternance", "master", "licence", "université", "university", "pdf gratuit", "cours gratuit", "free course", "free training", "youtube"],
+  "sitelinks": [
+    {"text": "Course catalogue", "final_url": "https://elearning-lesconsultants.com/catalog"},
+    {"text": "Request a team demo", "final_url": "https://elearning-lesconsultants.com/contact?demo=1"},
+    {"text": "Team training solutions", "final_url": "https://elearning-lesconsultants.com/#solutions"}
+  ],
+  "launch_requirements": [
+    "Finish Google Ads account setup without publishing the campaign automatically",
+    "Deploy the consent panel and measurement code to elearning-lesconsultants.com",
+    "Configure the GA4 measurement ID of the dedicated e-learning property",
+    "Confirm generate_lead and purchase receipt in GA4 using a real consented test",
+    "Link the correct Ads account and select one conversion source per outcome to avoid double counting",
+    "Disable automatic enhanced measurement for forms and outbound clicks; use the explicit safe events",
+    "Review the French ad experience against the currently English commercial pages",
+    "Review bidding and search estimates in the account; no CPC or lead-volume estimate has been assumed"
+  ],
+  "reference_urls": [
+    "https://support.google.com/google-ads/answer/1722038?hl=fr",
+    "https://support.google.com/google-ads/answer/1704443?hl=fr",
+    "https://developers.google.com/tag-platform/security/guides/consent?consentmode=basic"
+  ]
+}

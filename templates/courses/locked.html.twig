@@ -202,7 +202,7 @@
           </div>
         </div>
 
-        <form method="post" action="{{ path('app_catalog_course_checkout', { id: course.id }) }}">
+        <form method="post" action="{{ path('app_catalog_course_checkout', { id: course.id }) }}" data-analytics-checkout="course">
           <input type="hidden" name="_token" value="{{ csrf_token('catalog_checkout_' ~ course.id) }}">
           <button type="submit" class="course-purchase__buy" {% if euroPrice is null %}disabled{% endif %}>
             <span>Buy and start learning</span>

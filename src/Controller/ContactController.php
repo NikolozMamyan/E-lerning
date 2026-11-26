@@ -3,7 +3,7 @@
 namespace App\Controller;
 
 
-use App\Service\MailerService;
+use App\Service\LearnerContactService;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -11,35 +11,28 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 final class ContactController extends AbstractController
 {
-    #[Route('/contact', name: 'app_contact')]
-        public function contact(Request $request, MailerService $mailService): Response
+    #[Route('/contact', name: 'app_contact', methods: ['GET', 'POST'])]
+    public function contact(Request $request, LearnerContactService $contactService): Response
     {
         if ($request->isMethod('POST')) {
-            $firstname = $request->request->get('firstname');
-            $lastname = $request->request->get('lastname');
-            $email = $request->request->get('email');
-            $phone = $request->request->get('phone');
-            $message = $request->request->get('message');
+            if (!$this->isCsrfTokenValid('contact', $request->request->getString('_token'))) {
+                throw $this->createAccessDeniedException('Invalid contact request.');
+            }
 
-            // contenu envoyé à ton adresse
-            $mailService->send(
-                'contact@elearning-lesconsultants.com', // destinataire (ton email de réception)
-                '📩 Nouveau message de contact',
-                'emails/contact.html.twig',
-                [
-                    'firstname' => $firstname,
-                    'lastname'  => $lastname,
-                    'email'     => $email,
-                    'phone'     => $phone,
-                    'message'   => $message,
-                ]
-            );
+            try {
+                $contactService->send($request->request->all());
+                $request->getSession()->set('analytics_contact_id', bin2hex(random_bytes(16)));
+                $this->addFlash('success', 'Votre message a bien été envoyé. Merci !');
+            } catch (\InvalidArgumentException $exception) {
+                $this->addFlash('error', $exception->getMessage());
+            }
 
-            $this->addFlash('success', 'Votre message a bien été envoyé. Merci !');
-
-            return $this->redirectToRoute('app_contact');
+            return $this->redirectToRoute('app_contact', [], Response::HTTP_SEE_OTHER);
         }
 
-        return $this->render('contact/contact.html.twig');
+        return $this->render('contact/contact.html.twig', [
+            'demo' => $request->query->getBoolean('demo'),
+            'analyticsLeadId' => $request->getSession()->remove('analytics_contact_id'),
+        ]);
     }
 }

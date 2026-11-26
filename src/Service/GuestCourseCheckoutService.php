@@ -12,7 +12,10 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 final class GuestCourseCheckoutService
 {
-    public function __construct(private readonly UrlGeneratorInterface $urlGenerator)
+    public function __construct(
+        private readonly UrlGeneratorInterface $urlGenerator,
+        private readonly PurchaseTrackingService $purchaseTracking,
+    )
     {
     }
 
@@ -53,7 +56,7 @@ final class GuestCourseCheckoutService
         return Session::create($parameters);
     }
 
-    /** @return array{paid: bool, courseId: ?int, courseTitle: ?string, amount: ?float, currency: string} */
+    /** @return array{paid: bool, courseId: ?int, courseTitle: ?string, amount: ?float, currency: string, analyticsPurchase: ?array} */
     public function paymentSummary(string $sessionId): array
     {
         $this->configureStripe();
@@ -71,6 +74,7 @@ final class GuestCourseCheckoutService
             'courseTitle' => isset($session->line_items) ? null : null,
             'amount' => isset($session->amount_total) ? ((int) $session->amount_total) / 100 : null,
             'currency' => strtoupper((string) ($session->currency ?? 'EUR')),
+            'analyticsPurchase' => $this->purchaseTracking->fromCheckout($session),
         ];
     }
 

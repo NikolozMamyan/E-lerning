@@ -7,6 +7,7 @@ namespace App\Controller\Company;
 use App\Entity\User;
 use App\Repository\CourseRepository;
 use App\Service\CompanyCourseCheckoutService;
+use App\Service\PurchaseTrackingService;
 use Stripe\Checkout\Session;
 use Stripe\Stripe;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -54,7 +55,7 @@ final class CompanyStripeController extends AbstractController
     }
 
     #[Route('/company/pay/success', name: 'company_payment_success', methods: ['GET'])]
-    public function success(Request $request, CourseRepository $courseRepository): Response
+    public function success(Request $request, CourseRepository $courseRepository, PurchaseTrackingService $purchaseTracking): Response
     {
         $sessionId = $request->query->getString('session_id');
         $variables = [
@@ -68,6 +69,7 @@ final class CompanyStripeController extends AbstractController
             'amount' => null,
             'currency' => 'EUR',
             'paymentStatus' => null,
+            'analyticsPurchase' => null,
         ];
 
         if ($sessionId !== '') {
@@ -95,6 +97,9 @@ final class CompanyStripeController extends AbstractController
                     'amount' => isset($session->amount_total) ? $session->amount_total / 100 : null,
                     'currency' => strtoupper((string) ($session->currency ?? 'EUR')),
                     'paymentStatus' => $session->payment_status ?? null,
+                    'analyticsPurchase' => (string) ($metadata->company_user_id ?? '') === (string) $this->getUser()?->getId()
+                        ? $purchaseTracking->fromCheckout($session)
+                        : null,
                 ];
             } catch (\Throwable) {
                 $this->addFlash('warning', 'The payment summary could not be retrieved, but paid access will still be activated automatically.');

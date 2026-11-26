@@ -1,0 +1,87 @@
+- generic [active] [ref=f7e1]:
+  - generic [ref=f7e4]:
+    - banner [ref=f7e5]:
+      - generic [ref=f7e6]:
+        - heading "Ads" [level=1] [ref=f7e7]
+        - button "Créer ma première campagne" [ref=f7e23]:
+          - heading [level=1] [ref=f7e26]:
+            - button "Créer ma première campagne" [ref=f7e27]
+      - generic [ref=f7e28]:
+        - generic [ref=f7e30]:
+          - button "400 € offre" [ref=f7e32] [cursor=pointer]:
+            - generic [ref=f7e34]:
+              - img [aria-hidden] [ref=f7e36]: redeem
+              - generic [ref=f7e37]: 400 € offre
+          - button "Apparence" [ref=f7e40] [cursor=pointer]:
+            - generic [ref=f7e42]:
+              - img [aria-hidden] [ref=f7e44]: responsive_layout
+              - generic [ref=f7e45]: Apparence
+          - button "Aide" [ref=f7e48] [cursor=pointer]:
+            - generic [ref=f7e50]:
+              - img [aria-hidden] [ref=f7e52]: help_outline
+              - generic [ref=f7e53]: Aide
+        - generic [ref=f7e56]:
+          - generic "775-851-8813" [ref=f7e57]
+          - generic [ref=f7e58]: nikolozmamyan@gmail.com
+        - button "Compte Google" [ref=f7e181] [cursor=pointer]:
+          - img "Compte Google (nikolozmamyan@gmail.com)" [ref=f7e182]
+    - generic [ref=f7e71]:
+      - generic [ref=f7e73]:
+        - navigation [ref=f7e235]:
+          - list [ref=f7e238]:
+            - listitem [ref=f7e239]:
+              - generic [ref=f7e240]:
+                - generic [ref=f7e242]:
+                  - img [aria-hidden] [ref=f7e244]: radio_button_unchecked
+                  - generic [ref=f7e245]: Ajouter des informations sur l'établissement
+                - generic [ref=f7e247]:
+                  - generic [ref=f7e248]: À propos de votre établissement
+                  - generic [ref=f7e255]: Vérifier les informations sur votre établissement
+                  - generic [ref=f7e262]: Associer les comptes
+            - listitem [ref=f7e269]:
+              - generic [ref=f7e272]:
+                - img [aria-hidden] [ref=f7e274]: radio_button_unchecked
+                - generic [ref=f7e275]: Créer votre campagne
+            - listitem [ref=f7e277]:
+              - generic [ref=f7e280]:
+                - img [aria-hidden] [ref=f7e282]: radio_button_unchecked
+                - generic [ref=f7e283]: Saisissez les détails du paiement
+        - main [ref=f7e74]:
+          - generic [ref=f7e75]:
+            - generic: check_circle
+            - generic: close close close close close
+            - generic [ref=f7e381]:
+              - generic [ref=f7e383]:
+                - heading "Ajoutez des informations pour gagner du temps lors de la configuration" [level=1] [ref=f7e384]
+                - heading "Associer les comptes" [level=2] [ref=f7e388]
+              - generic [ref=f7e391]:
+                - button "Suivant" [disabled] [ref=f7e392]
+                - button "Retour" [ref=f7e393] [cursor=pointer]
+                - button "Ignorer" [disabled] [ref=f7e397]
+      - generic [ref=f7e168]:
+        - img [aria-hidden] [ref=f7e170]: phone
+        - contentinfo [ref=f7e171]:
+          - text: Besoin d'aide ? Afin de bénéficier d'une assistance gratuite pour la configuration de vos annonces, appelez le 0805 980 264, De 9h à 18h, du lundi au vendredi.
+          - link "Articles d'aide" [ref=f7e173] [cursor=pointer]:
+            - /url: https://support.google.com/google-ads/answer/6080568?hl=fr
+  - generic [aria-hidden]:
+    - dialog:
+      - generic:
+        - generic:
+          - heading [level=1]: Turn off ad blockers
+          - paragraph: Google Ads can't work when you're using an ad blocker. To use Google Ads, please turn off any ad blockers for now.
+  - generic:
+    - generic:
+      - generic:
+        - dialog "boîte de dialogue"
+    - generic:
+      - generic:
+        - dialog "boîte de dialogue"
+  - generic:
+    - generic:
+      - generic:
+        - dialog "boîte de dialogue"
+  - generic:
+    - generic:
+      - generic:
+        - dialog "boîte de dialogue"
