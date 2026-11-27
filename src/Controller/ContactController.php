@@ -21,7 +21,6 @@ final class ContactController extends AbstractController
 
             try {
                 $contactService->send($request->request->all());
-                $request->getSession()->set('analytics_contact_id', bin2hex(random_bytes(16)));
                 $this->addFlash('success', 'Votre message a bien été envoyé. Merci !');
             } catch (\InvalidArgumentException $exception) {
                 $this->addFlash('error', $exception->getMessage());
@@ -32,7 +31,6 @@ final class ContactController extends AbstractController
 
         return $this->render('contact/contact.html.twig', [
             'demo' => $request->query->getBoolean('demo'),
-            'analyticsLeadId' => $request->getSession()->remove('analytics_contact_id'),
         ]);
     }
 }

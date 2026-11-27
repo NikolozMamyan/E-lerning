@@ -21,7 +21,7 @@ use Twig\Environment;
 
 final class ContactControllerTest extends TestCase
 {
-    public function testSuccessfulContactCreatesAConversionOnlyAfterSendingTheMessage(): void
+    public function testSuccessfulContactDoesNotCreateAConversion(): void
     {
         $request = $this->request('POST', [
             '_token' => 'test', 'firstname' => 'Test', 'lastname' => 'Member',
@@ -33,7 +33,7 @@ final class ContactControllerTest extends TestCase
         $response = $this->controller($request)->contact($request, new LearnerContactService($mailer, Validation::createValidator()));
 
         self::assertSame(303, $response->getStatusCode());
-        self::assertMatchesRegularExpression('/^[a-f0-9]{32}$/', $request->getSession()->get('analytics_contact_id'));
+        self::assertFalse($request->getSession()->has('analytics_contact_id'));
     }
 
     public function testInvalidContactCannotCreateAConversion(): void
@@ -57,20 +57,19 @@ final class ContactControllerTest extends TestCase
         $this->controller($request, false)->contact($request, new LearnerContactService($mailer, Validation::createValidator()));
     }
 
-    public function testConfirmationIsConsumedOnceAndCannotBeForgedByTheUrl(): void
+    public function testDemoPageDoesNotExposeLeadTracking(): void
     {
         $request = $this->request('GET');
         $request->query->set('success', '1');
+        $request->query->set('demo', '1');
         $request->getSession()->set('analytics_contact_id', 'confirmed-test-lead');
         $twig = $this->createMock(Environment::class);
-        $twig->expects(self::exactly(2))->method('render')->withConsecutive(
-            ['contact/contact.html.twig', ['demo' => false, 'analyticsLeadId' => 'confirmed-test-lead']],
-            ['contact/contact.html.twig', ['demo' => false, 'analyticsLeadId' => null]],
+        $twig->expects(self::once())->method('render')->with(
+            'contact/contact.html.twig', ['demo' => true],
         )->willReturn('<html></html>');
         $controller = $this->controller($request, true, $twig);
         $service = new LearnerContactService($this->createMock(MailerService::class), Validation::createValidator());
 
-        $controller->contact($request, $service);
         $controller->contact($request, $service);
     }
 

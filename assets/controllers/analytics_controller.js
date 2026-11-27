@@ -5,7 +5,7 @@ const CONSENT_LIFETIME = 180 * 24 * 60 * 60 * 1000;
 
 export default class extends Controller {
   static targets = ['panel', 'preferences', 'statistics', 'advertising'];
-  static values = { config: Object, page: String, purchase: Object, leadId: String };
+  static values = { config: Object, page: String, purchase: Object };
 
   connect() {
     const config = this.configValue;
@@ -146,12 +146,6 @@ export default class extends Controller {
       }
       this.adsConversion('purchase', purchase.transaction_id, { value: purchase.value, currency: purchase.currency });
     }
-    if (this.leadIdValue) {
-      if (this.consent.statistics && this.measurementId) {
-        this.once(`lc_ga_lead_${this.leadIdValue}`, () => this.event('generate_lead', { lead_source: 'contact_form' }));
-      }
-      this.adsConversion('lead', `lead_${this.leadIdValue}`);
-    }
   }
 
   adsConversion(type, transactionId, parameters = {}) {
@@ -169,12 +163,6 @@ export default class extends Controller {
       event.preventDefault();
       this.open();
       return;
-    }
-    const link = event.target.closest('a');
-    if (!link) return;
-    if (link.dataset.analyticsEvent === 'demo_click') this.event('demo_click');
-    else if (/^(mailto:|tel:)/.test(link.getAttribute('href') || '')) {
-      this.event('contact_click', { contact_method: link.protocol === 'tel:' ? 'phone' : 'email' });
     }
   }
 

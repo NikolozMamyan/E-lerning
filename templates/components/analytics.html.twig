@@ -5,7 +5,6 @@
        data-analytics-config-value="{{ analytics|json_encode|e('html_attr') }}"
        data-analytics-page-value="{{ app.request.attributes.get('_route') }}"
        data-analytics-purchase-value="{{ analyticsPurchase|default(null)|json_encode|e('html_attr') }}"
-       data-analytics-lead-id-value="{{ analyticsLeadId|default('') }}"
        data-action="click@document->analytics#trackClick submit@document->analytics#trackCheckout turbo:before-cache@document->analytics#beforeCache">
     <section class="cookie-consent" data-analytics-target="panel" aria-labelledby="cookie-consent-title" role="region" hidden>
       <div class="cookie-consent__heading"><span aria-hidden="true"><i class="fa-solid fa-cookie-bite"></i></span><h2 id="cookie-consent-title">{{ french ? 'Vos choix de cookies' : 'Your cookie choices' }}</h2></div>

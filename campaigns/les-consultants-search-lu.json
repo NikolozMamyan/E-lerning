@@ -1,6 +1,6 @@
 {
   "name": "AML 2026 | Luxembourg | Les Consultants",
-  "status": "DRAFT",
+  "status": "PAUSED",
   "website": "https://elearning-lesconsultants.com/",
   "google_ads_customer_id": "775-851-8813",
   "analytics": {
@@ -14,7 +14,6 @@
     "ads_link_created": true,
     "enhanced_measurement_enabled": false,
     "key_events": [
-      "generate_lead",
       "purchase"
     ],
     "production_collection_verified": true,
@@ -29,6 +28,7 @@
       },
       "generate_lead": {
         "id": "7918490789",
+        "status": "REMOVAL_PENDING",
         "optimization": "SECONDARY",
         "value": "NONE",
         "count": "ONE"
@@ -36,9 +36,9 @@
     },
     "production_validation_http_status": 204,
     "debugview_event_observed": true,
-    "final_ui_deployment_verified": false
+    "final_ui_deployment_verified": true
   },
-  "objective": "AML/CFT course purchases and qualified team training enquiries",
+  "objective": "AML/CFT course purchases only",
   "channel": "SEARCH",
   "average_daily_budget_eur": 15,
   "budget_scope": "One shared campaign budget for all ad groups and both languages",
@@ -47,7 +47,7 @@
     "country": "Luxembourg",
     "country_code": "LU",
     "positive_targeting": "PRESENCE",
-    "expansion": "Evaluate cross-border France and Belgium separately after reviewing qualified leads. No Europe-wide targeting at launch."
+    "expansion": "Evaluate cross-border France and Belgium separately after reviewing course purchases. No Europe-wide targeting at launch."
   },
   "languages": [
     "fr",
@@ -64,11 +64,9 @@
   },
   "primary_conversion": "purchase",
   "secondary_events": [
-    "demo_click",
-    "contact_click",
     "begin_checkout"
   ],
-  "purchase_conversion": "Import GA4 purchase once; retain confirmed contact enquiries as a separate conversion.",
+  "purchase_conversion": "Use GA4 purchase as the only conversion, with confirmed payment revenue. Exclude contact forms and demo requests.",
   "final_url_suffix": "utm_source=google&utm_medium=cpc&utm_campaign=aml_2026_lu&utm_content={adgroupid}&utm_term={keyword}",
   "ad_groups": [
     {
@@ -216,10 +214,10 @@
     }
   ],
   "launch_requirements": [
-    "Deploy and verify the final compact consent panel and the AML 2026 collection with all five course records.",
-    "Finish account billing setup; do not enable delivery automatically.",
-    "Set the final campaign name to AML 2026 and confirm FR/EN targeting, English ad variant and negative keywords in the full account interface.",
-    "Promote the imported GA4 purchase conversion to Primary in Google Ads; both imported actions are currently Secondary. Avoid a duplicate native Primary conversion.",
+    "Deploy the removal of contact, demo and lead tracking from the website.",
+    "Remove the imported generate_lead and onboarding lead conversion actions from Google Ads, and unmark generate_lead as a GA4 key event.",
+    "Verify the saved Primary setting for GA4 purchase and select Purchases as the campaign's only conversion goal. Avoid a duplicate native Primary conversion.",
+    "Confirm Luxembourg presence targeting, FR/EN languages, English ad variant and negative keywords in the published campaign.",
     "Review the final saved draft and the EUR 15 average daily budget before enabling delivery.",
     "Search image assets require an eligible account. The text poster is intended for Display/social formats."
   ],
@@ -229,9 +227,7 @@
     "https://developers.google.com/tag-platform/security/guides/consent?consentmode=basic",
     "https://support.google.com/google-ads/answer/9566341?hl=en"
   ],
-  "secondary_conversions": [
-    "generate_lead"
-  ],
+  "secondary_conversions": [],
   "courses": [
     {
       "id": 34,
@@ -262,8 +258,9 @@
   "ready_to_launch": false,
   "draft_verification": {
     "saved_in_google_ads": true,
-    "published": false,
-    "account_setup": "Awaiting billing",
+    "published": true,
+    "account_setup": "Billing completed; account accessible; campaign paused pending purchase-only conversion settings and final review",
+    "draft_campaign_id": "281499528696973",
     "country": "Luxembourg",
     "positive_location_targeting": "PRESENCE",
     "google_search": true,

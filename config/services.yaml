@@ -7,7 +7,6 @@ parameters:
     env(ANALYTICS_HOST): 'elearning-lesconsultants.com'
     env(GOOGLE_ANALYTICS_ID): ''
     env(GOOGLE_ADS_ID): ''
-    env(GOOGLE_ADS_LEAD_LABEL): ''
     env(GOOGLE_ADS_PURCHASE_LABEL): ''
     uploads_directory: '%kernel.project_dir%/public/uploads/avatars'
     profile_covers_directory: '%kernel.project_dir%/public/uploads/covers'
