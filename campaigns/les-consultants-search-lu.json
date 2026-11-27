@@ -1,6 +1,6 @@
 {
   "name": "AML 2026 | Luxembourg | Les Consultants",
-  "status": "PAUSED",
+  "status": "ENABLED",
   "website": "https://elearning-lesconsultants.com/",
   "google_ads_customer_id": "775-851-8813",
   "analytics": {
@@ -21,17 +21,22 @@
     "conversion_actions": {
       "purchase": {
         "id": "7918490546",
-        "optimization": "SECONDARY",
+        "optimization": "PRIMARY",
         "value": "GA4 transaction revenue",
         "missing_value_fallback_eur": 0,
         "count": "ALL"
       },
       "generate_lead": {
         "id": "7918490789",
-        "status": "REMOVAL_PENDING",
+        "status": "REMOVED",
         "optimization": "SECONDARY",
         "value": "NONE",
         "count": "ONE"
+      },
+      "google_hosted_lead": {
+        "id": "7918552014",
+        "optimization": "SECONDARY",
+        "included_in_campaign_goals": false
       }
     },
     "production_validation_http_status": 204,
@@ -81,11 +86,43 @@
           "match": "PHRASE"
         },
         {
+          "text": "formation aml en ligne",
+          "match": "PHRASE"
+        },
+        {
+          "text": "formation lutte anti blanchiment",
+          "match": "PHRASE"
+        },
+        {
           "text": "aml training luxembourg",
           "match": "EXACT"
         },
         {
+          "text": "aml cft training",
+          "match": "PHRASE"
+        },
+        {
+          "text": "aml fundamentals course",
+          "match": "PHRASE"
+        },
+        {
+          "text": "anti money laundering training",
+          "match": "PHRASE"
+        },
+        {
           "text": "formation aml administrateurs",
+          "match": "PHRASE"
+        },
+        {
+          "text": "formation aml conseil administration",
+          "match": "PHRASE"
+        },
+        {
+          "text": "formation aml dirigeants",
+          "match": "PHRASE"
+        },
+        {
+          "text": "formation aml gouvernance",
           "match": "PHRASE"
         },
         {
@@ -93,7 +130,15 @@
           "match": "PHRASE"
         },
         {
-          "text": "aml transfer agents funds training",
+          "text": "aml training for directors",
+          "match": "PHRASE"
+        },
+        {
+          "text": "board aml training luxembourg",
+          "match": "PHRASE"
+        },
+        {
+          "text": "aml cft board course",
           "match": "PHRASE"
         },
         {
@@ -101,7 +146,31 @@
           "match": "PHRASE"
         },
         {
-          "text": "aml crypto training",
+          "text": "formation aml transfer agent",
+          "match": "PHRASE"
+        },
+        {
+          "text": "formation aml gestion fonds",
+          "match": "PHRASE"
+        },
+        {
+          "text": "formation aml fonds investissement",
+          "match": "PHRASE"
+        },
+        {
+          "text": "aml transfer agent training",
+          "match": "PHRASE"
+        },
+        {
+          "text": "aml training fund managers",
+          "match": "PHRASE"
+        },
+        {
+          "text": "aml transfer agents funds training",
+          "match": "PHRASE"
+        },
+        {
+          "text": "aml cft funds luxembourg",
           "match": "PHRASE"
         },
         {
@@ -109,56 +178,125 @@
           "match": "PHRASE"
         },
         {
-          "text": "aml fintech training",
+          "text": "formation aml crypto actifs",
+          "match": "PHRASE"
+        },
+        {
+          "text": "formation anti blanchiment crypto",
+          "match": "PHRASE"
+        },
+        {
+          "text": "formation aml crypto luxembourg",
+          "match": "PHRASE"
+        },
+        {
+          "text": "aml crypto training",
+          "match": "PHRASE"
+        },
+        {
+          "text": "crypto aml compliance training",
+          "match": "PHRASE"
+        },
+        {
+          "text": "cryptoassets aml course",
+          "match": "PHRASE"
+        },
+        {
+          "text": "crypto aml training luxembourg",
           "match": "PHRASE"
         },
         {
           "text": "formation aml fintech",
+          "match": "PHRASE"
+        },
+        {
+          "text": "formation aml établissements paiement",
+          "match": "PHRASE"
+        },
+        {
+          "text": "formation aml services paiement",
+          "match": "PHRASE"
+        },
+        {
+          "text": "formation aml fintech luxembourg",
+          "match": "PHRASE"
+        },
+        {
+          "text": "aml fintech training",
+          "match": "PHRASE"
+        },
+        {
+          "text": "aml payment institutions training",
+          "match": "PHRASE"
+        },
+        {
+          "text": "payment services aml course",
+          "match": "PHRASE"
+        },
+        {
+          "text": "fintech aml training luxembourg",
           "match": "PHRASE"
         }
       ],
       "responsive_search_ad": {
         "final_url": "https://elearning-lesconsultants.com/catalog?collection=aml-2026",
         "path_1": "aml-2026",
-        "path_2": "luxembourg",
+        "path_2": "fr-en",
         "headlines": [
           "AML 2026 au Luxembourg",
           "5 formations AML/CFT en ligne",
+          "Fondamentaux AML/CFT 2026",
           "AML Board of Directors",
           "AML TA & Funds",
-          "AML Crypto et Fintech",
+          "AML Cryptoassets",
+          "AML Fintech",
+          "En français et en anglais",
           "Formez vos équipes à l’AML",
-          "Quiz et certificats inclus",
-          "Les Consultants E-learning"
+          "Apprenez à votre rythme",
+          "Quiz et certificat inclus",
+          "Les Consultants E-learning",
+          "Formation AML pour dirigeants",
+          "AML pour les fonds et fintech",
+          "Choisissez votre cours AML"
         ],
         "descriptions": [
-          "AML 2026 : cinq formations pour les professionnels au Luxembourg. Découvrez le catalogue.",
-          "Fondamentaux, Board, TA & Funds, Crypto et Fintech : choisissez votre formation AML.",
+          "5 formations AML 2026 en français et en anglais. Choisissez le cours adapté à vos besoins.",
+          "Fondamentaux, Board, TA & Funds, Crypto et Fintech : découvrez les cinq parcours AML/CFT.",
           "Vidéos et quiz à votre rythme. Certificat disponible après réussite.",
-          "Formez vos collaborateurs et suivez leurs progressions depuis votre espace entreprise."
-        ]
+          "Achetez votre formation en ligne et progressez à votre rythme avec Les Consultants."
+        ],
+        "description_1_position": 1
       },
       "english_variant": {
         "final_url": "https://elearning-lesconsultants.com/catalog?collection=aml-2026",
         "path_1": "aml-2026",
-        "path_2": "luxembourg",
+        "path_2": "french-english",
         "headlines": [
           "AML 2026 Luxembourg",
-          "5 Focused AML/CFT Courses",
+          "5 Online AML/CFT Courses",
+          "AML/CFT Fundamentals",
           "AML for Boards of Directors",
           "AML for TA & Funds",
-          "AML for Crypto & Fintech",
+          "AML Cryptoassets Training",
+          "AML Fintech Training",
+          "In French and English",
           "Train Your Team Online",
           "Learn at Your Own Pace",
-          "Les Consultants E-learning"
+          "Videos, Quizzes & Certificate",
+          "Les Consultants E-learning",
+          "AML for Financial Teams",
+          "Choose Your AML Course",
+          "Professional AML Training"
         ],
         "descriptions": [
-          "Explore five AML/CFT courses for Luxembourg professionals. Find your next training.",
-          "Fundamentals, boards, TA and funds, cryptoassets and fintech: choose your AML course.",
-          "Learn with videos and quizzes at your own pace. Certificates after successful completion.",
-          "Assign courses and follow your team's progress from your company learning space."
-        ]
-      }
+          "5 AML 2026 courses in French and English. Choose the training that fits your role.",
+          "Fundamentals, boards, TA and funds, cryptoassets and fintech: explore all five courses.",
+          "Learn with videos and quizzes at your own pace. Certificate after successful completion.",
+          "Buy an AML/CFT course online with Les Consultants. Training for Luxembourg professionals."
+        ],
+        "description_1_position": 1
+      },
+      "id": "205504049907"
     }
   ],
   "negative_keywords": [
@@ -171,15 +309,18 @@
     "stage",
     "internship",
     "alternance",
-    "master",
-    "licence",
+    "master universitaire",
+    "licence universitaire",
     "université",
     "university",
     "pdf gratuit",
     "cours gratuit",
     "free course",
     "free training",
-    "youtube"
+    "youtube",
+    "gratuit",
+    "gratuite",
+    "free"
   ],
   "sitelinks": [
     {
@@ -213,14 +354,7 @@
       "final_url": "https://elearning-lesconsultants.com/courses/38-aml-cft-for-payment-institutions-fintechs"
     }
   ],
-  "launch_requirements": [
-    "Deploy the removal of contact, demo and lead tracking from the website.",
-    "Remove the imported generate_lead and onboarding lead conversion actions from Google Ads, and unmark generate_lead as a GA4 key event.",
-    "Verify the saved Primary setting for GA4 purchase and select Purchases as the campaign's only conversion goal. Avoid a duplicate native Primary conversion.",
-    "Confirm Luxembourg presence targeting, FR/EN languages, English ad variant and negative keywords in the published campaign.",
-    "Review the final saved draft and the EUR 15 average daily budget before enabling delivery.",
-    "Search image assets require an eligible account. The text poster is intended for Display/social formats."
-  ],
+  "launch_requirements": [],
   "reference_urls": [
     "https://support.google.com/google-ads/answer/1722038?hl=fr",
     "https://support.google.com/google-ads/answer/1704443?hl=fr",
@@ -255,24 +389,30 @@
       "final_url": "https://elearning-lesconsultants.com/courses/38-aml-cft-for-payment-institutions-fintechs"
     }
   ],
-  "ready_to_launch": false,
+  "ready_to_launch": true,
   "draft_verification": {
     "saved_in_google_ads": true,
     "published": true,
-    "account_setup": "Billing completed; account accessible; campaign paused pending purchase-only conversion settings and final review",
+    "account_setup": "Billing completed; campaign enabled at EUR 15/day on average; Purchases is the only campaign conversion goal",
     "draft_campaign_id": "281499528696973",
     "country": "Luxembourg",
     "positive_location_targeting": "PRESENCE",
     "google_search": true,
     "search_partners": false,
     "display": false,
-    "keywords": 11,
-    "headlines": 8,
+    "keywords": 40,
+    "headlines": 15,
     "descriptions": 4,
     "course_sitelinks": 5,
     "average_daily_budget_eur": 15,
     "bidding": "MAXIMIZE_CLICKS",
-    "landing_url": "https://elearning-lesconsultants.com/catalog?collection=aml-2026"
+    "landing_url": "https://elearning-lesconsultants.com/catalog?collection=aml-2026",
+    "responsive_search_ads": 2,
+    "first_description_pinned_for_language": true,
+    "negative_keywords": 21,
+    "languages": ["fr", "en"],
+    "ads_approval": "ELIGIBLE",
+    "bilingual_landing_copy_deployed": false
   },
   "assets": [
     {
@@ -292,6 +432,19 @@
       "width": 1254,
       "height": 1254,
       "use": "Promotional Display/social creative; contains text, not a Search image asset"
+    },
+    {
+      "file": "campaigns/aml-2026/assets/aml-2026-five-courses-fr-en-square.png",
+      "width": 1254,
+      "height": 1254,
+      "use": "French five-course poster, French and English availability prominent; Display/social only, not a Search image asset"
+    },
+    {
+      "file": "campaigns/aml-2026/assets/aml-2026-five-courses-fr-en-landscape.png",
+      "width": 1734,
+      "height": 907,
+      "use": "English five-course banner, French and English availability prominent; Display/social only, not a Search image asset"
     }
-  ]
+  ],
+  "google_ads_campaign_id": "24552084132"
 }

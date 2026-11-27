@@ -1,7 +1,7 @@
 {% extends 'base_public.html.twig' %}
 
 {% block title %}{{ aml2026 ? 'AML 2026 Online Training Luxembourg | Les Consultants' : 'Online Compliance Training Catalogue Luxembourg | Les Consultants' }}{% endblock %}
-{% block meta_description %}{{ aml2026 ? 'Explore five AML/CFT courses for Luxembourg professionals: fundamentals, boards of directors, transfer agents and funds, cryptoassets and fintech.' : 'Buy professional AML/CFT, compliance, risk, GDPR and cybersecurity e-learning courses online in Luxembourg. Secure guest checkout and instant learner account activation.' }}{% endblock %}
+{% block meta_description %}{{ aml2026 ? 'Five AML/CFT courses in French and English for Luxembourg: fundamentals, boards of directors, TA and funds, cryptoassets and fintech.' : 'Buy professional AML/CFT, compliance, risk, GDPR and cybersecurity e-learning courses online in Luxembourg. Secure guest checkout and instant learner account activation.' }}{% endblock %}
 {% block meta_robots %}index, follow, max-image-preview:large, max-snippet:-1{% endblock %}
 {% block canonical_url %}{{ url('app_public_catalog', aml2026 ? {collection: 'aml-2026'} : {}) }}{% endblock %}
 {% block body_class %}catalog-document{% endblock %}
@@ -47,6 +47,7 @@
       <div class="catalog-hero__copy">
         <span class="catalog-eyebrow"><i class="fa-solid fa-sparkles" aria-hidden="true"></i>{{ aml2026 ? 'AML 2026 · Luxembourg' : 'Public course catalogue' }}</span>
         <h1>{{ aml2026 ? 'Five AML courses. Your next step.' : 'Find your next course.' }}</h1>
+        {% if aml2026 %}<p><strong><span lang="fr">Formations en français et en anglais</span> · <span lang="en">Courses in French and English</span></strong></p>{% endif %}
         <p>{{ aml2026 ? 'Build your AML/CFT knowledge with focused online training: fundamentals, boards of directors, transfer agents and funds, cryptoassets, and fintech. Choose your course and learn at your own pace.' : 'Explore practical training in compliance, risk, GDPR and cybersecurity. Read the course details, choose your training and learn at your own pace.' }}</p>
         {% if aml2026 %}<a href="{{ path('app_public_catalog') }}" class="landing-text-link">Explore the full catalogue <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>{% endif %}
         <div class="catalog-hero__proof">
