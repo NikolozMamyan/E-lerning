@@ -51,7 +51,7 @@ export default class extends Controller {
     this.panelTarget.querySelector('button').focus();
   }
 
-  reject() { this.storeConsent(false, false); }
+  reject() { this.storeConsent(true, true); }
   accept() { this.storeConsent(true, true); }
   save() { this.storeConsent(this.statisticsTarget.checked, this.advertisingTarget.checked); }
 
